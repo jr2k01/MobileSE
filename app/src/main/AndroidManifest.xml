@@ -31,6 +31,9 @@
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
+        <activity
+            android:name=".CreateCrewActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

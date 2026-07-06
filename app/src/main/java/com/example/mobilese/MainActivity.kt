@@ -19,34 +19,29 @@ class MainActivity : AppCompatActivity() {
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
 
-        // Login-Logik
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Bitte alle Felder ausfüllen!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Bitte alles ausfüllen!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-            val registeredEmail = sharedPref.getString("registered_email", null)
-            val registeredPassword = sharedPref.getString("registered_password", null)
+            val regEmail = sharedPref.getString("registered_email", null)
+            val regPass = sharedPref.getString("registered_password", null)
 
-            if (email == registeredEmail && password == registeredPassword) {
-                Toast.makeText(this, "Login erfolgreich!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, StartActivity::class.java)
-                startActivity(intent)
+            if (email == regEmail && password == regPass) {
+                startActivity(Intent(this, StartActivity::class.java))
                 finish()
             } else {
-                Toast.makeText(this, "Falsche E-Mail oder Passwort!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Fehler beim Login!", Toast.LENGTH_SHORT).show()
             }
         }
 
-        // Navigation zum Registrierungs-Screen
         btnRegister.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
 }

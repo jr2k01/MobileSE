@@ -11,14 +11,14 @@
         android:padding="24dp"
         android:gravity="center">
 
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="CrewFit"
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="32dp"/>
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            android:src="@drawable/screenshot_2026_07_05_180107"
+            android:contentDescription="CrewFit Logo"
+            android:layout_marginBottom="32dp"
+            android:scaleType="fitCenter"/>
 
         <EditText
             android:id="@+id/etEmail"

@@ -9,38 +9,26 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:gravity="center">
 
         <TextView
-            android:id="@+id/tvProfileTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Mein Profil"
+            android:text="Registrierung"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
-
-        <ImageView
-            android:id="@+id/ivProfilePicture"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:background="@android:drawable/btn_default"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp"
-            android:contentDescription="Profilbild"
-            android:scaleType="centerInside"/>
+            android:layout_marginBottom="32dp"/>
 
         <EditText
-            android:id="@+id/etName"
+            android:id="@+id/etRegName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Name"
+            android:hint="Vollständiger Name"
             android:inputType="textPersonName"
             android:layout_marginBottom="12dp"/>
 
         <EditText
-            android:id="@+id/etBirthDate"
+            android:id="@+id/etRegBirthDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Geburtsdatum (TT.MM.JJJJ)"
@@ -48,7 +36,7 @@
             android:layout_marginBottom="12dp"/>
 
         <EditText
-            android:id="@+id/etEmail"
+            android:id="@+id/etRegEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="E-Mail-Adresse"
@@ -56,41 +44,26 @@
             android:layout_marginBottom="12dp"/>
 
         <EditText
-            android:id="@+id/etAge"
+            android:id="@+id/etRegPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Alter"
-            android:inputType="number"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etHeight"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Größe (cm)"
-            android:inputType="number"
-            android:layout_marginBottom="12dp"/>
-
-        <EditText
-            android:id="@+id/etWeight"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Gewicht (kg)"
-            android:inputType="numberDecimal"
+            android:hint="Passwort"
+            android:inputType="textPassword"
             android:layout_marginBottom="24dp"/>
 
         <Button
-            android:id="@+id/btnSaveProfile"
+            android:id="@+id/btnDoRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Speichern"
-            android:layout_marginBottom="8dp"/>
+            android:text="Jetzt Registrieren"/>
 
         <Button
-            android:id="@+id/btnLogout"
+            android:id="@+id/btnBackToLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ausloggen"/>
+            style="?android:attr/borderlessButtonStyle"
+            android:text="Zurück zum Login"
+            android:layout_marginTop="8dp"/>
 
     </LinearLayout>
 </ScrollView>

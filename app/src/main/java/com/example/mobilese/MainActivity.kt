@@ -33,7 +33,14 @@ class MainActivity : AppCompatActivity() {
             val regPass = sharedPref.getString("registered_password", null)
 
             if (email == regEmail && password == regPass) {
-                startActivity(Intent(this, StartActivity::class.java))
+                // Falls bereits in einer Crew -> Home, sonst -> Start
+                val targetActivity = if (sharedPref.contains("joined_crew")) {
+                    HomeActivity::class.java
+                } else {
+                    StartActivity::class.java
+                }
+                
+                startActivity(Intent(this, targetActivity))
                 finish()
             } else {
                 Toast.makeText(this, "Fehler beim Login!", Toast.LENGTH_SHORT).show()

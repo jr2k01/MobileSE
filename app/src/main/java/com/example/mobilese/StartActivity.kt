@@ -1,5 +1,6 @@
 package com.example.mobilese
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -32,7 +33,15 @@ class StartActivity : AppCompatActivity() {
             builder.setPositiveButton("Beitreten") { _, _ ->
                 val code = input.text.toString().trim()
                 if (code.isNotEmpty()) {
-                    Toast.makeText(this, "Beigetreten!", Toast.LENGTH_SHORT).show()
+                    val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
+                    sharedPref.edit().putString("joined_crew", code).apply()
+                    
+                    Toast.makeText(this, "Crew '$code' beigetreten!", Toast.LENGTH_SHORT).show()
+                    
+                    // Zum Home Screen
+                    val intent = Intent(this, HomeActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
                 }
             }
             builder.show()

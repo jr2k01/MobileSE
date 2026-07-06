@@ -34,6 +34,14 @@
         <activity
             android:name=".CreateCrewActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CrewOverviewActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

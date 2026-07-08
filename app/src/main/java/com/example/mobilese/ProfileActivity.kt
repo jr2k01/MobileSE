@@ -107,8 +107,7 @@ class ProfileActivity : AppCompatActivity() {
             inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
 
             // Pfad im Backend speichern
-            val sharedPref = getSharedPreferences("CrewFitDatabase", MODE_PRIVATE)
-            sharedPref.edit().putString("user_${currentUserEmail}_profile_image_path", file.absolutePath).apply()
+            backend.saveUserImagePath(currentUserEmail, file.absolutePath)
             
             Toast.makeText(this, "Bild gespeichert!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {

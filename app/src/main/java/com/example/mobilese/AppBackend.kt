@@ -46,6 +46,10 @@ class AppBackend(context: Context) {
     
     fun getUserData(email: String, key: String): String = prefs.getString("user_${email}_$key", "") ?: ""
 
+    fun saveUserImagePath(email: String, path: String) {
+        prefs.edit().putString("user_${email}_profile_image_path", path).apply()
+    }
+
     // --- CREW VERWALTUNG (Geteilt via Code) ---
 
     /**
@@ -59,6 +63,10 @@ class AppBackend(context: Context) {
             val members = getCrewMembers(code).toMutableSet()
             members.add(creatorEmail)
             putStringSet("crew_data_${code}_members", members)
+            
+            // Dem Ersteller die Crew zuweisen
+            putString("user_${creatorEmail}_crew_code", code)
+            
             apply()
         }
     }
@@ -71,7 +79,13 @@ class AppBackend(context: Context) {
         
         val members = getCrewMembers(code).toMutableSet()
         members.add(userEmail)
-        prefs.edit().putStringSet("crew_data_${code}_members", members).apply()
+        
+        prefs.edit().apply {
+            putStringSet("crew_data_${code}_members", members)
+            // Dem Nutzer die Crew zuweisen
+            putString("user_${userEmail}_crew_code", code)
+            apply()
+        }
         return true
     }
 
@@ -84,7 +98,13 @@ class AppBackend(context: Context) {
     fun leaveCrew(code: String, userEmail: String) {
         val members = getCrewMembers(code).toMutableSet()
         members.remove(userEmail)
-        prefs.edit().putStringSet("crew_data_${code}_members", members).apply()
+        
+        prefs.edit().apply {
+            putStringSet("crew_data_${code}_members", members)
+            // Dem Nutzer die Crew entziehen
+            remove("user_${userEmail}_crew_code")
+            apply()
+        }
     }
 
     // --- AKTIVITÄTEN VERWALTUNG ---
@@ -109,11 +129,22 @@ class AppBackend(context: Context) {
     fun getCurrentUser(): String? = prefs.getString("current_session_user", null)
     fun logout() = prefs.edit().remove("current_session_user").apply()
     
-    // Wir speichern den 'code' in der Session, nicht den Namen
-    fun setJoinedCrewCode(code: String?) = prefs.edit().putString("session_crew_code", code).apply()
-    fun getJoinedCrewCode(): String? = prefs.getString("session_crew_code", null)
+    // Gibt den Crew-Code für den aktuell eingeloggten Nutzer zurück
+    fun getJoinedCrewCode(): String? {
+        val email = getCurrentUser() ?: return null
+        return prefs.getString("user_${email}_crew_code", null)
+    }
+
+    fun setJoinedCrewCode(code: String?) {
+        val email = getCurrentUser() ?: return
+        if (code == null) {
+            prefs.edit().remove("user_${email}_crew_code").apply()
+        } else {
+            prefs.edit().putString("user_${email}_crew_code", code).apply()
+        }
+    }
     
-    // Kompatibilitätsschicht für alten Code (optional)
+    // Kompatibilitätsschicht
     fun getJoinedCrew(): String? = getJoinedCrewCode() 
     fun setJoinedCrew(code: String?) = setJoinedCrewCode(code)
 }

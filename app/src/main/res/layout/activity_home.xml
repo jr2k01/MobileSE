@@ -3,116 +3,194 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@color/background">
 
-    <!-- Logo oben links -->
-    <ImageView
-        android:id="@+id/ivHomeLogo"
-        android:layout_width="120dp"
-        android:layout_height="60dp"
-        android:layout_margin="16dp"
-        android:src="@drawable/screenshot_2026_07_05_180107"
-        android:contentDescription="CrewFit Logo"
-        android:scaleType="fitCenter"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvHomeCrewName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Deine Crew: Name"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/ivHomeLogo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <HorizontalScrollView
-        android:id="@+id/hsvMembers"
+    <!-- Header mit Notch-Puffer -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/tvHomeCrewName"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:paddingTop="48dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:background="@color/white"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivHomeLogo"
+            android:layout_width="80dp"
+            android:layout_height="40dp"
+            android:src="@drawable/screenshot_2026_07_05_180107"
+            android:contentDescription="CrewFit Logo"
+            android:scaleType="fitCenter"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvHomeCrewName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Crew Name"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_main"
+            android:layout_marginStart="16dp"
+            app:layout_constraintTop_toTopOf="@id/ivHomeLogo"
+            app:layout_constraintBottom_toBottomOf="@id/ivHomeLogo"
+            app:layout_constraintStart_toEndOf="@id/ivHomeLogo"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/clHeader"
+        app:layout_constraintBottom_toTopOf="@id/llBottomNav">
 
         <LinearLayout
-            android:id="@+id/llMembersContainer"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:gravity="center_vertical" />
-    </HorizontalScrollView>
+            android:orientation="vertical"
+            android:padding="16dp">
 
-    <!-- Crew Icon unten links -->
-    <ImageButton
-        android:id="@+id/btnCrewOverviewIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_myplaces"
-        android:contentDescription="Crew Übersicht"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mitglieder"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:textAllCaps="true" />
 
-    <!-- Plus Icon (Aktivität hinzufügen) rechts neben Crew Icon -->
-    <ImageButton
-        android:id="@+id/btnAddActivityIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Aktivität hinzufügen"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnCrewOverviewIcon" />
+            <HorizontalScrollView
+                android:id="@+id/hsvMembers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
 
-    <!-- Dashboard Icon in der Mitte -->
-    <ImageButton
-        android:id="@+id/btnDashboardIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_sort_by_size"
-        android:contentDescription="Dashboard / Rangliste"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <LinearLayout
+                    android:id="@+id/llMembersContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical" />
+            </HorizontalScrollView>
 
-    <!-- Aktivitäten Icon links neben Profil Icon -->
-    <ImageButton
-        android:id="@+id/btnActivitiesListIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_recent_history"
-        android:contentDescription="Meine Aktivitäten"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnProfileIcon" />
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="#F3F4F6">
 
-    <!-- Profil Icon unten rechts -->
-    <ImageButton
-        android:id="@+id/btnProfileIcon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_edit"
-        android:contentDescription="Profil bearbeiten"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvRankingLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Crew Top 3"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_main" />
+
+                    <LinearLayout
+                        android:id="@+id/llRankingContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvLatestActivitiesLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Letzte Aktivitäten"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_main"
+                android:layout_marginTop="32dp" />
+
+            <LinearLayout
+                android:id="@+id/llLatestActivitiesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="12dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/llBottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:elevation="16dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnCrewOverviewIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_myplaces"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Crew"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnAddActivityIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_input_add"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Add"
+            app:tint="@color/primary" />
+
+        <ImageButton
+            android:id="@+id/btnDashboardIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Ranking"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnActivitiesListIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_recent_history"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="History"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
+            android:id="@+id/btnProfileIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_edit"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profile"
+            app:tint="@color/text_secondary" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,69 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/white">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center">
+        android:paddingTop="80dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="32dp">
 
         <TextView
+            android:id="@+id/tvRegTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Registrierung"
+            android:text="Konto erstellen"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="32dp"/>
+            android:textColor="@color/text_main"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-        <EditText
-            android:id="@+id/etRegName"
+        <TextView
+            android:id="@+id/tvRegSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Werde Teil der Crew und starte dein Training."
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintTop_toBottomOf="@id/tvRegTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="4dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegName"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Vollständiger Name"
-            android:inputType="textPersonName"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/tvRegSub"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
 
-        <EditText
-            android:id="@+id/etRegBirthDate"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegBirth"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Geburtsdatum (TT.MM.JJJJ)"
-            android:inputType="date"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegName"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
 
-        <EditText
-            android:id="@+id/etRegEmail"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegBirthDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegEmail"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="E-Mail-Adresse"
-            android:inputType="textEmailAddress"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegBirth"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
 
-        <EditText
-            android:id="@+id/etRegPassword"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilRegPass"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Passwort"
-            android:inputType="textPassword"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegEmail"
+            app:passwordToggleEnabled="true"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRegPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/btnDoRegister"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Jetzt Registrieren"/>
+            android:layout_height="56dp"
+            android:text="Jetzt Registrieren"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/tilRegPass" />
 
         <Button
             android:id="@+id/btnBackToLogin"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            style="?android:attr/borderlessButtonStyle"
-            android:text="Zurück zum Login"
-            android:layout_marginTop="8dp"/>
+            android:text="Bereits ein Konto? Einloggen"
+            android:textAllCaps="false"
+            android:textColor="@color/primary"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/btnDoRegister" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

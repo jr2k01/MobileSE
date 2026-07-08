@@ -4,32 +4,39 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#FAFAFA">
+    android:background="@color/background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:paddingTop="64dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:id="@+id/tvAddTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aktivität hinzufügen"
-            android:textSize="24sp"
+            android:text="Workout tracken"
+            android:textSize="28sp"
             android:textStyle="bold"
+            android:textColor="@color/text_main"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:id="@+id/tilSport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Sportart wählen"
+            android:hint="Was hast du trainiert?"
             android:layout_marginTop="32dp"
-            app:layout_constraintTop_toBottomOf="@id/tvAddTitle">
+            app:layout_constraintTop_toBottomOf="@id/tvAddTitle"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
 
             <AutoCompleteTextView
                 android:id="@+id/actvSport"
@@ -42,74 +49,99 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvPhoto"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="240dp"
             android:layout_marginTop="24dp"
-            app:cardCornerRadius="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
             app:strokeWidth="1dp"
-            app:strokeColor="#DDDDDD"
+            app:strokeColor="#F3F4F6"
             app:layout_constraintTop_toBottomOf="@id/tilSport">
 
-            <ImageView
-                android:id="@+id/ivWorkoutPhoto"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_camera"
-                android:padding="64dp"
-                android:alpha="0.5"/>
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/ivWorkoutPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_camera"
+                    android:padding="80dp"
+                    android:alpha="0.3"
+                    app:tint="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnTakePhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Foto aufnehmen"
+                    android:textAllCaps="false"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <Button
-            android:id="@+id/btnTakePhoto"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Foto aufnehmen"
-            app:icon="@android:drawable/ic_menu_camera"
-            app:layout_constraintTop_toBottomOf="@id/cvPhoto"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
         <!-- Standort Bereich -->
-        <LinearLayout
-            android:id="@+id/llLocation"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/btnTakePhoto">
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#F3F4F6"
+            app:layout_constraintTop_toBottomOf="@id/cvPhoto">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="?attr/colorPrimary" />
-
-            <TextView
-                android:id="@+id/tvLocationStatus"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Standort: Nicht geteilt"
-                android:textSize="14sp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp">
 
-            <Button
-                android:id="@+id/btnGetLocation"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Abrufen" />
-        </LinearLayout>
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:tint="@color/accent" />
+
+                <TextView
+                    android:id="@+id/tvLocationStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="Standort abrufen"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnGetLocation"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="GPS"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <Button
             android:id="@+id/btnSaveActivity"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="32dp"
-            android:text="Workout hinzufügen"
-            app:layout_constraintTop_toBottomOf="@id/llLocation" />
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            android:text="Workout speichern"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:layout_constraintTop_toBottomOf="@id/cvLocation" />
 
         <Button
             android:id="@+id/btnCancelAdd"
@@ -117,6 +149,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Abbrechen"
+            android:textAllCaps="false"
+            android:textColor="@color/error"
+            android:layout_marginTop="8dp"
             app:layout_constraintTop_toBottomOf="@id/btnSaveActivity"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

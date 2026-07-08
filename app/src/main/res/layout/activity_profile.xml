@@ -3,7 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA">
+    android:background="@color/background">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginStart="16dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Zurück"
+        android:src="@android:drawable/ic_menu_revert"
+        android:elevation="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/text_main" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -19,59 +33,64 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <!-- Platzhalter für den Back-Button oben -->
+            <!-- Größerer Puffer für Statusbar und Back-Button -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="80dp" />
 
             <TextView
                 android:id="@+id/tvProfileTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="32dp"
                 android:text="Mein Profil"
-                android:textColor="@color/black"
+                android:textColor="@color/text_main"
                 android:textSize="28sp"
                 android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="120dp"
                 android:layout_height="120dp"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="40dp"
                 app:cardCornerRadius="60dp"
-                app:strokeColor="?attr/colorPrimary"
+                app:cardElevation="4dp"
+                app:strokeColor="@color/primary"
                 app:strokeWidth="2dp">
 
                 <ImageView
                     android:id="@+id/ivProfilePicture"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#EEEEEE"
+                    android:background="#F3F4F6"
                     android:contentDescription="Profilbild"
                     android:padding="24dp"
                     android:scaleType="centerInside"
                     android:src="@android:drawable/ic_menu_gallery" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Persönliche Daten Sektion -->
+            <!-- Section 1 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Persönliche Informationen"
+                android:text="Persönliche Infos"
                 android:textAllCaps="true"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 android:hint="Vollständiger Name"
-                app:startIconDrawable="@android:drawable/ic_menu_myplaces">
+                app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etName"
@@ -84,9 +103,13 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 android:hint="E-Mail-Adresse"
-                app:startIconDrawable="@android:drawable/ic_dialog_email">
+                app:startIconDrawable="@android:drawable/ic_dialog_email"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
@@ -99,9 +122,13 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="32dp"
                 android:hint="Geburtsdatum"
-                app:startIconDrawable="@android:drawable/ic_menu_today">
+                app:startIconDrawable="@android:drawable/ic_menu_today"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBirthDate"
@@ -110,21 +137,22 @@
                     android:inputType="date" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Fitness Daten Sektion -->
+            <!-- Section 2 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:text="Körpermaße"
                 android:textAllCaps="true"
-                android:textColor="?attr/colorPrimary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 android:baselineAligned="false"
                 android:orientation="horizontal">
 
@@ -134,7 +162,11 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:hint="Alter">
+                    android:hint="Alter"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etAge"
@@ -148,7 +180,11 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Größe (cm)">
+                    android:hint="Größe (cm)"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusBottomEnd="12dp">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHeight"
@@ -162,8 +198,12 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:hint="Gewicht (kg)">
+                android:layout_marginBottom="40dp"
+                android:hint="Gewicht (kg)"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etWeight"
@@ -175,38 +215,28 @@
             <Button
                 android:id="@+id/btnSaveProfile"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginBottom="12dp"
+                android:layout_height="60dp"
+                android:layout_marginBottom="16dp"
                 android:text="Profil speichern"
+                android:textAllCaps="false"
                 android:textSize="16sp"
-                app:cornerRadius="8dp" />
+                android:textStyle="bold"
+                app:cornerRadius="16dp" />
 
             <Button
                 android:id="@+id/btnLogout"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
+                android:layout_marginBottom="24dp"
                 android:text="Ausloggen"
-                android:textColor="#E53935"
+                android:textAllCaps="false"
+                android:textColor="@color/error"
                 android:textSize="16sp"
-                app:cornerRadius="8dp"
-                app:strokeColor="#E53935" />
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/error" />
 
         </LinearLayout>
     </ScrollView>
-
-    <!-- Back Button am Ende definiert, damit er ÜBER dem ScrollView liegt -->
-    <ImageButton
-        android:id="@+id/btnBack"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_margin="16dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Zurück"
-        android:src="@android:drawable/ic_menu_revert"
-        android:elevation="4dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/black" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

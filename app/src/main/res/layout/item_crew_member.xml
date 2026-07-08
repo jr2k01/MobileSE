@@ -5,32 +5,35 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="8dp">
+    android:padding="12dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        app:cardCornerRadius="30dp"
-        app:strokeWidth="1dp"
-        app:strokeColor="?attr/colorPrimary">
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:cardCornerRadius="32dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="2dp"
+        app:strokeColor="@color/primary">
 
         <ImageView
             android:id="@+id/ivMemberPhoto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery" />
+            android:src="@android:drawable/ic_menu_gallery"
+            android:background="#F3F4F6"/>
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/tvMemberName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:text="Name"
         android:textSize="12sp"
-        android:textColor="@color/black"
-        android:maxWidth="70dp"
+        android:textColor="@color/text_main"
+        android:textStyle="bold"
+        android:maxWidth="80dp"
         android:ellipsize="end"
         android:maxLines="1" />
 

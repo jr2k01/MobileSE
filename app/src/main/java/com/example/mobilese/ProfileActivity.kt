@@ -102,6 +102,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         btnLogout.setOnClickListener {
+            // Logout-Logik: Zurück zur MainActivity (Login-Screen)
+            // Wir löschen den Backstack, damit man nicht mit "Zurück" wieder ins Profil kommt
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
             finish()
         }
     }

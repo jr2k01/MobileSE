@@ -24,6 +24,10 @@ class CrewOverviewActivity : AppCompatActivity() {
         val membersText = members.joinToString("\n") { email -> "- ${backend.getUserName(email)}" }
         findViewById<TextView>(R.id.tvMembersList).text = membersText
 
+        findViewById<android.widget.ImageButton>(R.id.btnBackCrew).setOnClickListener {
+            finish()
+        }
+
         findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener {
             backend.leaveCrew(joinedCrewCode, currentUser)
             backend.setJoinedCrewCode(null)

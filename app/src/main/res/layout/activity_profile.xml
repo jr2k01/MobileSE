@@ -61,7 +61,7 @@
                     android:id="@+id/ivProfilePicture"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="#F3F4F6"
+                    android:background="@color/surface"
                     android:contentDescription="Profilbild"
                     android:padding="24dp"
                     android:scaleType="centerInside"
@@ -86,7 +86,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Vollständiger Name"
+                android:textColorHint="@color/text_secondary"
+                app:hintTextColor="@color/primary"
                 app:startIconDrawable="@android:drawable/ic_menu_myplaces"
+                app:startIconTint="@color/text_secondary"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -96,6 +99,7 @@
                     android:id="@+id/etName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
                     android:inputType="textPersonName" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -105,7 +109,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="E-Mail-Adresse"
+                android:textColorHint="@color/text_secondary"
+                app:hintTextColor="@color/primary"
                 app:startIconDrawable="@android:drawable/ic_dialog_email"
+                app:startIconTint="@color/text_secondary"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -115,6 +122,7 @@
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
                     android:inputType="textEmailAddress" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -124,7 +132,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
                 android:hint="Geburtsdatum"
+                android:textColorHint="@color/text_secondary"
+                app:hintTextColor="@color/primary"
                 app:startIconDrawable="@android:drawable/ic_menu_today"
+                app:startIconTint="@color/text_secondary"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -134,6 +145,7 @@
                     android:id="@+id/etBirthDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
                     android:inputType="date" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -163,6 +175,8 @@
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
                     android:hint="Alter"
+                    android:textColorHint="@color/text_secondary"
+                    app:hintTextColor="@color/primary"
                     app:boxCornerRadiusTopStart="12dp"
                     app:boxCornerRadiusTopEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
@@ -172,6 +186,7 @@
                         android:id="@+id/etAge"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/text_main"
                         android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -181,6 +196,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:hint="Größe (cm)"
+                    android:textColorHint="@color/text_secondary"
+                    app:hintTextColor="@color/primary"
                     app:boxCornerRadiusTopStart="12dp"
                     app:boxCornerRadiusTopEnd="12dp"
                     app:boxCornerRadiusBottomStart="12dp"
@@ -190,6 +207,7 @@
                         android:id="@+id/etHeight"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:textColor="@color/text_main"
                         android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
@@ -200,6 +218,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="40dp"
                 android:hint="Gewicht (kg)"
+                android:textColorHint="@color/text_secondary"
+                app:hintTextColor="@color/primary"
                 app:boxCornerRadiusTopStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
@@ -209,6 +229,7 @@
                     android:id="@+id/etWeight"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/text_main"
                     android:inputType="numberDecimal" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -221,6 +242,7 @@
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textStyle="bold"
+                android:textColor="@color/background"
                 app:cornerRadius="16dp" />
 
             <Button

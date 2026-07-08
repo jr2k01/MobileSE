@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/white">
+    android:background="@color/background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -14,16 +14,27 @@
         android:paddingEnd="32dp"
         android:paddingBottom="32dp">
 
-        <ImageView
-            android:id="@+id/ivLogo"
-            android:layout_width="220dp"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvLogoContainer"
+            android:layout_width="120dp"
             android:layout_height="120dp"
-            android:src="@drawable/screenshot_2026_07_05_180107"
-            android:contentDescription="CrewFit Logo"
-            android:scaleType="fitCenter"
+            app:cardCornerRadius="60dp"
+            app:cardElevation="8dp"
+            app:strokeWidth="0dp"
+            app:cardBackgroundColor="@color/white"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:id="@+id/ivLogo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/logo_new"
+                android:contentDescription="CrewFit Logo"
+                android:scaleType="centerCrop"
+                android:padding="0dp" />
+        </com.google.android.material.card.MaterialCardView>
 
         <TextView
             android:id="@+id/tvWelcome"
@@ -33,7 +44,7 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/text_main"
-            app:layout_constraintTop_toBottomOf="@id/ivLogo"
+            app:layout_constraintTop_toBottomOf="@id/cvLogoContainer"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="32dp"/>
 
@@ -55,8 +66,12 @@
             android:layout_height="wrap_content"
             android:hint="E-Mail-Adresse"
             android:layout_marginTop="32dp"
+            android:textColorHint="@color/text_secondary"
+            app:hintTextColor="@color/primary"
+            app:boxStrokeColor="@color/primary"
             app:layout_constraintTop_toBottomOf="@id/tvSub"
             app:startIconDrawable="@android:drawable/ic_dialog_email"
+            app:startIconTint="@color/text_secondary"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
@@ -66,6 +81,7 @@
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
                 android:inputType="textEmailAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -76,9 +92,14 @@
             android:layout_height="wrap_content"
             android:hint="Passwort"
             android:layout_marginTop="16dp"
+            android:textColorHint="@color/text_secondary"
+            app:hintTextColor="@color/primary"
+            app:boxStrokeColor="@color/primary"
             app:layout_constraintTop_toBottomOf="@id/tilEmail"
             app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
+            app:startIconTint="@color/text_secondary"
             app:passwordToggleEnabled="true"
+            app:passwordToggleTint="@color/text_secondary"
             app:boxCornerRadiusTopStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
@@ -88,6 +109,7 @@
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -99,6 +121,7 @@
             android:textAllCaps="false"
             android:textSize="16sp"
             android:textStyle="bold"
+            android:textColor="@color/background"
             app:cornerRadius="12dp"
             android:layout_marginTop="32dp"
             app:layout_constraintTop_toBottomOf="@id/tilPassword" />

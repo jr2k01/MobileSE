@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Notch Puffer via padding -->
+    <!-- Notch Puffer -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clTop"
         android:layout_width="match_parent"
@@ -47,7 +47,7 @@
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp"
         app:strokeWidth="1dp"
-        app:strokeColor="#F3F4F6"
+        app:strokeColor="@color/divider"
         app:layout_constraintTop_toBottomOf="@id/clTop">
 
         <LinearLayout

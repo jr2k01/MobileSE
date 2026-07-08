@@ -3,31 +3,58 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvActivitySport"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sportart"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary" />
+        <ImageView
+            android:id="@+id/ivActivityPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            android:background="#EEEEEE" />
 
-        <TextView
-            android:id="@+id/tvActivityDate"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Datum"
-            android:textSize="14sp"
-            android:layout_marginTop="4dp" />
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvActivitySport"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sportart"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary" />
+
+            <TextView
+                android:id="@+id/tvActivityDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Datum"
+                android:textSize="14sp"
+                android:textColor="#777777"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvActivityLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Standort"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:layout_marginTop="8dp"
+                android:drawablePadding="4dp"
+                app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
+                app:drawableTint="#999999" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

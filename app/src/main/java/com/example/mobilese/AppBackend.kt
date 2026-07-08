@@ -2,6 +2,8 @@ package com.example.mobilese
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Ein simuliertes Backend für die App.
@@ -15,7 +17,7 @@ class AppBackend(context: Context) {
     // --- NUTZER VERWALTUNG ---
 
     fun registerUser(email: String, password: String, name: String, birthDate: String): Boolean {
-        if (prefs.contains("user_${email}_password")) return false // Nutzer existiert schon
+        if (prefs.contains("user_${email}_password")) return false
         
         prefs.edit().apply {
             putString("user_${email}_password", password)
@@ -43,46 +45,31 @@ class AppBackend(context: Context) {
     }
 
     fun getUserName(email: String): String = prefs.getString("user_${email}_name", "Unbekannt") ?: "Unbekannt"
-    
     fun getUserData(email: String, key: String): String = prefs.getString("user_${email}_$key", "") ?: ""
 
     fun saveUserImagePath(email: String, path: String) {
         prefs.edit().putString("user_${email}_profile_image_path", path).apply()
     }
 
-    // --- CREW VERWALTUNG (Geteilt via Code) ---
+    // --- CREW VERWALTUNG ---
 
-    /**
-     * Erstellt eine Crew. Der 'code' ist die eindeutige ID.
-     */
     fun createCrew(crewName: String, creatorEmail: String, code: String) {
         prefs.edit().apply {
             putString("crew_data_${code}_name", crewName)
-            
-            // Mitgliederliste für diesen Code initialisieren
             val members = getCrewMembers(code).toMutableSet()
             members.add(creatorEmail)
             putStringSet("crew_data_${code}_members", members)
-            
-            // Dem Ersteller die Crew zuweisen
             putString("user_${creatorEmail}_crew_code", code)
-            
             apply()
         }
     }
 
-    /**
-     * Tritt einer Crew via Code bei.
-     */
     fun joinCrew(code: String, userEmail: String): Boolean {
-        if (!prefs.contains("crew_data_${code}_name")) return false // Code existiert nicht
-        
+        if (!prefs.contains("crew_data_${code}_name")) return false
         val members = getCrewMembers(code).toMutableSet()
         members.add(userEmail)
-        
         prefs.edit().apply {
             putStringSet("crew_data_${code}_members", members)
-            // Dem Nutzer die Crew zuweisen
             putString("user_${userEmail}_crew_code", code)
             apply()
         }
@@ -90,18 +77,13 @@ class AppBackend(context: Context) {
     }
 
     fun getCrewName(code: String): String = prefs.getString("crew_data_${code}_name", "Unbekannte Crew") ?: "Unbekannte Crew"
-
-    fun getCrewMembers(code: String): Set<String> {
-        return prefs.getStringSet("crew_data_${code}_members", emptySet()) ?: emptySet()
-    }
+    fun getCrewMembers(code: String): Set<String> = prefs.getStringSet("crew_data_${code}_members", emptySet()) ?: emptySet()
     
     fun leaveCrew(code: String, userEmail: String) {
         val members = getCrewMembers(code).toMutableSet()
         members.remove(userEmail)
-        
         prefs.edit().apply {
             putStringSet("crew_data_${code}_members", members)
-            // Dem Nutzer die Crew entziehen
             remove("user_${userEmail}_crew_code")
             apply()
         }
@@ -109,18 +91,24 @@ class AppBackend(context: Context) {
 
     // --- AKTIVITÄTEN VERWALTUNG ---
 
-    fun addActivity(email: String, sport: String) {
+    /**
+     * Speichert eine Aktivität mit Zusatzinfos.
+     * Format: sport|timestamp|photoPath|location
+     */
+    fun addActivity(email: String, sport: String, photoPath: String, location: String) {
         val currentActivities = getUserActivities(email).toMutableList()
-        val timestamp = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-        currentActivities.add("$sport|$timestamp")
+        val timestamp = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date())
+        
+        // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
+        val activityEntry = "$sport|$timestamp|$photoPath|$location"
+        currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
     }
 
     fun getUserActivities(email: String): List<String> {
         val set = prefs.getStringSet("user_${email}_activities", emptySet()) ?: emptySet()
-        // Wir sortieren sie so, dass die neueste oben steht
-        return set.toList().sortedDescending()
+        return set.toList().sortedByDescending { it.split("|").getOrNull(1) ?: "" }
     }
 
     // --- SESSION ---
@@ -129,7 +117,6 @@ class AppBackend(context: Context) {
     fun getCurrentUser(): String? = prefs.getString("current_session_user", null)
     fun logout() = prefs.edit().remove("current_session_user").apply()
     
-    // Gibt den Crew-Code für den aktuell eingeloggten Nutzer zurück
     fun getJoinedCrewCode(): String? {
         val email = getCurrentUser() ?: return null
         return prefs.getString("user_${email}_crew_code", null)
@@ -137,14 +124,9 @@ class AppBackend(context: Context) {
 
     fun setJoinedCrewCode(code: String?) {
         val email = getCurrentUser() ?: return
-        if (code == null) {
-            prefs.edit().remove("user_${email}_crew_code").apply()
-        } else {
-            prefs.edit().putString("user_${email}_crew_code", code).apply()
-        }
+        if (code == null) prefs.edit().remove("user_${email}_crew_code").apply()
+        else prefs.edit().putString("user_${email}_crew_code", code).apply()
     }
-    
-    // Kompatibilitätsschicht
-    fun getJoinedCrew(): String? = getJoinedCrewCode() 
-    fun setJoinedCrew(code: String?) = setJoinedCrewCode(code)
+
+    fun getJoinedCrew(): String? = getJoinedCrewCode()
 }

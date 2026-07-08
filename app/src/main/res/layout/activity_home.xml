@@ -62,6 +62,32 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Plus Icon (Aktivität hinzufügen) rechts neben Crew Icon -->
+    <ImageButton
+        android:id="@+id/btnAddActivityIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Aktivität hinzufügen"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnCrewOverviewIcon" />
+
+    <!-- Aktivitäten Icon links neben Profil Icon -->
+    <ImageButton
+        android:id="@+id/btnActivitiesListIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_recent_history"
+        android:contentDescription="Meine Aktivitäten"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnProfileIcon" />
+
     <!-- Profil Icon unten rechts -->
     <ImageButton
         android:id="@+id/btnProfileIcon"

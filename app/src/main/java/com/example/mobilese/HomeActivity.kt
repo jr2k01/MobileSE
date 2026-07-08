@@ -32,6 +32,16 @@ class HomeActivity : AppCompatActivity() {
             tvCrewName.text = "Keiner Crew beigetreten"
         }
 
+        // Navigation zu den neuen Screens
+        findViewById<ImageButton>(R.id.btnAddActivityIcon).setOnClickListener {
+            startActivity(Intent(this, AddActivityActivity::class.java))
+        }
+
+        findViewById<ImageButton>(R.id.btnActivitiesListIcon).setOnClickListener {
+            startActivity(Intent(this, ActivitiesActivity::class.java))
+        }
+
+        // Bestehende Navigation
         findViewById<ImageButton>(R.id.btnProfileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }

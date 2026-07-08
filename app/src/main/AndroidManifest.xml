@@ -49,6 +49,14 @@
             android:name=".CrewOverviewActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".ActivitiesActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".AddActivityActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

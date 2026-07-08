@@ -87,6 +87,22 @@ class AppBackend(context: Context) {
         prefs.edit().putStringSet("crew_data_${code}_members", members).apply()
     }
 
+    // --- AKTIVITÄTEN VERWALTUNG ---
+
+    fun addActivity(email: String, sport: String) {
+        val currentActivities = getUserActivities(email).toMutableList()
+        val timestamp = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+        currentActivities.add("$sport|$timestamp")
+        
+        prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
+    }
+
+    fun getUserActivities(email: String): List<String> {
+        val set = prefs.getStringSet("user_${email}_activities", emptySet()) ?: emptySet()
+        // Wir sortieren sie so, dass die neueste oben steht
+        return set.toList().sortedDescending()
+    }
+
     // --- SESSION ---
     
     fun setCurrentUser(email: String) = prefs.edit().putString("current_session_user", email).apply()

@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -19,31 +18,30 @@ class MainActivity : AppCompatActivity() {
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
 
+        val backend = AppBackend(this)
+
+        // Falls bereits eingeloggt -> Direkt weiter
+        val currentUser = backend.getCurrentUser()
+        if (currentUser != null) {
+            val target = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+            startActivity(Intent(this, target))
+            finish()
+            return
+        }
+
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Bitte alles ausfüllen!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-            val regEmail = sharedPref.getString("registered_email", null)
-            val regPass = sharedPref.getString("registered_password", null)
-
-            if (email == regEmail && password == regPass) {
-                // Falls bereits in einer Crew -> Home, sonst -> Start
-                val targetActivity = if (sharedPref.contains("joined_crew")) {
-                    HomeActivity::class.java
-                } else {
-                    StartActivity::class.java
-                }
+            if (backend.loginUser(email, password)) {
+                backend.setCurrentUser(email)
+                Toast.makeText(this, "Willkommen zurück!", Toast.LENGTH_SHORT).show()
                 
-                startActivity(Intent(this, targetActivity))
+                val target = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+                startActivity(Intent(this, target))
                 finish()
             } else {
-                Toast.makeText(this, "Fehler beim Login!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "E-Mail oder Passwort falsch!", Toast.LENGTH_SHORT).show()
             }
         }
 

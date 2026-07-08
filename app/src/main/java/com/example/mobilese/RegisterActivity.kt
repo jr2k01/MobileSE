@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -19,6 +18,8 @@ class RegisterActivity : AppCompatActivity() {
         val btnRegister = findViewById<Button>(R.id.btnDoRegister)
         val btnBack = findViewById<Button>(R.id.btnBackToLogin)
 
+        val backend = AppBackend(this)
+
         btnRegister.setOnClickListener {
             val name = etName.text.toString().trim()
             val birthDate = etBirthDate.text.toString().trim()
@@ -30,21 +31,12 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-            val editor = sharedPref.edit()
-            
-            // Registrierungsdaten speichern
-            editor.putString("registered_email", email)
-            editor.putString("registered_password", password)
-            // Zusätzliche Daten für das Profil vorbefüllen
-            editor.putString("user_name", name)
-            editor.putString("user_birthdate", birthDate)
-            editor.apply()
-
-            Toast.makeText(this, "Registrierung erfolgreich!", Toast.LENGTH_SHORT).show()
-            
-            // Zurück zum Login
-            finish()
+            if (backend.registerUser(email, password, name, birthDate)) {
+                Toast.makeText(this, "Registrierung erfolgreich!", Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                Toast.makeText(this, "E-Mail bereits vergeben!", Toast.LENGTH_SHORT).show()
+            }
         }
 
         btnBack.setOnClickListener {

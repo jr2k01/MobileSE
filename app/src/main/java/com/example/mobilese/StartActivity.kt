@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -15,21 +14,22 @@ import com.journeyapps.barcodescanner.ScanOptions
 
 class StartActivity : AppCompatActivity() {
 
+    private lateinit var backend: AppBackend
+
     // QR-Scanner initialisieren
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
-        if (result.contents == null) {
-            Toast.makeText(this, "Scan abgebrochen", Toast.LENGTH_LONG).show()
-        } else {
-            val scannedCode = result.contents
-            joinCrew(scannedCode)
+        if (result.contents != null) {
+            joinCrew(result.contents)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-        if (sharedPref.contains("joined_crew")) {
+        backend = AppBackend(this)
+        
+        // Prüfen, ob bereits in Crew (via Code)
+        if (backend.getJoinedCrewCode() != null) {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
             return
@@ -37,31 +37,22 @@ class StartActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_start)
 
-        val btnCreate = findViewById<Button>(R.id.btnCreateCrew)
-        val btnJoinScanner = findViewById<Button>(R.id.btnJoinCrew)
-        val btnJoinManual = findViewById<Button>(R.id.btnJoinByCode)
-        val btnProfile = findViewById<ImageButton>(R.id.btnProfileIcon)
-
-        btnCreate.setOnClickListener {
+        findViewById<Button>(R.id.btnCreateCrew).setOnClickListener {
             startActivity(Intent(this, CreateCrewActivity::class.java))
         }
 
-        btnJoinScanner.setOnClickListener {
+        findViewById<Button>(R.id.btnJoinCrew).setOnClickListener {
             val options = ScanOptions()
             options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             options.setPrompt("Scanne den QR-Code deiner Crew")
-            options.setCameraId(0)
-            options.setBeepEnabled(true)
-            options.setBarcodeImageEnabled(true)
-            options.setOrientationLocked(false)
             barcodeLauncher.launch(options)
         }
 
-        btnJoinManual.setOnClickListener {
+        findViewById<Button>(R.id.btnJoinByCode).setOnClickListener {
             showJoinDialog()
         }
 
-        btnProfile.setOnClickListener {
+        findViewById<ImageButton>(R.id.btnProfileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
     }
@@ -74,27 +65,29 @@ class StartActivity : AppCompatActivity() {
         builder.setView(input)
         
         builder.setPositiveButton("Beitreten") { _, _ ->
-            val code = input.text.toString().trim()
-            if (code.isNotEmpty()) {
-                joinCrew(code)
-            } else {
-                Toast.makeText(this, "Bitte Code eingeben!", Toast.LENGTH_SHORT).show()
-            }
+            joinCrew(input.text.toString().trim())
         }
-        builder.setNegativeButton("Abbrechen") { dialog, _ -> dialog.cancel() }
+        builder.setNegativeButton("Abbrechen") { d, _ -> d.cancel() }
         builder.show()
     }
 
     private fun joinCrew(code: String) {
-        val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-        // In einer echten App würde man hier den Code gegen eine Datenbank prüfen
-        // Für diesen Prototyp speichern wir einfach den Code als Crew-Namen
-        sharedPref.edit().putString("joined_crew", "Crew ($code)").apply()
+        if (code.isEmpty()) return
         
-        Toast.makeText(this, "Crew erfolgreich beigetreten!", Toast.LENGTH_LONG).show()
+        val currentUser = backend.getCurrentUser() ?: return
         
-        val intent = Intent(this, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
+        // Versuch, der Crew via CODE beizutreten
+        if (backend.joinCrew(code, currentUser)) {
+            backend.setJoinedCrewCode(code)
+            val crewName = backend.getCrewName(code)
+            
+            Toast.makeText(this, "Crew '$crewName' beigetreten!", Toast.LENGTH_LONG).show()
+            
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "Ungültiger Crew-Code!", Toast.LENGTH_SHORT).show()
+        }
     }
 }

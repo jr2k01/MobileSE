@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -18,11 +17,11 @@ import java.io.FileOutputStream
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var ivProfilePicture: ImageView
-    private var selectedImageUri: Uri? = null
+    private var currentUserEmail: String = ""
+    private lateinit var backend: AppBackend
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
             ivProfilePicture.setImageURI(it)
             saveImageToInternalStorage(it)
         }
@@ -31,6 +30,12 @@ class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+
+        backend = AppBackend(this)
+        currentUserEmail = backend.getCurrentUser() ?: run {
+            finish()
+            return
+        }
 
         val etName = findViewById<EditText>(R.id.etName)
         val etBirthDate = findViewById<EditText>(R.id.etBirthDate)
@@ -43,67 +48,48 @@ class ProfileActivity : AppCompatActivity() {
         val btnLogout = findViewById<Button>(R.id.btnLogout)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
 
-        val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-
-        btnBack.setOnClickListener {
-            finish()
-        }
+        btnBack.setOnClickListener { finish() }
 
         ivProfilePicture.setOnClickListener {
             pickImageLauncher.launch("image/*")
         }
 
-        // Bestehende Daten laden
-        etName.setText(sharedPref.getString("user_name", ""))
-        etBirthDate.setText(sharedPref.getString("user_birthdate", ""))
-        etEmail.setText(sharedPref.getString("registered_email", ""))
-        etAge.setText(sharedPref.getString("user_age", ""))
-        etHeight.setText(sharedPref.getString("user_height", ""))
-        etWeight.setText(sharedPref.getString("user_weight", ""))
+        // Daten für aktuellen Nutzer laden
+        etName.setText(backend.getUserData(currentUserEmail, "name"))
+        etBirthDate.setText(backend.getUserData(currentUserEmail, "birthdate"))
+        etEmail.setText(currentUserEmail)
+        etAge.setText(backend.getUserData(currentUserEmail, "age"))
+        etHeight.setText(backend.getUserData(currentUserEmail, "height"))
+        etWeight.setText(backend.getUserData(currentUserEmail, "weight"))
 
-        // Profilbild laden, falls vorhanden
-        val imagePath = sharedPref.getString("profile_image_path", null)
-        if (imagePath != null) {
+        // Profilbild laden
+        val imagePath = backend.getUserData(currentUserEmail, "profile_image_path")
+        if (imagePath.isNotEmpty()) {
             val imgFile = File(imagePath)
             if (imgFile.exists()) {
-                val bitmap = BitmapFactory.decodeFile(imgFile.absolutePath)
-                ivProfilePicture.setImageBitmap(bitmap)
+                ivProfilePicture.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
             }
         }
 
         btnSave.setOnClickListener {
-            val name = etName.text.toString()
-            val birthDate = etBirthDate.text.toString()
-            val email = etEmail.text.toString()
-            val age = etAge.text.toString()
-            val height = etHeight.text.toString()
-            val weight = etWeight.text.toString()
-
-            val editor = sharedPref.edit()
-            editor.putString("user_name", name)
-            editor.putString("user_birthdate", birthDate)
-            editor.putString("registered_email", email)
-            editor.putString("user_age", age)
-            editor.putString("user_height", height)
-            editor.putString("user_weight", weight)
-            editor.apply()
+            backend.saveUserProfile(
+                currentUserEmail,
+                etName.text.toString(),
+                etAge.text.toString(),
+                etHeight.text.toString(),
+                etWeight.text.toString(),
+                etBirthDate.text.toString()
+            )
 
             Toast.makeText(this, "Profil gespeichert!", Toast.LENGTH_SHORT).show()
 
-            val targetActivity = if (sharedPref.contains("joined_crew")) {
-                HomeActivity::class.java
-            } else {
-                StartActivity::class.java
-            }
-
-            val intent = Intent(this, targetActivity)
-            startActivity(intent)
+            val targetActivity = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+            startActivity(Intent(this, targetActivity))
             finish()
         }
 
         btnLogout.setOnClickListener {
-            // Logout-Logik: Zurück zur MainActivity (Login-Screen)
-            // Wir löschen den Backstack, damit man nicht mit "Zurück" wieder ins Profil kommt
+            backend.logout()
             val intent = Intent(this, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
@@ -114,22 +100,19 @@ class ProfileActivity : AppCompatActivity() {
     private fun saveImageToInternalStorage(uri: Uri) {
         try {
             val inputStream = contentResolver.openInputStream(uri)
-            val file = File(filesDir, "profile_picture.jpg")
+            val fileName = "profile_${currentUserEmail.replace("@", "_")}.jpg"
+            val file = File(filesDir, fileName)
             val outputStream = FileOutputStream(file)
             
-            inputStream?.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
-                }
-            }
+            inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
 
-            val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-            sharedPref.edit().putString("profile_image_path", file.absolutePath).apply()
+            // Pfad im Backend speichern
+            val sharedPref = getSharedPreferences("CrewFitDatabase", MODE_PRIVATE)
+            sharedPref.edit().putString("user_${currentUserEmail}_profile_image_path", file.absolutePath).apply()
             
-            Toast.makeText(this, "Profilbild aktualisiert!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Bild gespeichert!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "Fehler beim Speichern des Bildes", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Fehler beim Speichern", Toast.LENGTH_SHORT).show()
         }
     }
 }

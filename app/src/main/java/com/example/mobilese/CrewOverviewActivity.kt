@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -13,21 +12,24 @@ class CrewOverviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crew_overview)
 
-        val tvCrewName = findViewById<TextView>(R.id.tvCrewNameDisplay)
-        val btnLeave = findViewById<Button>(R.id.btnLeaveCrew)
+        val backend = AppBackend(this)
+        val currentUser = backend.getCurrentUser() ?: return
+        val joinedCrewCode = backend.getJoinedCrewCode() ?: return
+        val crewName = backend.getCrewName(joinedCrewCode)
 
-        val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-        val crewName = sharedPref.getString("joined_crew", "Keine Crew")
-        tvCrewName.text = crewName
+        findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
+        
+        // Mitgliederliste (Text-Format für die Übersicht)
+        val members = backend.getCrewMembers(joinedCrewCode)
+        val membersText = members.joinToString("\n") { email -> "- ${backend.getUserName(email)}" }
+        findViewById<TextView>(R.id.tvMembersList).text = membersText
 
-        btnLeave.setOnClickListener {
-            val editor = sharedPref.edit()
-            editor.remove("joined_crew")
-            editor.apply()
+        findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener {
+            backend.leaveCrew(joinedCrewCode, currentUser)
+            backend.setJoinedCrewCode(null)
             
-            Toast.makeText(this, "Crew verlassen", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Crew '$crewName' verlassen", Toast.LENGTH_SHORT).show()
             
-            // Zurück zum Startscreen
             val intent = Intent(this, StartActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)

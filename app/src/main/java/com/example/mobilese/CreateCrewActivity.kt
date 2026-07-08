@@ -1,6 +1,5 @@
 package com.example.mobilese
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -27,22 +26,22 @@ class CreateCrewActivity : AppCompatActivity() {
         val tvUniqueCode = findViewById<TextView>(R.id.tvUniqueCrewCode)
         val btnBack = findViewById<Button>(R.id.btnBackFromCrew)
 
+        val backend = AppBackend(this)
+        val currentUser = backend.getCurrentUser() ?: return
+
         btnSave.setOnClickListener {
             val name = etCrewName.text.toString().trim()
             if (name.isEmpty()) {
-                Toast.makeText(this, "Bitte einen Namen für die Crew eingeben!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Bitte einen Namen eingeben!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Einzigartigen Code generieren (z.B. 6-stellige Mischung aus Name und Zufall)
+            // Einzigartigen Code generieren
             val uniqueCode = (name.take(3).uppercase() + (100..999).random().toString()).replace(" ", "X")
 
-            // Crew speichern und beitreten
-            val sharedPref = getSharedPreferences("CrewFitPrefs", Context.MODE_PRIVATE)
-            val editor = sharedPref.edit()
-            editor.putString("joined_crew", name)
-            editor.putString("joined_crew_code", uniqueCode)
-            editor.apply()
+            // Im Backend speichern via CODE als ID
+            backend.createCrew(name, currentUser, uniqueCode)
+            backend.setJoinedCrewCode(uniqueCode)
 
             // QR-Code generieren (enthält den einzigartigen Code)
             try {
@@ -52,8 +51,6 @@ class CreateCrewActivity : AppCompatActivity() {
                 ivQrCode.setImageBitmap(bitmap)
                 ivQrCode.visibility = View.VISIBLE
                 tvInstruction.visibility = View.VISIBLE
-                
-                // Einzigartigen Text-Code anzeigen
                 tvUniqueCode.text = uniqueCode
                 tvUniqueCode.visibility = View.VISIBLE
                 tvCodeLabel.visibility = View.VISIBLE
@@ -72,8 +69,6 @@ class CreateCrewActivity : AppCompatActivity() {
             }
         }
 
-        btnBack.setOnClickListener {
-            finish()
-        }
+        btnBack.setOnClickListener { finish() }
     }
 }

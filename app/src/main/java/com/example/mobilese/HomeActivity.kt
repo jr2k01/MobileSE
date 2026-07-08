@@ -41,6 +41,10 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, ActivitiesActivity::class.java))
         }
 
+        findViewById<ImageButton>(R.id.btnDashboardIcon).setOnClickListener {
+            startActivity(Intent(this, DashboardActivity::class.java))
+        }
+
         // Bestehende Navigation
         findViewById<ImageButton>(R.id.btnProfileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))

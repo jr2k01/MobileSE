@@ -75,6 +75,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/btnCrewOverviewIcon" />
 
+    <!-- Dashboard Icon in der Mitte -->
+    <ImageButton
+        android:id="@+id/btnDashboardIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_sort_by_size"
+        android:contentDescription="Dashboard / Rangliste"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Aktivitäten Icon links neben Profil Icon -->
     <ImageButton
         android:id="@+id/btnActivitiesListIcon"

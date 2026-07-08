@@ -59,8 +59,14 @@ class ProfileActivity : AppCompatActivity() {
 
             Toast.makeText(this, "Profil gespeichert!", Toast.LENGTH_SHORT).show()
 
-            // Nach dem Speichern zum Startscreen navigieren
-            val intent = Intent(this, StartActivity::class.java)
+            // Überprüfen, ob bereits eine Crew existiert
+            val targetActivity = if (sharedPref.contains("joined_crew")) {
+                HomeActivity::class.java
+            } else {
+                StartActivity::class.java
+            }
+
+            val intent = Intent(this, targetActivity)
             startActivity(intent)
             finish()
         }

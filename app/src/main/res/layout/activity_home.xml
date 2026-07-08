@@ -18,14 +18,14 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/tvWelcomeHome"
+        android:id="@+id/tvHomeCrewName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Willkommen in deiner Crew!"
-        android:textSize="24sp"
+        android:text="Deine Crew: Name"
+        android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toBottomOf="@id/ivHomeLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

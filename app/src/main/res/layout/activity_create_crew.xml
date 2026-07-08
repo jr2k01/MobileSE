@@ -50,6 +50,26 @@
             android:visibility="gone"
             android:contentDescription="Crew QR Code"/>
 
+        <TextView
+            android:id="@+id/tvCrewCodeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Oder teile diesen Code:"
+            android:textSize="18sp"
+            android:layout_marginTop="24dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/tvUniqueCrewCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CODE123"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"/>
+
         <Button
             android:id="@+id/btnBackFromCrew"
             android:layout_width="match_parent"

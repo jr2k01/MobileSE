@@ -63,6 +63,17 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="@color/accent" />
+
+            <ImageButton
+                android:id="@+id/btnPlayVoice"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="12dp"
+                android:src="@android:drawable/ic_lock_silent_mode_off"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:visibility="gone"
+                app:tint="@color/primary"
+                android:contentDescription="@string/play_voice" />
         </LinearLayout>
 
     </LinearLayout>

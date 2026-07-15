@@ -41,6 +41,10 @@
     <string name="train_question">What did you train?</string>
     <string name="duration_hint">Duration (minutes)</string>
     <string name="take_photo">Take Photo</string>
+    <string name="record_voice">Record Voice Note</string>
+    <string name="stop_recording">Stop Recording</string>
+    <string name="voice_recorded">Voice note recorded</string>
+    <string name="play_voice">Play Voice Note</string>
     <string name="location_status">Location: %s</string>
     <string name="location_not_shared">Not shared</string>
     <string name="location_fetching">Fetching...</string>

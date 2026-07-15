@@ -2,6 +2,7 @@ package com.example.mobilese
 
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.ImageButton
@@ -18,6 +19,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var backend: AppBackend
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     private lateinit var timeRunnable: Runnable
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -160,7 +162,8 @@ class HomeActivity : AppCompatActivity() {
                     val sport = parts[0]
                     val time = parts[1]
                     val duration = if (parts.size >= 6) parts[5] else "0"
-                    allActivities.add(LatestActivityData(userName, sport, time, duration))
+                    val voicePath = if (parts.size >= 7) parts[6] else ""
+                    allActivities.add(LatestActivityData(userName, sport, time, duration, voicePath))
                 }
             }
         }
@@ -174,16 +177,47 @@ class HomeActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = act.sport
             view.findViewById<TextView>(R.id.tvLatestActivityTime).text = act.timestamp
             view.findViewById<TextView>(R.id.tvLatestActivityDuration).text = getString(R.string.duration_unit, act.duration)
+            
+            val btnPlay = view.findViewById<ImageButton>(R.id.btnPlayVoice)
+            if (act.voicePath.isNotEmpty() && File(act.voicePath).exists()) {
+                btnPlay.visibility = android.view.View.VISIBLE
+                btnPlay.setOnClickListener {
+                    playVoiceNote(act.voicePath)
+                }
+            } else {
+                btnPlay.visibility = android.view.View.GONE
+            }
+
             container.addView(view)
         }
     }
 
-    private data class LatestActivityData(val userName: String, val sport: String, val timestamp: String, val duration: String)
+    private fun playVoiceNote(path: String) {
+        mediaPlayer?.release()
+        mediaPlayer = MediaPlayer().apply {
+            try {
+                setDataSource(path)
+                prepare()
+                start()
+                android.widget.Toast.makeText(this@HomeActivity, "Playing voice note...", android.widget.Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(this@HomeActivity, "Playback failed", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private data class LatestActivityData(val userName: String, val sport: String, val timestamp: String, val duration: String, val voicePath: String)
 
     private data class HomeMemberScore(val name: String, val points: Int, val photoPath: String)
 
     override fun onResume() {
         super.onResume()
         updateUI()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 }

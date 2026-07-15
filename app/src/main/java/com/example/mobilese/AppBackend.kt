@@ -93,9 +93,9 @@ class AppBackend(context: Context) {
 
     /**
      * Speichert eine Aktivität mit Zusatzinfos.
-     * Format: sport|timestamp|photoPath|location|crewCode|duration
+     * Format: sport|timestamp|photoPath|location|crewCode|duration|voicePath
      */
-    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String) {
+    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "") {
         val currentActivities = getUserActivities(email).toMutableList()
         
         val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY)
@@ -105,7 +105,7 @@ class AppBackend(context: Context) {
         val crewCode = getJoinedCrewCode() ?: "no_crew"
         
         // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
-        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration"
+        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration|$voicePath"
         currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()

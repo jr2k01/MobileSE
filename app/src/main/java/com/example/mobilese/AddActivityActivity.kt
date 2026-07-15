@@ -1,11 +1,11 @@
 package com.example.mobilese
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
 import android.widget.*
@@ -22,10 +22,17 @@ class AddActivityActivity : AppCompatActivity() {
     
     private lateinit var ivPreview: ImageView
     private lateinit var tvLocation: TextView
+    private lateinit var tvVoiceStatus: TextView
+    private lateinit var btnRecord: Button
+    
     private var photoUri: Uri? = null
     private var photoFile: File? = null
     private var currentPath: String = ""
     private var currentLocationString: String = "University of Hildesheim"
+    
+    private var mediaRecorder: MediaRecorder? = null
+    private var voicePath: String = ""
+    private var isRecording = false
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
@@ -38,7 +45,10 @@ class AddActivityActivity : AppCompatActivity() {
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-            getLocation()
+            // Permission handled in getLocation() call logic
+        }
+        if (permissions[Manifest.permission.RECORD_AUDIO] == true) {
+            startRecording()
         }
     }
 
@@ -53,6 +63,8 @@ class AddActivityActivity : AppCompatActivity() {
         val etDuration = findViewById<EditText>(R.id.etDuration)
         ivPreview = findViewById(R.id.ivWorkoutPhoto)
         tvLocation = findViewById(R.id.tvLocationStatus)
+        tvVoiceStatus = findViewById(R.id.tvVoiceStatus)
+        btnRecord = findViewById(R.id.btnRecordVoice)
         val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
         val btnGetLocation = findViewById<Button>(R.id.btnGetLocation)
         val btnSave = findViewById<Button>(R.id.btnSaveActivity)
@@ -71,6 +83,14 @@ class AddActivityActivity : AppCompatActivity() {
         btnGetLocation.setOnClickListener {
             checkLocationPermissions()
         }
+        
+        btnRecord.setOnClickListener {
+            if (isRecording) {
+                stopRecording()
+            } else {
+                checkAudioPermissions()
+            }
+        }
 
         btnSave.setOnClickListener {
             val sport = actvSport.text.toString()
@@ -86,12 +106,57 @@ class AddActivityActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration)
+            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath)
             Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
             finish()
         }
 
         btnCancel.setOnClickListener { finish() }
+    }
+
+    private fun checkAudioPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            startRecording()
+        } else {
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
+        }
+    }
+
+    private fun startRecording() {
+        val fileName = "voice_${System.currentTimeMillis()}.3gp"
+        val file = File(getExternalFilesDir(null), fileName)
+        voicePath = file.absolutePath
+
+        mediaRecorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+            setOutputFile(voicePath)
+            try {
+                prepare()
+                start()
+                isRecording = true
+                btnRecord.text = "STOP"
+                tvVoiceStatus.text = getString(R.string.stop_recording)
+                findViewById<ImageView>(R.id.ivVoiceStatus).setColorFilter(ContextCompat.getColor(this@AddActivityActivity, R.color.error))
+            } catch (e: Exception) {
+                Toast.makeText(this@AddActivityActivity, "Recording failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun stopRecording() {
+        mediaRecorder?.apply {
+            try {
+                stop()
+                release()
+            } catch (e: Exception) {}
+        }
+        mediaRecorder = null
+        isRecording = false
+        btnRecord.text = "REC"
+        tvVoiceStatus.text = getString(R.string.voice_recorded)
+        findViewById<ImageView>(R.id.ivVoiceStatus).setColorFilter(ContextCompat.getColor(this, R.color.accent))
     }
 
     private fun preparePhotoFile() {
@@ -122,3 +187,4 @@ class AddActivityActivity : AppCompatActivity() {
         }, 800)
     }
 }
+

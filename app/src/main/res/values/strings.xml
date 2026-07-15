@@ -34,10 +34,12 @@
     <string name="latest_activities_label">Latest Activities</string>
     <string name="no_crew_joined">Not joined any crew</string>
     <string name="points_unit">%d pts</string>
+    <string name="duration_unit">%s min</string>
 
     <!-- Add Activity -->
     <string name="track_workout">Track Workout</string>
     <string name="train_question">What did you train?</string>
+    <string name="duration_hint">Duration (minutes)</string>
     <string name="take_photo">Take Photo</string>
     <string name="location_status">Location: %s</string>
     <string name="location_not_shared">Not shared</string>

@@ -48,6 +48,29 @@
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:id="@+id/tilDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/duration_hint"
+            android:layout_marginTop="16dp"
+            android:textColorHint="@color/text_secondary"
+            app:hintTextColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tilSport"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- Foto Bereich -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvPhoto"
@@ -58,7 +81,7 @@
             app:cardElevation="2dp"
             app:strokeWidth="1dp"
             app:strokeColor="@color/divider"
-            app:layout_constraintTop_toBottomOf="@id/tilSport">
+            app:layout_constraintTop_toBottomOf="@id/tilDuration">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"

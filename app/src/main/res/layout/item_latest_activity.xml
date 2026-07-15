@@ -40,14 +40,30 @@
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvLatestActivityInfo"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Activity Type"
-            android:textSize="15sp"
-            android:textColor="@color/text_main"
-            android:layout_marginTop="4dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <TextView
+                android:id="@+id/tvLatestActivityInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Activity Type"
+                android:textSize="15sp"
+                android:textColor="@color/text_main" />
+
+            <TextView
+                android:id="@+id/tvLatestActivityDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 min"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/accent" />
+        </LinearLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

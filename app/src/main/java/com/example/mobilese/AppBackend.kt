@@ -93,9 +93,9 @@ class AppBackend(context: Context) {
 
     /**
      * Speichert eine Aktivität mit Zusatzinfos.
-     * Format: sport|timestamp|photoPath|location|crewCode
+     * Format: sport|timestamp|photoPath|location|crewCode|duration
      */
-    fun addActivity(email: String, sport: String, photoPath: String, location: String) {
+    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String) {
         val currentActivities = getUserActivities(email).toMutableList()
         
         val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY)
@@ -105,10 +105,29 @@ class AppBackend(context: Context) {
         val crewCode = getJoinedCrewCode() ?: "no_crew"
         
         // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
-        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode"
+        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration"
         currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
+    }
+
+    /**
+     * Berechnet die Punkte für eine Crew basierend auf der Dauer (1 Punkt pro 10 Min).
+     */
+    fun getPointsForCrew(email: String, crewCode: String): Int {
+        val activities = getUserActivitiesForCrew(email, crewCode)
+        var totalPoints = 0
+        for (activity in activities) {
+            val parts = activity.split("|")
+            if (parts.size >= 6) {
+                val duration = parts[5].toIntOrNull() ?: 0
+                totalPoints += duration / 10
+            } else {
+                // Fallback für alte Einträge (1 Punkt pro Workout)
+                totalPoints += 1
+            }
+        }
+        return totalPoints
     }
 
     fun getUserActivities(email: String): List<String> {

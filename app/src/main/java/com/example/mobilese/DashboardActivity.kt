@@ -36,7 +36,7 @@ class DashboardActivity : AppCompatActivity() {
 
         // Daten sammeln: Email -> Punkte (NUR Aktivitäten für diese Crew)
         val memberScores = memberEmails.map { email ->
-            val points = backend.getUserActivitiesForCrew(email, crewCode).size
+            val points = backend.getPointsForCrew(email, crewCode)
             val name = backend.getUserName(email)
             val photoPath = backend.getUserData(email, "profile_image_path")
             MemberScore(email, name, points, photoPath)

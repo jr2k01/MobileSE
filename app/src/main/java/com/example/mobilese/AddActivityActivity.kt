@@ -50,6 +50,7 @@ class AddActivityActivity : AppCompatActivity() {
         currentUser = backend.getCurrentUser() ?: run { finish(); return }
 
         val actvSport = findViewById<AutoCompleteTextView>(R.id.actvSport)
+        val etDuration = findViewById<EditText>(R.id.etDuration)
         ivPreview = findViewById(R.id.ivWorkoutPhoto)
         tvLocation = findViewById(R.id.tvLocationStatus)
         val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
@@ -73,12 +74,19 @@ class AddActivityActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val sport = actvSport.text.toString()
+            val duration = etDuration.text.toString().trim()
+            
             if (sport.isEmpty()) {
                 Toast.makeText(this, "Please select a sport!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            
+            if (duration.isEmpty()) {
+                Toast.makeText(this, "Please enter duration!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-            backend.addActivity(currentUser, sport, currentPath, currentLocationString)
+            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration)
             Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
             finish()
         }

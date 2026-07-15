@@ -53,11 +53,20 @@ class ActivitiesActivity : AppCompatActivity() {
                 
                 val tvSport = view.findViewById<TextView>(R.id.tvActivitySport)
                 val tvDate = view.findViewById<TextView>(R.id.tvActivityDate)
+                val tvDuration = view.findViewById<TextView>(R.id.tvActivityDuration)
                 val tvLocation = view.findViewById<TextView>(R.id.tvActivityLocation)
                 val ivPhoto = view.findViewById<ImageView>(R.id.ivActivityPhoto)
 
                 tvSport.text = parts[0]
                 tvDate.text = parts[1]
+                
+                // Dauer anzeigen
+                if (parts.size >= 6) {
+                    tvDuration.text = getString(R.string.duration_unit, parts[5])
+                    tvDuration.visibility = View.VISIBLE
+                } else {
+                    tvDuration.visibility = View.GONE
+                }
                 
                 // Foto laden, falls vorhanden
                 if (parts.size > 2 && parts[2].isNotEmpty()) {

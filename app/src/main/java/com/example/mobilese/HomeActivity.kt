@@ -121,7 +121,7 @@ class HomeActivity : AppCompatActivity() {
 
         val memberScores = memberEmails.map { email ->
             // NUR Aktivitäten für die AKTUELLE Crew zählen
-            val points = backend.getUserActivitiesForCrew(email, crewCode).size
+            val points = backend.getPointsForCrew(email, crewCode)
             val name = backend.getUserName(email)
             val photoPath = backend.getUserData(email, "profile_image_path")
             HomeMemberScore(name, points, photoPath)
@@ -150,29 +150,35 @@ class HomeActivity : AppCompatActivity() {
         val memberEmails = backend.getCrewMembers(crewCode)
 
         // Alle Aktivitäten aller Mitglieder sammeln (Gefiltert nach Crew)
-        val allActivities = mutableListOf<Triple<String, String, String>>() // Name, Sport, Zeit
+        val allActivities = mutableListOf<LatestActivityData>() 
         for (email in memberEmails) {
             val userName = backend.getUserName(email)
             val userActivities = backend.getUserActivitiesForCrew(email, crewCode)
             for (activityData in userActivities) {
                 val parts = activityData.split("|")
                 if (parts.size >= 2) {
-                    allActivities.add(Triple(userName, parts[0], parts[1]))
+                    val sport = parts[0]
+                    val time = parts[1]
+                    val duration = if (parts.size >= 6) parts[5] else "0"
+                    allActivities.add(LatestActivityData(userName, sport, time, duration))
                 }
             }
         }
 
         // Sortieren nach Zeit (neueste zuerst) und Top 3 nehmen
-        val latestThree = allActivities.sortedByDescending { it.third }.take(3)
+        val latestThree = allActivities.sortedByDescending { it.timestamp }.take(3)
 
         for (act in latestThree) {
             val view = inflater.inflate(R.layout.item_latest_activity, container, false)
-            view.findViewById<TextView>(R.id.tvLatestActivityUser).text = act.first
-            view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = act.second
-            view.findViewById<TextView>(R.id.tvLatestActivityTime).text = act.third
+            view.findViewById<TextView>(R.id.tvLatestActivityUser).text = act.userName
+            view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = act.sport
+            view.findViewById<TextView>(R.id.tvLatestActivityTime).text = act.timestamp
+            view.findViewById<TextView>(R.id.tvLatestActivityDuration).text = getString(R.string.duration_unit, act.duration)
             container.addView(view)
         }
     }
+
+    private data class LatestActivityData(val userName: String, val sport: String, val timestamp: String, val duration: String)
 
     private data class HomeMemberScore(val name: String, val points: Int, val photoPath: String)
 

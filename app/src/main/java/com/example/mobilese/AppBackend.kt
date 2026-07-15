@@ -93,9 +93,9 @@ class AppBackend(context: Context) {
 
     /**
      * Speichert eine Aktivität mit Zusatzinfos.
-     * Format: sport|timestamp|photoPath|location|crewCode|duration|voicePath
+     * Format: sport|timestamp|photoPath|location|crewCode|duration|voicePath|distance
      */
-    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "") {
+    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "", distance: String = "0") {
         val currentActivities = getUserActivities(email).toMutableList()
         
         val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY)
@@ -105,10 +105,33 @@ class AppBackend(context: Context) {
         val crewCode = getJoinedCrewCode() ?: "no_crew"
         
         // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
-        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration|$voicePath"
+        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration|$voicePath|$distance"
         currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
+    }
+
+    // --- CHALLENGES ---
+
+    fun addCrewChallenge(crewCode: String, type: String, goal: Int) {
+        val challenges = getCrewChallenges(crewCode).toMutableSet()
+        // Format: type|goal|id
+        val challengeId = System.currentTimeMillis().toString()
+        challenges.add("$type|$goal|$challengeId")
+        prefs.edit().putStringSet("crew_${crewCode}_challenges", challenges).apply()
+    }
+
+    fun getCrewChallenges(crewCode: String): Set<String> {
+        return prefs.getStringSet("crew_${crewCode}_challenges", emptySet()) ?: emptySet()
+    }
+
+    fun deleteCrewChallenge(crewCode: String, challengeId: String) {
+        val challenges = getCrewChallenges(crewCode).toMutableSet()
+        val toRemove = challenges.find { it.endsWith("|$challengeId") }
+        if (toRemove != null) {
+            challenges.remove(toRemove)
+            prefs.edit().putStringSet("crew_${crewCode}_challenges", challenges).apply()
+        }
     }
 
     /**
@@ -123,7 +146,6 @@ class AppBackend(context: Context) {
                 val duration = parts[5].toIntOrNull() ?: 0
                 totalPoints += duration / 10
             } else {
-                // Fallback für alte Einträge (1 Punkt pro Workout)
                 totalPoints += 1
             }
         }

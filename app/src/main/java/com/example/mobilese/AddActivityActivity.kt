@@ -61,6 +61,8 @@ class AddActivityActivity : AppCompatActivity() {
 
         val actvSport = findViewById<AutoCompleteTextView>(R.id.actvSport)
         val etDuration = findViewById<EditText>(R.id.etDuration)
+        val tilDistance = findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilDistance)
+        val etDistance = findViewById<EditText>(R.id.etDistance)
         ivPreview = findViewById(R.id.ivWorkoutPhoto)
         tvLocation = findViewById(R.id.tvLocationStatus)
         tvVoiceStatus = findViewById(R.id.tvVoiceStatus)
@@ -71,9 +73,20 @@ class AddActivityActivity : AppCompatActivity() {
         val btnCancel = findViewById<Button>(R.id.btnCancelAdd)
 
         // Dropdown befüllen
-        val sports = arrayOf("Running", "Cycling", "Swimming", "Strength Training", "Yoga", "Football", "Other")
+        val sports = arrayOf("Running", "Cycling", "Swimming", "Strength Training", "Yoga", "Football", "Gym", "Other")
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, sports)
         actvSport.setAdapter(adapter)
+
+        // Visibility logic for Distance
+        actvSport.setOnItemClickListener { _, _, position, _ ->
+            val selection = adapter.getItem(position)
+            if (selection == "Running") {
+                tilDistance.visibility = android.view.View.VISIBLE
+            } else {
+                tilDistance.visibility = android.view.View.GONE
+                etDistance.setText("")
+            }
+        }
 
         btnTakePhoto.setOnClickListener {
             preparePhotoFile()
@@ -95,6 +108,7 @@ class AddActivityActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val sport = actvSport.text.toString()
             val duration = etDuration.text.toString().trim()
+            val distance = etDistance.text.toString().trim().ifEmpty { "0" }
             
             if (sport.isEmpty()) {
                 Toast.makeText(this, "Please select a sport!", Toast.LENGTH_SHORT).show()
@@ -106,7 +120,12 @@ class AddActivityActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath)
+            if (sport == "Running" && distance == "0") {
+                Toast.makeText(this, "Please enter kilometers run!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance)
             Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
             finish()
         }

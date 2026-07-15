@@ -40,6 +40,15 @@
     <string name="track_workout">Track Workout</string>
     <string name="train_question">What did you train?</string>
     <string name="duration_hint">Duration (minutes)</string>
+    <string name="distance_hint">Distance (km)</string>
+    <string name="add_challenge_btn">Add Crew Challenge</string>
+    <string name="create_challenge_title">Create New Challenge</string>
+    <string name="challenge_type_running">Running (Total km)</string>
+    <string name="challenge_type_gym">Gym Sessions (Total count)</string>
+    <string name="challenge_goal_hint">Goal (km or sessions)</string>
+    <string name="add_btn">Add</string>
+    <string name="challenge_progress">%1$d / %2$d achieved</string>
+    <string name="challenge_completed">Challenge Completed!</string>
     <string name="take_photo">Take Photo</string>
     <string name="record_voice">Record Voice Note</string>
     <string name="stop_recording">Stop Recording</string>

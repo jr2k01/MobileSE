@@ -19,9 +19,9 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             app:cardCornerRadius="40dp"
-            app:cardElevation="4dp"
+            app:cardElevation="0dp"
             app:strokeWidth="0dp"
-            app:cardBackgroundColor="@color/white"
+            app:cardBackgroundColor="@android:color/transparent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 

@@ -34,9 +34,9 @@ class DashboardActivity : AppCompatActivity() {
         val memberEmails = backend.getCrewMembers(crewCode)
         val inflater = LayoutInflater.from(this)
 
-        // Daten sammeln: Email -> Punkte (Anzahl Aktivitäten)
+        // Daten sammeln: Email -> Punkte (NUR Aktivitäten für diese Crew)
         val memberScores = memberEmails.map { email ->
-            val points = backend.getUserActivities(email).size
+            val points = backend.getUserActivitiesForCrew(email, crewCode).size
             val name = backend.getUserName(email)
             val photoPath = backend.getUserData(email, "profile_image_path")
             MemberScore(email, name, points, photoPath)
@@ -48,7 +48,7 @@ class DashboardActivity : AppCompatActivity() {
             
             view.findViewById<TextView>(R.id.tvRank).text = (index + 1).toString()
             view.findViewById<TextView>(R.id.tvLeaderboardName).text = score.name
-            view.findViewById<TextView>(R.id.tvPoints).text = "${score.points} Pkt"
+            view.findViewById<TextView>(R.id.tvPoints).text = getString(R.string.points_unit, score.points)
 
             val iv = view.findViewById<ImageView>(R.id.ivLeaderboardPhoto)
             if (score.photoPath.isNotEmpty()) {

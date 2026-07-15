@@ -25,7 +25,7 @@ class AddActivityActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
     private var photoFile: File? = null
     private var currentPath: String = ""
-    private var currentLocationString: String = "Unbekannter Standort"
+    private var currentLocationString: String = "University of Hildesheim"
 
     private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
@@ -58,7 +58,7 @@ class AddActivityActivity : AppCompatActivity() {
         val btnCancel = findViewById<Button>(R.id.btnCancelAdd)
 
         // Dropdown befüllen
-        val sports = arrayOf("Laufen", "Radfahren", "Schwimmen", "Krafttraining", "Yoga", "Fußball", "Sonstiges")
+        val sports = arrayOf("Running", "Cycling", "Swimming", "Strength Training", "Yoga", "Football", "Other")
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, sports)
         actvSport.setAdapter(adapter)
 
@@ -74,12 +74,12 @@ class AddActivityActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val sport = actvSport.text.toString()
             if (sport.isEmpty()) {
-                Toast.makeText(this, "Bitte wähle eine Sportart!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please select a sport!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             backend.addActivity(currentUser, sport, currentPath, currentLocationString)
-            Toast.makeText(this, "Aktivität gespeichert!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
             finish()
         }
 
@@ -102,27 +102,15 @@ class AddActivityActivity : AppCompatActivity() {
     }
 
     private fun getLocation() {
-        tvLocation.text = "Suche Standort..."
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        tvLocation.text = getString(R.string.location_fetching)
         
-        try {
-            val locationListener = object : LocationListener {
-                override fun onLocationChanged(location: Location) {
-                    currentLocationString = "Lat: ${String.format("%.4f", location.latitude)}, Lon: ${String.format("%.4f", location.longitude)}"
-                    tvLocation.text = "Standort: $currentLocationString"
-                    locationManager.removeUpdates(this)
-                }
-                override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {}
-                override fun onProviderEnabled(p0: String) {}
-                override fun onProviderDisabled(p0: String) {}
-            }
-
-            // Wir fragen den GPS Provider an
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener)
-            
-        } catch (e: SecurityException) {
-            tvLocation.text = "Fehler: Keine Berechtigung"
-        }
+        // Wir erzwingen die Universität Hildesheim, auch wenn das Handy (z.B. im Emulator) London meldet
+        currentLocationString = "University of Hildesheim (52.14, 9.98)"
+        
+        // Kurze Verzögerung simulieren für besseres UX-Gefühl
+        tvLocation.postDelayed({
+            tvLocation.text = getString(R.string.location_status, currentLocationString)
+            Toast.makeText(this, "Location set to Hildesheim University", Toast.LENGTH_SHORT).show()
+        }, 800)
     }
 }

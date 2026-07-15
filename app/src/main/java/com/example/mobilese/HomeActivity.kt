@@ -10,10 +10,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HomeActivity : AppCompatActivity() {
 
     private lateinit var backend: AppBackend
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
+    private lateinit var timeRunnable: Runnable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +25,7 @@ class HomeActivity : AppCompatActivity() {
 
         backend = AppBackend(this)
         updateUI()
+        setupClock()
 
         // Navigation
         findViewById<ImageButton>(R.id.btnAddActivityIcon).setOnClickListener {
@@ -44,6 +49,25 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupClock() {
+        val tvTime = findViewById<TextView>(R.id.tvGermanTime)
+        val sdf = SimpleDateFormat("HH:mm:ss 'DE'", Locale.GERMANY)
+        sdf.timeZone = TimeZone.getTimeZone("Europe/Berlin")
+
+        timeRunnable = object : Runnable {
+            override fun run() {
+                tvTime.text = sdf.format(Date())
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.post(timeRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(timeRunnable)
+    }
+
     private fun updateUI() {
         val tvCrewName = findViewById<TextView>(R.id.tvHomeCrewName)
         val llMembersContainer = findViewById<LinearLayout>(R.id.llMembersContainer)
@@ -53,12 +77,12 @@ class HomeActivity : AppCompatActivity() {
         val joinedCrewCode = backend.getJoinedCrewCode()
         if (joinedCrewCode != null) {
             val crewName = backend.getCrewName(joinedCrewCode)
-            tvCrewName.text = "Deine Crew: $crewName"
+            tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
             populateMembers(llMembersContainer, joinedCrewCode)
             populateTopRanking(llRankingContainer, joinedCrewCode)
             populateLatestActivities(llLatestActivitiesContainer, joinedCrewCode)
         } else {
-            tvCrewName.text = "Keiner Crew beigetreten"
+            tvCrewName.text = getString(R.string.no_crew_joined)
             llMembersContainer.removeAllViews()
             llRankingContainer.removeAllViews()
             llLatestActivitiesContainer.removeAllViews()
@@ -96,7 +120,8 @@ class HomeActivity : AppCompatActivity() {
         val memberEmails = backend.getCrewMembers(crewCode)
 
         val memberScores = memberEmails.map { email ->
-            val points = backend.getUserActivities(email).size
+            // NUR Aktivitäten für die AKTUELLE Crew zählen
+            val points = backend.getUserActivitiesForCrew(email, crewCode).size
             val name = backend.getUserName(email)
             val photoPath = backend.getUserData(email, "profile_image_path")
             HomeMemberScore(name, points, photoPath)
@@ -106,7 +131,7 @@ class HomeActivity : AppCompatActivity() {
             val view = inflater.inflate(R.layout.item_leaderboard, container, false)
             view.findViewById<TextView>(R.id.tvRank).text = (index + 1).toString()
             view.findViewById<TextView>(R.id.tvLeaderboardName).text = score.name
-            view.findViewById<TextView>(R.id.tvPoints).text = "${score.points} Pkt"
+            view.findViewById<TextView>(R.id.tvPoints).text = getString(R.string.points_unit, score.points)
 
             val iv = view.findViewById<ImageView>(R.id.ivLeaderboardPhoto)
             if (score.photoPath.isNotEmpty()) {
@@ -124,11 +149,11 @@ class HomeActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         val memberEmails = backend.getCrewMembers(crewCode)
 
-        // Alle Aktivitäten aller Mitglieder sammeln
+        // Alle Aktivitäten aller Mitglieder sammeln (Gefiltert nach Crew)
         val allActivities = mutableListOf<Triple<String, String, String>>() // Name, Sport, Zeit
         for (email in memberEmails) {
             val userName = backend.getUserName(email)
-            val userActivities = backend.getUserActivities(email)
+            val userActivities = backend.getUserActivitiesForCrew(email, crewCode)
             for (activityData in userActivities) {
                 val parts = activityData.split("|")
                 if (parts.size >= 2) {

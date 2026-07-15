@@ -35,13 +35,13 @@ class MainActivity : AppCompatActivity() {
 
             if (backend.loginUser(email, password)) {
                 backend.setCurrentUser(email)
-                Toast.makeText(this, "Willkommen zurück!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.welcome_back) + "!", Toast.LENGTH_SHORT).show()
                 
                 val target = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
                 startActivity(Intent(this, target))
                 finish()
             } else {
-                Toast.makeText(this, "E-Mail oder Passwort falsch!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Email or password incorrect!", Toast.LENGTH_SHORT).show()
             }
         }
 

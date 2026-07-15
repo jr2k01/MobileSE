@@ -20,6 +20,8 @@ class StartActivity : AppCompatActivity() {
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
         if (result.contents != null) {
             joinCrew(result.contents)
+        } else {
+            Toast.makeText(this, "Scan cancelled", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -44,7 +46,7 @@ class StartActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnJoinCrew).setOnClickListener {
             val options = ScanOptions()
             options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            options.setPrompt("Scanne den QR-Code deiner Crew")
+            options.setPrompt("Scan your crew's QR code")
             barcodeLauncher.launch(options)
         }
 
@@ -59,15 +61,15 @@ class StartActivity : AppCompatActivity() {
 
     private fun showJoinDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Crew beitreten")
+        builder.setTitle("Join Crew")
         val input = EditText(this)
-        input.hint = "Einzigartigen Crew-Code eingeben"
+        input.hint = "Enter unique crew code"
         builder.setView(input)
         
-        builder.setPositiveButton("Beitreten") { _, _ ->
+        builder.setPositiveButton("Join") { _, _ ->
             joinCrew(input.text.toString().trim())
         }
-        builder.setNegativeButton("Abbrechen") { d, _ -> d.cancel() }
+        builder.setNegativeButton("Cancel") { d, _ -> d.cancel() }
         builder.show()
     }
 
@@ -81,13 +83,13 @@ class StartActivity : AppCompatActivity() {
             backend.setJoinedCrewCode(code)
             val crewName = backend.getCrewName(code)
             
-            Toast.makeText(this, "Crew '$crewName' beigetreten!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Joined crew '$crewName'!", Toast.LENGTH_LONG).show()
             
             val intent = Intent(this, HomeActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         } else {
-            Toast.makeText(this, "Ungültiger Crew-Code!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Invalid crew code!", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -35,7 +35,7 @@
                 android:id="@+id/tvLatestActivityTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Zeitpunkt"
+                android:text="Time"
                 android:textSize="11sp"
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
@@ -44,7 +44,7 @@
             android:id="@+id/tvLatestActivityInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sportart"
+            android:text="Activity Type"
             android:textSize="15sp"
             android:textColor="@color/text_main"
             android:layout_marginTop="4dp" />

@@ -27,15 +27,15 @@ class RegisterActivity : AppCompatActivity() {
             val password = etPassword.text.toString().trim()
 
             if (name.isEmpty() || birthDate.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Bitte alle Felder ausfüllen!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please fill in all fields!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (backend.registerUser(email, password, name, birthDate)) {
-                Toast.makeText(this, "Registrierung erfolgreich!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
                 finish()
             } else {
-                Toast.makeText(this, "E-Mail bereits vergeben!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Email already taken!", Toast.LENGTH_SHORT).show()
             }
         }
 

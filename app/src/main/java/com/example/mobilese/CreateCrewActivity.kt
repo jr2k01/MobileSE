@@ -20,6 +20,7 @@ class CreateCrewActivity : AppCompatActivity() {
 
         val etCrewName = findViewById<EditText>(R.id.etCrewName)
         val btnSave = findViewById<Button>(R.id.btnSaveCrew)
+        val cvQrResult = findViewById<com.google.android.material.card.MaterialCardView>(R.id.cvQrResult)
         val ivQrCode = findViewById<ImageView>(R.id.ivCrewQrCode)
         val tvInstruction = findViewById<TextView>(R.id.tvQrInstruction)
         val tvCodeLabel = findViewById<TextView>(R.id.tvCrewCodeLabel)
@@ -32,7 +33,7 @@ class CreateCrewActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val name = etCrewName.text.toString().trim()
             if (name.isEmpty()) {
-                Toast.makeText(this, "Bitte einen Namen eingeben!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter a name!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -49,15 +50,20 @@ class CreateCrewActivity : AppCompatActivity() {
                 val bitmap: Bitmap = encoder.encodeBitmap(uniqueCode, BarcodeFormat.QR_CODE, 500, 500)
                 
                 ivQrCode.setImageBitmap(bitmap)
+                
+                // Alle Ergebniselemente sichtbar machen
+                cvQrResult.visibility = View.VISIBLE
                 ivQrCode.visibility = View.VISIBLE
                 tvInstruction.visibility = View.VISIBLE
-                tvUniqueCode.text = uniqueCode
-                tvUniqueCode.visibility = View.VISIBLE
                 tvCodeLabel.visibility = View.VISIBLE
+                tvUniqueCode.visibility = View.VISIBLE
                 
-                Toast.makeText(this, "Crew '$name' erstellt!", Toast.LENGTH_SHORT).show()
+                // Einzigartigen Text-Code anzeigen
+                tvUniqueCode.text = uniqueCode
+                
+                Toast.makeText(this, "Crew '$name' created!", Toast.LENGTH_SHORT).show()
 
-                btnBack.text = "Weiter zum Home Screen"
+                btnBack.text = getString(R.string.continue_home)
                 btnBack.setOnClickListener {
                     val intent = Intent(this, HomeActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -65,7 +71,7 @@ class CreateCrewActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                Toast.makeText(this, "Fehler bei QR-Generierung", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error generating QR code", Toast.LENGTH_SHORT).show()
             }
         }
 

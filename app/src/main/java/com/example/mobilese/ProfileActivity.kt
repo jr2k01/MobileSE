@@ -81,7 +81,7 @@ class ProfileActivity : AppCompatActivity() {
                 etBirthDate.text.toString()
             )
 
-            Toast.makeText(this, "Profil gespeichert!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Profile saved!", Toast.LENGTH_SHORT).show()
 
             val targetActivity = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
             startActivity(Intent(this, targetActivity))
@@ -109,9 +109,9 @@ class ProfileActivity : AppCompatActivity() {
             // Pfad im Backend speichern
             backend.saveUserImagePath(currentUserEmail, file.absolutePath)
             
-            Toast.makeText(this, "Bild gespeichert!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Image saved!", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Toast.makeText(this, "Fehler beim Speichern", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error saving image", Toast.LENGTH_SHORT).show()
         }
     }
 }

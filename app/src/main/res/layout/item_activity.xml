@@ -32,7 +32,7 @@
                 android:id="@+id/tvActivitySport"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sportart"
+                android:text="Activity"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_main" />
@@ -41,7 +41,7 @@
                 android:id="@+id/tvActivityDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Datum"
+                android:text="Date"
                 android:textSize="14sp"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="4dp" />
@@ -57,7 +57,7 @@
                 android:id="@+id/tvActivityLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Standort"
+                android:text="Location"
                 android:textSize="12sp"
                 android:textColor="@color/text_secondary"
                 android:drawablePadding="8dp"

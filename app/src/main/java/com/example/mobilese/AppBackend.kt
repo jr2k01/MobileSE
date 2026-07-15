@@ -44,7 +44,7 @@ class AppBackend(context: Context) {
         }
     }
 
-    fun getUserName(email: String): String = prefs.getString("user_${email}_name", "Unbekannt") ?: "Unbekannt"
+    fun getUserName(email: String): String = prefs.getString("user_${email}_name", "Unknown") ?: "Unknown"
     fun getUserData(email: String, key: String): String = prefs.getString("user_${email}_$key", "") ?: ""
 
     fun saveUserImagePath(email: String, path: String) {
@@ -76,7 +76,7 @@ class AppBackend(context: Context) {
         return true
     }
 
-    fun getCrewName(code: String): String = prefs.getString("crew_data_${code}_name", "Unbekannte Crew") ?: "Unbekannte Crew"
+    fun getCrewName(code: String): String = prefs.getString("crew_data_${code}_name", "Unknown Crew") ?: "Unknown Crew"
     fun getCrewMembers(code: String): Set<String> = prefs.getStringSet("crew_data_${code}_members", emptySet()) ?: emptySet()
     
     fun leaveCrew(code: String, userEmail: String) {
@@ -93,14 +93,19 @@ class AppBackend(context: Context) {
 
     /**
      * Speichert eine Aktivität mit Zusatzinfos.
-     * Format: sport|timestamp|photoPath|location
+     * Format: sport|timestamp|photoPath|location|crewCode
      */
     fun addActivity(email: String, sport: String, photoPath: String, location: String) {
         val currentActivities = getUserActivities(email).toMutableList()
-        val timestamp = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date())
+        
+        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY)
+        sdf.timeZone = TimeZone.getTimeZone("Europe/Berlin")
+        val timestamp = sdf.format(Date())
+
+        val crewCode = getJoinedCrewCode() ?: "no_crew"
         
         // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
-        val activityEntry = "$sport|$timestamp|$photoPath|$location"
+        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode"
         currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
@@ -109,6 +114,18 @@ class AppBackend(context: Context) {
     fun getUserActivities(email: String): List<String> {
         val set = prefs.getStringSet("user_${email}_activities", emptySet()) ?: emptySet()
         return set.toList().sortedByDescending { it.split("|").getOrNull(1) ?: "" }
+    }
+
+    /**
+     * Gibt nur Aktivitäten zurück, die in der angegebenen Crew gemacht wurden.
+     */
+    fun getUserActivitiesForCrew(email: String, crewCode: String): List<String> {
+        val all = getUserActivities(email)
+        return all.filter { entry ->
+            val parts = entry.split("|")
+            // parts[4] ist der crewCode (falls vorhanden)
+            parts.size >= 5 && parts[4] == crewCode
+        }
     }
 
     // --- SESSION ---

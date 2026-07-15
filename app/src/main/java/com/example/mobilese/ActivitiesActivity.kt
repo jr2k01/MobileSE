@@ -37,7 +37,7 @@ class ActivitiesActivity : AppCompatActivity() {
 
         if (activities.isEmpty()) {
             val emptyText = TextView(this)
-            emptyText.text = "Noch keine Aktivitäten aufgezeichnet."
+            emptyText.text = "No activities recorded yet."
             emptyText.textSize = 16f
             emptyText.setPadding(0, 100, 0, 0)
             emptyText.gravity = android.view.Gravity.CENTER

@@ -18,7 +18,7 @@
             android:id="@+id/tvAddTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Workout tracken"
+            android:text="@string/track_workout"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@color/text_main"
@@ -30,7 +30,7 @@
             android:id="@+id/tilSport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Was hast du trainiert?"
+            android:hint="@string/train_question"
             android:layout_marginTop="32dp"
             android:textColorHint="@color/text_secondary"
             app:hintTextColor="@color/primary"
@@ -72,13 +72,14 @@
                     android:src="@android:drawable/ic_menu_camera"
                     android:padding="80dp"
                     android:alpha="0.3"
-                    app:tint="@color/text_secondary" />
+                    app:tint="@color/text_secondary"
+                    android:contentDescription="@string/take_photo" />
 
                 <Button
                     android:id="@+id/btnTakePhoto"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Foto aufnehmen"
+                    android:text="@string/take_photo"
                     android:textAllCaps="false"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:textColor="@color/primary"
@@ -114,7 +115,8 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_menu_mylocation"
-                    app:tint="@color/accent" />
+                    app:tint="@color/accent"
+                    android:contentDescription="@string/gps_btn" />
 
                 <TextView
                     android:id="@+id/tvLocationStatus"
@@ -122,7 +124,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="12dp"
-                    android:text="Standort abrufen"
+                    android:text="@string/location_not_shared"
                     android:textSize="14sp"
                     android:textColor="@color/text_secondary" />
 
@@ -131,7 +133,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="GPS"
+                    android:text="@string/gps_btn"
                     android:textAllCaps="false"
                     android:textColor="@color/primary"/>
             </LinearLayout>
@@ -142,7 +144,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:layout_marginTop="40dp"
-            android:text="Workout speichern"
+            android:text="@string/save_workout"
             android:textAllCaps="false"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -155,7 +157,7 @@
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Abbrechen"
+            android:text="@string/cancel_btn"
             android:textAllCaps="false"
             android:textColor="@color/error"
             android:layout_marginTop="8dp"

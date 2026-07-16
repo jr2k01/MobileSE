@@ -40,6 +40,10 @@
     <string name="track_workout">Track Workout</string>
     <string name="train_question">What did you train?</string>
     <string name="duration_hint">Duration (minutes)</string>
+    <string name="intensity_hint">Workout Intensity</string>
+    <string name="intensity_low">Low</string>
+    <string name="intensity_medium">Medium</string>
+    <string name="intensity_high">High</string>
     <string name="distance_hint">Distance (km)</string>
     <string name="add_challenge_btn">Add Crew Challenge</string>
     <string name="create_challenge_title">Create New Challenge</string>

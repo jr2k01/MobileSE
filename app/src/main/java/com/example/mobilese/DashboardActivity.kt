@@ -49,11 +49,12 @@ class DashboardActivity : AppCompatActivity() {
             .setView(dialogView)
             .setPositiveButton(R.string.add_btn) { _, _ ->
                 val selectedId = rgType.checkedRadioButtonId
-                val type = if (selectedId == R.id.rbRunning) "Running" else "Gym"
-                val goal = etGoal.text.toString().toIntOrNull() ?: 0
+                val type = if (selectedId == R.id.rbRunning) ChallengeType.DISTANCE else ChallengeType.WORKOUT_COUNT
+                val goal = etGoal.text.toString().toDoubleOrNull() ?: 0.0
                 
                 if (goal > 0) {
-                    backend.addCrewChallenge(crewCode, type, goal)
+                    val totalReward = ChallengeCalculator.calculateTotalChallengePoints(type, goal)
+                    backend.addCrewChallenge(crewCode, type.name, goal.toInt(), totalReward)
                     loadChallenges()
                     Toast.makeText(this, "Challenge added!", Toast.LENGTH_SHORT).show()
                 }
@@ -66,14 +67,15 @@ class DashboardActivity : AppCompatActivity() {
         llChallenges.removeAllViews()
         val challenges = backend.getCrewChallenges(crewCode)
         val inflater = LayoutInflater.from(this)
-        val members = backend.getCrewMembers(crewCode)
+        val members = backend.getCrewMembers(crewCode).toList()
 
         for (challengeData in challenges) {
             val parts = challengeData.split("|")
             if (parts.size >= 2) {
-                val type = parts[0]
+                val typeStr = parts[0]
                 val goal = parts[1].toIntOrNull() ?: 0
                 val challengeId = if (parts.size >= 3) parts[2] else ""
+                val reward = if (parts.size >= 4) parts[3].toIntOrNull() ?: 0 else 0
                 
                 val view = inflater.inflate(R.layout.item_challenge, llChallenges, false)
                 val tvTitle = view.findViewById<TextView>(R.id.tvChallengeTitle)
@@ -98,7 +100,7 @@ class DashboardActivity : AppCompatActivity() {
                     var memberContribution = 0
                     val acts = backend.getUserActivitiesForCrew(m, crewCode)
                     
-                    if (type == "Running") {
+                    if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
                         for (a in acts) {
                             val aParts = a.split("|")
                             if (aParts[0] == "Running" && aParts.size >= 8) {
@@ -113,7 +115,7 @@ class DashboardActivity : AppCompatActivity() {
                     totalProgress += memberContribution
                 }
 
-                if (type == "Running") {
+                if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
                     tvTitle.text = getString(R.string.challenge_type_running)
                     tvProgress.text = "$totalProgress / $goal km"
                 } else {
@@ -127,7 +129,7 @@ class DashboardActivity : AppCompatActivity() {
                     if (value > 0) {
                         val contribView = inflater.inflate(R.layout.item_challenge_contribution, llContributions, false)
                         contribView.findViewById<TextView>(R.id.tvContributorName).text = name
-                        contribView.findViewById<TextView>(R.id.tvContributorValue).text = if (type == "Running") "$value km" else "$value sessions"
+                        contribView.findViewById<TextView>(R.id.tvContributorValue).text = if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") "$value km" else "$value sessions"
                         llContributions.addView(contribView)
                     }
                 }
@@ -139,6 +141,12 @@ class DashboardActivity : AppCompatActivity() {
                     tvStatus.visibility = android.view.View.VISIBLE
                     card.setStrokeColor(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
                     pb.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
+                    
+                    // NEW: Distribute points using the TeamChallenge model
+                    val challengeModel = TeamChallenge(challengeId, tvTitle.text.toString(), true, reward, members)
+                    ChallengeManager.distributeChallengePoints(challengeModel, crewCode, backend)
+                    // Reload leaderboard in case points were distributed
+                    loadLeaderboard(llLeaderboard, crewCode)
                 }
 
                 llChallenges.addView(view)

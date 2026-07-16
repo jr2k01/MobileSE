@@ -93,9 +93,9 @@ class AppBackend(context: Context) {
 
     /**
      * Speichert eine Aktivität mit Zusatzinfos.
-     * Format: sport|timestamp|photoPath|location|crewCode|duration|voicePath|distance
+     * Format: sport|timestamp|photoPath|location|crewCode|duration|voicePath|distance|intensity
      */
-    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "", distance: String = "0") {
+    fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "", distance: String = "0", intensity: String = "MEDIUM") {
         val currentActivities = getUserActivities(email).toMutableList()
         
         val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.GERMANY)
@@ -105,7 +105,7 @@ class AppBackend(context: Context) {
         val crewCode = getJoinedCrewCode() ?: "no_crew"
         
         // Wir nutzen ein Trennzeichen, das unwahrscheinlich in Pfaden vorkommt
-        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration|$voicePath|$distance"
+        val activityEntry = "$sport|$timestamp|$photoPath|$location|$crewCode|$duration|$voicePath|$distance|$intensity"
         currentActivities.add(activityEntry)
         
         prefs.edit().putStringSet("user_${email}_activities", currentActivities.toSet()).apply()
@@ -113,11 +113,11 @@ class AppBackend(context: Context) {
 
     // --- CHALLENGES ---
 
-    fun addCrewChallenge(crewCode: String, type: String, goal: Int) {
+    fun addCrewChallenge(crewCode: String, type: String, goal: Int, reward: Int = 0) {
         val challenges = getCrewChallenges(crewCode).toMutableSet()
-        // Format: type|goal|id
+        // Format: type|goal|id|reward
         val challengeId = System.currentTimeMillis().toString()
-        challenges.add("$type|$goal|$challengeId")
+        challenges.add("$type|$goal|$challengeId|$reward")
         prefs.edit().putStringSet("crew_${crewCode}_challenges", challenges).apply()
     }
 
@@ -135,7 +135,8 @@ class AppBackend(context: Context) {
     }
 
     /**
-     * Berechnet die Punkte für eine Crew basierend auf der Dauer (1 Punkt pro 10 Min).
+     * Berechnet die Punkte für eine Crew basierend auf der Dauer und Intensität.
+     * Nutzt den PointsCalculator für die Logik.
      */
     fun getPointsForCrew(email: String, crewCode: String): Int {
         val activities = getUserActivitiesForCrew(email, crewCode)
@@ -144,12 +145,36 @@ class AppBackend(context: Context) {
             val parts = activity.split("|")
             if (parts.size >= 6) {
                 val duration = parts[5].toIntOrNull() ?: 0
-                totalPoints += duration / 10
+                val intensityStr = if (parts.size >= 9) parts[8] else "MEDIUM"
+                val intensity = try { WorkoutIntensity.valueOf(intensityStr) } catch (e: Exception) { WorkoutIntensity.MEDIUM }
+                
+                totalPoints += PointsCalculator.calculateWorkoutPoints(duration, intensity)
             } else {
                 totalPoints += 1
             }
         }
+        
+        // Add points from completed challenges
+        totalPoints += getUserChallengePoints(email, crewCode)
+        
         return totalPoints
+    }
+
+    fun getUserChallengePoints(email: String, crewCode: String): Int {
+        return prefs.getInt("user_${email}_${crewCode}_challenge_points", 0)
+    }
+
+    fun addUserChallengePoints(email: String, crewCode: String, points: Int) {
+        val current = getUserChallengePoints(email, crewCode)
+        prefs.edit().putInt("user_${email}_${crewCode}_challenge_points", current + points).apply()
+    }
+
+    fun isChallengeRewarded(email: String, challengeId: String): Boolean {
+        return prefs.getBoolean("user_${email}_challenge_${challengeId}_rewarded", false)
+    }
+
+    fun markChallengeRewarded(email: String, challengeId: String) {
+        prefs.edit().putBoolean("user_${email}_challenge_${challengeId}_rewarded", true).apply()
     }
 
     fun getUserActivities(email: String): List<String> {
@@ -167,6 +192,25 @@ class AppBackend(context: Context) {
             // parts[4] ist der crewCode (falls vorhanden)
             parts.size >= 5 && parts[4] == crewCode
         }
+    }
+
+    /**
+     * LÖSCHT ALLE AKTIVITÄTEN, PUNKTE UND CHALLENGE-FORTSCHRITTE ALLER NUTZER.
+     * Nur für die Entwicklung gedacht!
+     */
+    fun fullResetAllData() {
+        val allPrefs = prefs.all
+        val editor = prefs.edit()
+        for (key in allPrefs.keys) {
+            // Lösche alles, was mit Aktivitäten, Challenge-Punkten oder Belohnungen zu tun hat
+            if (key.endsWith("_activities") || 
+                key.contains("_challenge_points") || 
+                key.contains("_rewarded") ||
+                key.endsWith("_challenges")) {
+                editor.remove(key)
+            }
+        }
+        editor.apply()
     }
 
     // --- SESSION ---

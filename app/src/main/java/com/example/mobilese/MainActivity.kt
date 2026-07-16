@@ -48,5 +48,10 @@ class MainActivity : AppCompatActivity() {
         btnRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+
+        findViewById<Button>(R.id.btnDevReset).setOnClickListener {
+            backend.fullResetAllData()
+            Toast.makeText(this, "DEV: ALL DATA RESET", Toast.LENGTH_LONG).show()
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.mobilese
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
+import java.util.Locale
 
 class AddActivityActivity : AppCompatActivity() {
 
@@ -28,7 +30,7 @@ class AddActivityActivity : AppCompatActivity() {
     private var photoUri: Uri? = null
     private var photoFile: File? = null
     private var currentPath: String = ""
-    private var currentLocationString: String = "University of Hildesheim"
+    private var currentLocationString: String = "Waiting for GPS..."
     
     private var mediaRecorder: MediaRecorder? = null
     private var voicePath: String = ""
@@ -44,8 +46,9 @@ class AddActivityActivity : AppCompatActivity() {
     }
 
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
-            // Permission handled in getLocation() call logic
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            getLocation()
         }
         if (permissions[Manifest.permission.RECORD_AUDIO] == true) {
             startRecording()
@@ -73,7 +76,7 @@ class AddActivityActivity : AppCompatActivity() {
         val btnCancel = findViewById<Button>(R.id.btnCancelAdd)
 
         // Dropdown befüllen
-        val sports = arrayOf("Running", "Cycling", "Swimming", "Strength Training", "Yoga", "Football", "Gym", "Other")
+        val sports = arrayOf("Running", "Cycling", "Swimming", "Yoga", "Football", "Gym")
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, sports)
         actvSport.setAdapter(adapter)
 
@@ -125,7 +128,15 @@ class AddActivityActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance)
+            // Fixed Intensity Logic
+            val intensity = when (sport) {
+                "Yoga" -> WorkoutIntensity.LOW
+                "Football" -> WorkoutIntensity.MEDIUM
+                "Running", "Swimming", "Cycling", "Gym" -> WorkoutIntensity.HIGH
+                else -> WorkoutIntensity.MEDIUM
+            }.name
+
+            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance, intensity)
             Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
             finish()
         }
@@ -186,7 +197,8 @@ class AddActivityActivity : AppCompatActivity() {
     }
 
     private fun checkLocationPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             getLocation()
         } else {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
@@ -196,14 +208,27 @@ class AddActivityActivity : AppCompatActivity() {
     private fun getLocation() {
         tvLocation.text = getString(R.string.location_fetching)
         
-        // Wir erzwingen die Universität Hildesheim, auch wenn das Handy (z.B. im Emulator) London meldet
-        currentLocationString = "University of Hildesheim (52.14, 9.98)"
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         
-        // Kurze Verzögerung simulieren für besseres UX-Gefühl
-        tvLocation.postDelayed({
-            tvLocation.text = getString(R.string.location_status, currentLocationString)
-            Toast.makeText(this, "Location set to Hildesheim University", Toast.LENGTH_SHORT).show()
-        }, 800)
+        try {
+            val locationListener = object : LocationListener {
+                override fun onLocationChanged(location: Location) {
+                    currentLocationString = String.format(Locale.getDefault(), "Lat: %.4f, Lon: %.4f", location.latitude, location.longitude)
+                    tvLocation.text = getString(R.string.location_status, currentLocationString)
+                    locationManager.removeUpdates(this)
+                }
+                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+                override fun onProviderEnabled(provider: String) {}
+                override fun onProviderDisabled(provider: String) {}
+            }
+
+            // Wir fragen sowohl Netzwerk als auch GPS an
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, locationListener)
+            
+        } catch (e: SecurityException) {
+            tvLocation.text = "Error: Permission denied"
+        }
     }
 }
 

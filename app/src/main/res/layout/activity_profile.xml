@@ -250,13 +250,24 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:text="@string/logout_btn"
                 android:textAllCaps="false"
                 android:textColor="@color/error"
                 android:textSize="16sp"
                 app:cornerRadius="16dp"
                 app:strokeColor="@color/error" />
+
+            <Button
+                android:id="@+id/btnDeleteProfile"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:text="Delete Profile &amp; All Data"
+                android:textAllCaps="false"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
 
         </LinearLayout>
     </ScrollView>

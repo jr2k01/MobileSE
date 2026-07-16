@@ -127,7 +127,10 @@ class AppBackend(context: Context) {
 
     fun deleteCrewChallenge(crewCode: String, challengeId: String) {
         val challenges = getCrewChallenges(crewCode).toMutableSet()
-        val toRemove = challenges.find { it.endsWith("|$challengeId") }
+        val toRemove = challenges.find { entry ->
+            val parts = entry.split("|")
+            parts.size >= 3 && parts[2] == challengeId
+        }
         if (toRemove != null) {
             challenges.remove(toRemove)
             prefs.edit().putStringSet("crew_${crewCode}_challenges", challenges).apply()
@@ -219,6 +222,39 @@ class AppBackend(context: Context) {
     fun getCurrentUser(): String? = prefs.getString("current_session_user", null)
     fun logout() = prefs.edit().remove("current_session_user").apply()
     
+    fun deleteUserProfile(email: String) {
+        val allPrefs = prefs.all
+        val editor = prefs.edit()
+        
+        // Remove from any crew members list
+        val currentCrewCode = getJoinedCrewCode()
+        if (currentCrewCode != null) {
+            leaveCrew(currentCrewCode, email)
+        }
+
+        // Remove profile picture file if it exists
+        val photoPath = prefs.getString("user_${email}_profile_image_path", null)
+        if (photoPath != null) {
+            try {
+                java.io.File(photoPath).delete()
+            } catch (e: Exception) {}
+        }
+
+        // Delete all keys starting with user_{email}_
+        for (key in allPrefs.keys) {
+            if (key.startsWith("user_${email}_")) {
+                editor.remove(key)
+            }
+        }
+        
+        // If it's the current user, log out
+        if (getCurrentUser() == email) {
+            editor.remove("current_session_user")
+        }
+        
+        editor.apply()
+    }
+
     fun getJoinedCrewCode(): String? {
         val email = getCurrentUser() ?: return null
         return prefs.getString("user_${email}_crew_code", null)

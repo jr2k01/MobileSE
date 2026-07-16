@@ -95,6 +95,22 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+
+        findViewById<Button>(R.id.btnDeleteProfile).setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Delete Profile?")
+                .setMessage("This will permanently delete all your workouts, points, and account data. This cannot be undone.")
+                .setPositiveButton("Delete Everything") { _, _ ->
+                    backend.deleteUserProfile(currentUserEmail)
+                    Toast.makeText(this, "Profile and data deleted", Toast.LENGTH_LONG).show()
+                    val intent = Intent(this, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
     }
 
     private fun saveImageToInternalStorage(uri: Uri) {

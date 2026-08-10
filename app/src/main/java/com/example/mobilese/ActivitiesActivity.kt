@@ -9,6 +9,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import java.io.File
 
 class ActivitiesActivity : AppCompatActivity() {
@@ -27,10 +29,12 @@ class ActivitiesActivity : AppCompatActivity() {
 
         btnBack.setOnClickListener { finish() }
 
-        displayActivities(llContainer, currentUser)
+        lifecycleScope.launch {
+            displayActivities(llContainer, currentUser)
+        }
     }
 
-    private fun displayActivities(container: LinearLayout, email: String) {
+    private suspend fun displayActivities(container: LinearLayout, email: String) {
         container.removeAllViews()
         val activities = backend.getUserActivities(email)
         val inflater = LayoutInflater.from(this)
@@ -45,48 +49,44 @@ class ActivitiesActivity : AppCompatActivity() {
             return
         }
 
-        for (activityData in activities) {
-            val parts = activityData.split("|")
-            // Format: sport|timestamp|photoPath|location
-            if (parts.size >= 2) {
-                val view = inflater.inflate(R.layout.item_activity, container, false)
+        for (activity in activities) {
+            val view = inflater.inflate(R.layout.item_activity, container, false)
                 
-                val tvSport = view.findViewById<TextView>(R.id.tvActivitySport)
-                val tvDate = view.findViewById<TextView>(R.id.tvActivityDate)
-                val tvDuration = view.findViewById<TextView>(R.id.tvActivityDuration)
-                val tvLocation = view.findViewById<TextView>(R.id.tvActivityLocation)
-                val ivPhoto = view.findViewById<ImageView>(R.id.ivActivityPhoto)
+            val tvSport = view.findViewById<TextView>(R.id.tvActivitySport)
+            val tvDate = view.findViewById<TextView>(R.id.tvActivityDate)
+            val tvDuration = view.findViewById<TextView>(R.id.tvActivityDuration)
+            val tvLocation = view.findViewById<TextView>(R.id.tvActivityLocation)
+            val ivPhoto = view.findViewById<ImageView>(R.id.ivActivityPhoto)
 
-                tvSport.text = parts[0]
-                tvDate.text = parts[1]
+            tvSport.text = activity.sport
+            tvDate.text = activity.timestamp
                 
-                // Dauer anzeigen
-                if (parts.size >= 6) {
-                    tvDuration.text = getString(R.string.duration_unit, parts[5])
-                    tvDuration.visibility = View.VISIBLE
+            // Dauer anzeigen
+            tvDuration.text = getString(R.string.duration_unit, activity.duration.toString())
+            tvDuration.visibility = View.VISIBLE
+                
+            // Foto laden, falls vorhanden
+            if (!activity.photoUrl.isNullOrEmpty()) {
+                if (activity.photoUrl.startsWith("http")) {
+                    // Use Glide
                 } else {
-                    tvDuration.visibility = View.GONE
-                }
-                
-                // Foto laden, falls vorhanden
-                if (parts.size > 2 && parts[2].isNotEmpty()) {
-                    val imgFile = File(parts[2])
+                    val imgFile = File(activity.photoUrl)
                     if (imgFile.exists()) {
                         ivPhoto.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
                         ivPhoto.visibility = View.VISIBLE
                     }
                 }
-
-                // Standort anzeigen, falls vorhanden
-                if (parts.size > 3 && parts[3].isNotEmpty()) {
-                    tvLocation.text = parts[3]
-                    tvLocation.visibility = View.VISIBLE
-                } else {
-                    tvLocation.visibility = View.GONE
-                }
-
-                container.addView(view)
             }
+
+            // Standort anzeigen, falls vorhanden
+            if (!activity.location.isNullOrEmpty()) {
+                tvLocation.text = activity.location
+                tvLocation.visibility = View.VISIBLE
+            } else {
+                tvLocation.visibility = View.GONE
+            }
+
+            container.addView(view)
         }
     }
 }

@@ -7,6 +7,10 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import coil.load
+import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.launch
 import java.io.File
 
 class DashboardActivity : AppCompatActivity() {
@@ -35,8 +39,10 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun loadData() {
-        loadLeaderboard(llLeaderboard, crewCode)
-        loadChallenges()
+        lifecycleScope.launch {
+            loadLeaderboard(llLeaderboard, crewCode)
+            loadChallenges()
+        }
     }
 
     private fun showAddChallengeDialog() {
@@ -53,108 +59,106 @@ class DashboardActivity : AppCompatActivity() {
                 val goal = etGoal.text.toString().toDoubleOrNull() ?: 0.0
                 
                 if (goal > 0) {
-                    val totalReward = ChallengeCalculator.calculateTotalChallengePoints(type, goal)
-                    backend.addCrewChallenge(crewCode, type.name, goal.toInt(), totalReward)
-                    loadChallenges()
-                    Toast.makeText(this, "Challenge added!", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        val totalReward = ChallengeCalculator.calculateTotalChallengePoints(type, goal)
+                        backend.addCrewChallenge(crewCode, type.name, goal.toInt(), totalReward)
+                        loadChallenges()
+                        Toast.makeText(this@DashboardActivity, "Challenge added!", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()
     }
 
-    private fun loadChallenges() {
+    private suspend fun loadChallenges() {
         llChallenges.removeAllViews()
         val challenges = backend.getCrewChallenges(crewCode)
         val inflater = LayoutInflater.from(this)
         val members = backend.getCrewMembers(crewCode).toList()
 
         for (challengeData in challenges) {
-            val parts = challengeData.split("|")
-            if (parts.size >= 2) {
-                val typeStr = parts[0]
-                val goal = parts[1].toIntOrNull() ?: 0
-                val challengeId = if (parts.size >= 3) parts[2] else ""
-                val reward = if (parts.size >= 4) parts[3].toIntOrNull() ?: 0 else 0
+            val typeStr = challengeData.type
+            val goal = challengeData.goal
+            val challengeId = challengeData.id
+            val reward = challengeData.reward
                 
-                val view = inflater.inflate(R.layout.item_challenge, llChallenges, false)
-                val tvTitle = view.findViewById<TextView>(R.id.tvChallengeTitle)
-                val tvProgress = view.findViewById<TextView>(R.id.tvChallengeProgress)
-                val pb = view.findViewById<ProgressBar>(R.id.pbChallenge)
-                val tvStatus = view.findViewById<TextView>(R.id.tvChallengeStatus)
-                val btnDelete = view.findViewById<ImageButton>(R.id.btnDeleteChallenge)
-                val card = view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cvChallengeRoot)
-                val llContributions = view.findViewById<LinearLayout>(R.id.llContributionsContainer)
+            val view = inflater.inflate(R.layout.item_challenge, llChallenges, false)
+            val tvTitle = view.findViewById<TextView>(R.id.tvChallengeTitle)
+            val tvProgress = view.findViewById<TextView>(R.id.tvChallengeProgress)
+            val pb = view.findViewById<ProgressBar>(R.id.pbChallenge)
+            val tvStatus = view.findViewById<TextView>(R.id.tvChallengeStatus)
+            val btnDelete = view.findViewById<ImageButton>(R.id.btnDeleteChallenge)
+            val card = view.findViewById<com.google.android.material.card.MaterialCardView>(R.id.cvChallengeRoot)
+            val llContributions = view.findViewById<LinearLayout>(R.id.llContributionsContainer)
 
-                btnDelete.setOnClickListener {
+            btnDelete.setOnClickListener {
+                lifecycleScope.launch {
                     backend.deleteCrewChallenge(crewCode, challengeId)
                     loadChallenges()
-                    Toast.makeText(this, "Challenge deleted", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@DashboardActivity, "Challenge deleted", Toast.LENGTH_SHORT).show()
                 }
-
-                var totalProgress = 0
-                val contributions = mutableListOf<Pair<String, Int>>()
-
-                for (m in members) {
-                    val name = backend.getUserName(m)
-                    var memberContribution = 0
-                    val acts = backend.getUserActivitiesForCrew(m, crewCode)
-                    
-                    if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
-                        for (a in acts) {
-                            val aParts = a.split("|")
-                            if (aParts[0] == "Running" && aParts.size >= 8) {
-                                memberContribution += aParts[7].replace(",", ".").toDoubleOrNull()?.toInt() ?: 0
-                            }
-                        }
-                    } else {
-                        memberContribution = acts.count { it.startsWith("Gym|") }
-                    }
-                    
-                    contributions.add(name to memberContribution)
-                    totalProgress += memberContribution
-                }
-
-                if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
-                    tvTitle.text = getString(R.string.challenge_type_running)
-                    tvProgress.text = "$totalProgress / $goal km"
-                } else {
-                    tvTitle.text = getString(R.string.challenge_type_gym)
-                    tvProgress.text = "$totalProgress / $goal sessions"
-                }
-
-                // Display individual contributions
-                llContributions.removeAllViews()
-                contributions.sortedByDescending { it.second }.forEach { (name, value) ->
-                    if (value > 0) {
-                        val contribView = inflater.inflate(R.layout.item_challenge_contribution, llContributions, false)
-                        contribView.findViewById<TextView>(R.id.tvContributorName).text = name
-                        contribView.findViewById<TextView>(R.id.tvContributorValue).text = if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") "$value km" else "$value sessions"
-                        llContributions.addView(contribView)
-                    }
-                }
-
-                pb.max = goal
-                pb.progress = totalProgress
-
-                if (totalProgress >= goal) {
-                    tvStatus.visibility = android.view.View.VISIBLE
-                    card.setStrokeColor(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
-                    pb.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
-                    
-                    // NEW: Distribute points using the TeamChallenge model
-                    val challengeModel = TeamChallenge(challengeId, tvTitle.text.toString(), true, reward, members)
-                    ChallengeManager.distributeChallengePoints(challengeModel, crewCode, backend)
-                    // Reload leaderboard in case points were distributed
-                    loadLeaderboard(llLeaderboard, crewCode)
-                }
-
-                llChallenges.addView(view)
             }
+
+            var totalProgress = 0
+            val contributions = mutableListOf<Pair<String, Int>>()
+
+            for (m in members) {
+                val name = backend.getUserName(m)
+                var memberContribution = 0
+                val acts = backend.getUserActivitiesForCrew(m, crewCode)
+                    
+                if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
+                    for (a in acts) {
+                        memberContribution += a.distance.toInt()
+                    }
+                } else {
+                    memberContribution = acts.count { it.sport == "Gym" }
+                }
+                    
+                contributions.add(name to memberContribution)
+                totalProgress += memberContribution
+            }
+
+            if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") {
+                tvTitle.text = getString(R.string.challenge_type_running)
+                tvProgress.text = "$totalProgress / $goal km"
+            } else {
+                tvTitle.text = getString(R.string.challenge_type_gym)
+                tvProgress.text = "$totalProgress / $goal sessions"
+            }
+
+            // Display individual contributions
+            llContributions.removeAllViews()
+            contributions.sortedByDescending { it.second }.forEach { (name, value) ->
+                if (value > 0) {
+                    val contribView = inflater.inflate(R.layout.item_challenge_contribution, llContributions, false)
+                    contribView.findViewById<TextView>(R.id.tvContributorName).text = name
+                    contribView.findViewById<TextView>(R.id.tvContributorValue).text = if (typeStr == ChallengeType.DISTANCE.name || typeStr == "Running") "$value km" else "$value sessions"
+                    llContributions.addView(contribView)
+                }
+            }
+
+            pb.max = goal
+            pb.progress = totalProgress
+
+            if (totalProgress >= goal) {
+                tvStatus.visibility = android.view.View.VISIBLE
+                card.setStrokeColor(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
+                pb.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
+                    
+                // NEW: Distribute points using the TeamChallenge model
+                val challengeModel = TeamChallenge(challengeId, tvTitle.text.toString(), true, reward, members)
+                ChallengeManager.distributeChallengePoints(challengeModel, crewCode, backend)
+                // Reload leaderboard in case points were distributed
+                loadLeaderboard(llLeaderboard, crewCode)
+            }
+
+            llChallenges.addView(view)
         }
     }
 
-    private fun loadLeaderboard(container: LinearLayout, crewCode: String) {
+    private suspend fun loadLeaderboard(container: LinearLayout, crewCode: String) {
         container.removeAllViews()
         val memberEmails = backend.getCrewMembers(crewCode)
         val inflater = LayoutInflater.from(this)
@@ -177,9 +181,17 @@ class DashboardActivity : AppCompatActivity() {
 
             val iv = view.findViewById<ImageView>(R.id.ivLeaderboardPhoto)
             if (score.photoPath.isNotEmpty()) {
-                val file = File(score.photoPath)
-                if (file.exists()) {
-                    iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                if (score.photoPath.startsWith("http")) {
+                    iv.load(score.photoPath) {
+                        crossfade(true)
+                        placeholder(android.R.drawable.ic_menu_gallery)
+                        transformations(CircleCropTransformation())
+                    }
+                } else {
+                    val file = File(score.photoPath)
+                    if (file.exists()) {
+                        iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                    }
                 }
             }
 
@@ -194,4 +206,3 @@ class DashboardActivity : AppCompatActivity() {
         val photoPath: String
     )
 }
-

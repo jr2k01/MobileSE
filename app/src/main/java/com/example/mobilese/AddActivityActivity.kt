@@ -9,11 +9,16 @@ import android.location.LocationManager
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
+import coil.load
+import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 
@@ -40,8 +45,14 @@ class AddActivityActivity : AppCompatActivity() {
         if (success) {
             ivPreview.setPadding(0, 0, 0, 0)
             ivPreview.alpha = 1.0f
-            ivPreview.setImageURI(photoUri)
+            // Use Coil for a smoother preview display
+            ivPreview.load(photoUri) {
+                crossfade(true)
+                transformations(CircleCropTransformation())
+            }
             currentPath = photoFile?.absolutePath ?: ""
+        } else {
+            Log.e("Camera", "Photo capture failed or cancelled")
         }
     }
 
@@ -136,9 +147,11 @@ class AddActivityActivity : AppCompatActivity() {
                 else -> WorkoutIntensity.MEDIUM
             }.name
 
-            backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance, intensity)
-            Toast.makeText(this, "Activity saved!", Toast.LENGTH_SHORT).show()
-            finish()
+            lifecycleScope.launch {
+                backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance, intensity)
+                Toast.makeText(this@AddActivityActivity, "Activity saved!", Toast.LENGTH_SHORT).show()
+                finish()
+            }
         }
 
         btnCancel.setOnClickListener { finish() }

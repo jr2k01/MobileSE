@@ -11,6 +11,10 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import coil.load
+import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
@@ -54,38 +58,50 @@ class ProfileActivity : AppCompatActivity() {
             pickImageLauncher.launch("image/*")
         }
 
-        // Daten für aktuellen Nutzer laden
-        etName.setText(backend.getUserData(currentUserEmail, "name"))
-        etBirthDate.setText(backend.getUserData(currentUserEmail, "birthdate"))
-        etEmail.setText(currentUserEmail)
-        etAge.setText(backend.getUserData(currentUserEmail, "age"))
-        etHeight.setText(backend.getUserData(currentUserEmail, "height"))
-        etWeight.setText(backend.getUserData(currentUserEmail, "weight"))
+        lifecycleScope.launch {
+            // Daten für aktuellen Nutzer laden
+            etName.setText(backend.getUserData(currentUserEmail, "name"))
+            etBirthDate.setText(backend.getUserData(currentUserEmail, "birthdate"))
+            etEmail.setText(currentUserEmail)
+            etAge.setText(backend.getUserData(currentUserEmail, "age"))
+            etHeight.setText(backend.getUserData(currentUserEmail, "height"))
+            etWeight.setText(backend.getUserData(currentUserEmail, "weight"))
 
-        // Profilbild laden
-        val imagePath = backend.getUserData(currentUserEmail, "profile_image_path")
-        if (imagePath.isNotEmpty()) {
-            val imgFile = File(imagePath)
-            if (imgFile.exists()) {
-                ivProfilePicture.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+            // Profilbild laden
+            val imagePath = backend.getUserData(currentUserEmail, "profile_image_path")
+            if (imagePath.isNotEmpty()) {
+                if (imagePath.startsWith("http")) {
+                    ivProfilePicture.load(imagePath) {
+                        crossfade(true)
+                        placeholder(android.R.drawable.ic_menu_gallery)
+                        transformations(CircleCropTransformation())
+                    }
+                } else {
+                    val imgFile = File(imagePath)
+                    if (imgFile.exists()) {
+                        ivProfilePicture.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
+                    }
+                }
             }
         }
 
         btnSave.setOnClickListener {
-            backend.saveUserProfile(
-                currentUserEmail,
-                etName.text.toString(),
-                etAge.text.toString(),
-                etHeight.text.toString(),
-                etWeight.text.toString(),
-                etBirthDate.text.toString()
-            )
+            lifecycleScope.launch {
+                backend.saveUserProfile(
+                    currentUserEmail,
+                    etName.text.toString(),
+                    etAge.text.toString(),
+                    etHeight.text.toString(),
+                    etWeight.text.toString(),
+                    etBirthDate.text.toString()
+                )
 
-            Toast.makeText(this, "Profile saved!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ProfileActivity, "Profile saved!", Toast.LENGTH_SHORT).show()
 
-            val targetActivity = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
-            startActivity(Intent(this, targetActivity))
-            finish()
+                val targetActivity = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+                startActivity(Intent(this@ProfileActivity, targetActivity))
+                finish()
+            }
         }
 
         btnLogout.setOnClickListener {
@@ -101,12 +117,14 @@ class ProfileActivity : AppCompatActivity() {
                 .setTitle("Delete Profile?")
                 .setMessage("This will permanently delete all your workouts, points, and account data. This cannot be undone.")
                 .setPositiveButton("Delete Everything") { _, _ ->
-                    backend.deleteUserProfile(currentUserEmail)
-                    Toast.makeText(this, "Profile and data deleted", Toast.LENGTH_LONG).show()
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                    finish()
+                    lifecycleScope.launch {
+                        backend.deleteUserProfile(currentUserEmail)
+                        Toast.makeText(this@ProfileActivity, "Profile and data deleted", Toast.LENGTH_LONG).show()
+                        val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        finish()
+                    }
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
@@ -122,10 +140,11 @@ class ProfileActivity : AppCompatActivity() {
             
             inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
 
-            // Pfad im Backend speichern
-            backend.saveUserImagePath(currentUserEmail, file.absolutePath)
-            
-            Toast.makeText(this, "Image saved!", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                // Pfad im Backend speichern
+                backend.saveUserImagePath(currentUserEmail, file.absolutePath)
+                Toast.makeText(this@ProfileActivity, "Image saved!", Toast.LENGTH_SHORT).show()
+            }
         } catch (e: Exception) {
             Toast.makeText(this, "Error saving image", Toast.LENGTH_SHORT).show()
         }

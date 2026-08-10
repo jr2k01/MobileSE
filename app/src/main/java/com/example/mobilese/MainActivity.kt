@@ -6,6 +6,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,15 +35,16 @@ class MainActivity : AppCompatActivity() {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            if (backend.loginUser(email, password)) {
-                backend.setCurrentUser(email)
-                Toast.makeText(this, getString(R.string.welcome_back) + "!", Toast.LENGTH_SHORT).show()
-                
-                val target = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
-                startActivity(Intent(this, target))
-                finish()
-            } else {
-                Toast.makeText(this, "Email or password incorrect!", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                if (backend.loginUser(email, password)) {
+                    Toast.makeText(this@MainActivity, getString(R.string.welcome_back) + "!", Toast.LENGTH_SHORT).show()
+                    
+                    val target = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+                    startActivity(Intent(this@MainActivity, target))
+                    finish()
+                } else {
+                    Toast.makeText(this@MainActivity, "Email or password incorrect!", Toast.LENGTH_SHORT).show()
+                }
             }
         }
 

@@ -10,6 +10,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import coil.load
+import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -78,11 +82,13 @@ class HomeActivity : AppCompatActivity() {
 
         val joinedCrewCode = backend.getJoinedCrewCode()
         if (joinedCrewCode != null) {
-            val crewName = backend.getCrewName(joinedCrewCode)
-            tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
-            populateMembers(llMembersContainer, joinedCrewCode)
-            populateTopRanking(llRankingContainer, joinedCrewCode)
-            populateLatestActivities(llLatestActivitiesContainer, joinedCrewCode)
+            lifecycleScope.launch {
+                val crewName = backend.getCrewName(joinedCrewCode)
+                tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
+                populateMembers(llMembersContainer, joinedCrewCode)
+                populateTopRanking(llRankingContainer, joinedCrewCode)
+                populateLatestActivities(llLatestActivitiesContainer, joinedCrewCode)
+            }
         } else {
             tvCrewName.text = getString(R.string.no_crew_joined)
             llMembersContainer.removeAllViews()
@@ -91,7 +97,7 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-    private fun populateMembers(container: LinearLayout, crewCode: String) {
+    private suspend fun populateMembers(container: LinearLayout, crewCode: String) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(this)
         val members = backend.getCrewMembers(crewCode)
@@ -108,15 +114,23 @@ class HomeActivity : AppCompatActivity() {
         view.findViewById<TextView>(R.id.tvMemberName).text = name
         val iv = view.findViewById<ImageView>(R.id.ivMemberPhoto)
         if (!imagePath.isNullOrEmpty()) {
-            val file = File(imagePath)
-            if (file.exists()) {
-                iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+            if (imagePath.startsWith("http")) {
+                iv.load(imagePath) {
+                    crossfade(true)
+                    placeholder(android.R.drawable.ic_menu_gallery)
+                    transformations(CircleCropTransformation())
+                }
+            } else {
+                val file = File(imagePath)
+                if (file.exists()) {
+                    iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                }
             }
         }
         container.addView(view)
     }
 
-    private fun populateTopRanking(container: LinearLayout, crewCode: String) {
+    private suspend fun populateTopRanking(container: LinearLayout, crewCode: String) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(this)
         val memberEmails = backend.getCrewMembers(crewCode)
@@ -137,16 +151,24 @@ class HomeActivity : AppCompatActivity() {
 
             val iv = view.findViewById<ImageView>(R.id.ivLeaderboardPhoto)
             if (score.photoPath.isNotEmpty()) {
-                val file = File(score.photoPath)
-                if (file.exists()) {
-                    iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                if (score.photoPath.startsWith("http")) {
+                    iv.load(score.photoPath) {
+                        crossfade(true)
+                        placeholder(android.R.drawable.ic_menu_gallery)
+                        transformations(CircleCropTransformation())
+                    }
+                } else {
+                    val file = File(score.photoPath)
+                    if (file.exists()) {
+                        iv.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
+                    }
                 }
             }
             container.addView(view)
         }
     }
 
-    private fun populateLatestActivities(container: LinearLayout, crewCode: String) {
+    private suspend fun populateLatestActivities(container: LinearLayout, crewCode: String) {
         container.removeAllViews()
         val inflater = LayoutInflater.from(this)
         val memberEmails = backend.getCrewMembers(crewCode)
@@ -156,15 +178,8 @@ class HomeActivity : AppCompatActivity() {
         for (email in memberEmails) {
             val userName = backend.getUserName(email)
             val userActivities = backend.getUserActivitiesForCrew(email, crewCode)
-            for (activityData in userActivities) {
-                val parts = activityData.split("|")
-                if (parts.size >= 2) {
-                    val sport = parts[0]
-                    val time = parts[1]
-                    val duration = if (parts.size >= 6) parts[5] else "0"
-                    val voicePath = if (parts.size >= 7) parts[6] else ""
-                    allActivities.add(LatestActivityData(userName, sport, time, duration, voicePath))
-                }
+            for (activity in userActivities) {
+                allActivities.add(LatestActivityData(userName, activity.sport, activity.timestamp, activity.duration.toString(), activity.voiceUrl ?: ""))
             }
         }
 
@@ -179,7 +194,7 @@ class HomeActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.tvLatestActivityDuration).text = getString(R.string.duration_unit, act.duration)
             
             val btnPlay = view.findViewById<ImageButton>(R.id.btnPlayVoice)
-            if (act.voicePath.isNotEmpty() && File(act.voicePath).exists()) {
+            if (act.voicePath.isNotEmpty()) {
                 btnPlay.visibility = android.view.View.VISIBLE
                 btnPlay.setOnClickListener {
                     playVoiceNote(act.voicePath)

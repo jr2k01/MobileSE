@@ -1,5 +1,8 @@
 package com.example.mobilese
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TeamChallenge(
     val id: String,
     val title: String,
@@ -14,7 +17,7 @@ object ChallengeManager {
      * Rewards are distributed fairly based on the total pool and participant count.
      * Ensures each user only receives the reward once per challenge.
      */
-    fun distributeChallengePoints(challenge: TeamChallenge, crewCode: String, backend: AppBackend) {
+    suspend fun distributeChallengePoints(challenge: TeamChallenge, crewCode: String, backend: AppBackend) {
         if (challenge.isCompleted) {
             val participantCount = challenge.participantIds.size
             val pointsPerUser = ChallengeCalculator.calculatePointsPerParticipant(challenge.rewardPool, participantCount)

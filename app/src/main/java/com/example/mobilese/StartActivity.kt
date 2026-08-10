@@ -8,7 +8,9 @@ import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
+import kotlinx.coroutines.launch
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 
@@ -78,18 +80,18 @@ class StartActivity : AppCompatActivity() {
         
         val currentUser = backend.getCurrentUser() ?: return
         
-        // Versuch, der Crew via CODE beizutreten
-        if (backend.joinCrew(code, currentUser)) {
-            backend.setJoinedCrewCode(code)
-            val crewName = backend.getCrewName(code)
-            
-            Toast.makeText(this, "Joined crew '$crewName'!", Toast.LENGTH_LONG).show()
-            
-            val intent = Intent(this, HomeActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-        } else {
-            Toast.makeText(this, "Invalid crew code!", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            // Versuch, der Crew via CODE beizutreten
+            if (backend.joinCrew(code, currentUser)) {
+                val crewName = backend.getCrewName(code)
+                Toast.makeText(this@StartActivity, "Joined crew '$crewName'!", Toast.LENGTH_LONG).show()
+                
+                val intent = Intent(this@StartActivity, HomeActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            } else {
+                Toast.makeText(this@StartActivity, "Invalid crew code!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

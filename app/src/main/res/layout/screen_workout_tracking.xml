@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="64dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvAddTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/track_workout"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_main"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:id="@+id/tilSport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/train_question"
+            android:layout_marginTop="32dp"
+            android:textColorHint="@color/text_secondary"
+            app:hintTextColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tvAddTitle"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <AutoCompleteTextView
+                android:id="@+id/actvSport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:id="@+id/tilDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/duration_hint"
+            android:layout_marginTop="16dp"
+            android:textColorHint="@color/text_secondary"
+            app:hintTextColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tilSport"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDuration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:id="@+id/tilDistance"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/distance_hint"
+            android:layout_marginTop="16dp"
+            android:textColorHint="@color/text_secondary"
+            android:visibility="gone"
+            app:hintTextColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tilDuration"
+            app:boxCornerRadiusTopStart="12dp"
+            app:boxCornerRadiusTopEnd="12dp"
+            app:boxCornerRadiusBottomStart="12dp"
+            app:boxCornerRadiusBottomEnd="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDistance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:inputType="numberDecimal" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Foto Bereich -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider"
+            app:layout_constraintTop_toBottomOf="@id/tilDistance">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/ivWorkoutPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_camera"
+                    android:padding="80dp"
+                    android:alpha="0.3"
+                    app:tint="@color/text_secondary"
+                    android:contentDescription="@string/take_photo" />
+
+                <Button
+                    android:id="@+id/btnTakePhoto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/take_photo"
+                    android:textAllCaps="false"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:textColor="@color/primary"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    app:iconTint="@color/primary"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Sprachnachricht Bereich -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvVoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider"
+            app:layout_constraintTop_toBottomOf="@id/cvPhoto">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:id="@+id/ivVoiceStatus"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_btn_speak_now"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvVoiceStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/record_voice"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnRecordVoice"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="REC"
+                    android:textAllCaps="false"
+                    android:textColor="@color/error"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Standort Bereich -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="@color/divider"
+            app:layout_constraintTop_toBottomOf="@id/cvVoice">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:tint="@color/accent"
+                    android:contentDescription="@string/gps_btn" />
+
+                <TextView
+                    android:id="@+id/tvLocationStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/location_not_shared"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <Button
+                    android:id="@+id/btnGetLocation"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/gps_btn"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <Button
+            android:id="@+id/btnSaveActivity"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            android:text="@string/save_workout"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/background"
+            app:cornerRadius="12dp"
+            app:layout_constraintTop_toBottomOf="@id/cvLocation" />
+
+        <Button
+            android:id="@+id/btnCancelAdd"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel_btn"
+            android:textAllCaps="false"
+            android:textColor="@color/error"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/btnSaveActivity"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

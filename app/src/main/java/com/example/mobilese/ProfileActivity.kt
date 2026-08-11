@@ -22,7 +22,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var ivProfilePicture: ImageView
     private var currentUserEmail: String = ""
-    private lateinit var backend: AppBackend
+    private lateinit var backend: AppRepository
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
@@ -33,9 +33,9 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_profile)
+        setContentView(R.layout.screen_profile)
 
-        backend = AppBackend(this)
+        backend = AppRepository(this)
         currentUserEmail = backend.getCurrentUser() ?: run {
             finish()
             return
@@ -59,7 +59,6 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            // Daten für aktuellen Nutzer laden
             etName.setText(backend.getUserData(currentUserEmail, "name"))
             etBirthDate.setText(backend.getUserData(currentUserEmail, "birthdate"))
             etEmail.setText(currentUserEmail)
@@ -67,7 +66,6 @@ class ProfileActivity : AppCompatActivity() {
             etHeight.setText(backend.getUserData(currentUserEmail, "height"))
             etWeight.setText(backend.getUserData(currentUserEmail, "weight"))
 
-            // Profilbild laden
             val imagePath = backend.getUserData(currentUserEmail, "profile_image_path")
             if (imagePath.isNotEmpty()) {
                 if (imagePath.startsWith("http")) {
@@ -98,7 +96,7 @@ class ProfileActivity : AppCompatActivity() {
 
                 Toast.makeText(this@ProfileActivity, "Profile saved!", Toast.LENGTH_SHORT).show()
 
-                val targetActivity = if (backend.getJoinedCrew() != null) HomeActivity::class.java else StartActivity::class.java
+                val targetActivity = if (backend.getJoinedCrew() != null) MainHubActivity::class.java else CrewLandingActivity::class.java
                 startActivity(Intent(this@ProfileActivity, targetActivity))
                 finish()
             }
@@ -106,7 +104,7 @@ class ProfileActivity : AppCompatActivity() {
 
         btnLogout.setOnClickListener {
             backend.logout()
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
@@ -120,7 +118,7 @@ class ProfileActivity : AppCompatActivity() {
                     lifecycleScope.launch {
                         backend.deleteUserProfile(currentUserEmail)
                         Toast.makeText(this@ProfileActivity, "Profile and data deleted", Toast.LENGTH_LONG).show()
-                        val intent = Intent(this@ProfileActivity, MainActivity::class.java)
+                        val intent = Intent(this@ProfileActivity, LoginActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
@@ -141,7 +139,6 @@ class ProfileActivity : AppCompatActivity() {
             inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
 
             lifecycleScope.launch {
-                // Pfad im Backend speichern
                 backend.saveUserImagePath(currentUserEmail, file.absolutePath)
                 Toast.makeText(this@ProfileActivity, "Image saved!", Toast.LENGTH_SHORT).show()
             }

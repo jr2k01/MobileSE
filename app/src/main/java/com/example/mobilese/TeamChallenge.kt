@@ -17,7 +17,7 @@ object ChallengeManager {
      * Rewards are distributed fairly based on the total pool and participant count.
      * Ensures each user only receives the reward once per challenge.
      */
-    suspend fun distributeChallengePoints(challenge: TeamChallenge, crewCode: String, backend: AppBackend) {
+    suspend fun distributeChallengePoints(challenge: TeamChallenge, crewCode: String, backend: AppRepository) {
         if (challenge.isCompleted) {
             val participantCount = challenge.participantIds.size
             val pointsPerUser = ChallengeCalculator.calculatePointsPerParticipant(challenge.rewardPool, participantCount)

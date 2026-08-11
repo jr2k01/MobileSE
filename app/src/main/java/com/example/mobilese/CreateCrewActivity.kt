@@ -18,7 +18,7 @@ import com.journeyapps.barcodescanner.BarcodeEncoder
 class CreateCrewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create_crew)
+        setContentView(R.layout.screen_crew_creation)
 
         val etCrewName = findViewById<EditText>(R.id.etCrewName)
         val btnSave = findViewById<Button>(R.id.btnSaveCrew)
@@ -29,7 +29,7 @@ class CreateCrewActivity : AppCompatActivity() {
         val tvUniqueCode = findViewById<TextView>(R.id.tvUniqueCrewCode)
         val btnBack = findViewById<Button>(R.id.btnBackFromCrew)
 
-        val backend = AppBackend(this)
+        val backend = AppRepository(this)
         val currentUser = backend.getCurrentUser() ?: return
 
         btnSave.setOnClickListener {
@@ -39,35 +39,28 @@ class CreateCrewActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Einzigartigen Code generieren
             val uniqueCode = (name.take(3).uppercase() + (100..999).random().toString()).replace(" ", "X")
 
             lifecycleScope.launch {
-                // Im Backend speichern via CODE als ID
                 backend.createCrew(name, currentUser, uniqueCode)
 
-                // QR-Code generieren (enthält den einzigartigen Code)
                 try {
                     val encoder = BarcodeEncoder()
                     val bitmap: Bitmap = encoder.encodeBitmap(uniqueCode, BarcodeFormat.QR_CODE, 500, 500)
                 
                     ivQrCode.setImageBitmap(bitmap)
-                
-                    // Alle Ergebniselemente sichtbar machen
                     cvQrResult.visibility = View.VISIBLE
                     ivQrCode.visibility = View.VISIBLE
                     tvInstruction.visibility = View.VISIBLE
                     tvCodeLabel.visibility = View.VISIBLE
                     tvUniqueCode.visibility = View.VISIBLE
-                
-                    // Einzigartigen Text-Code anzeigen
                     tvUniqueCode.text = uniqueCode
                 
                     Toast.makeText(this@CreateCrewActivity, "Crew '$name' created!", Toast.LENGTH_SHORT).show()
 
                     btnBack.text = getString(R.string.continue_home)
                     btnBack.setOnClickListener {
-                        val intent = Intent(this@CreateCrewActivity, HomeActivity::class.java)
+                        val intent = Intent(this@CreateCrewActivity, MainHubActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                     }

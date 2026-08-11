@@ -23,7 +23,7 @@
         android:theme="@style/Theme.MobileSE">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -33,14 +33,14 @@
         </activity>
 
         <activity android:name=".ProfileActivity" android:exported="false" />
-        <activity android:name=".StartActivity" android:exported="false" />
-        <activity android:name=".RegisterActivity" android:exported="false" />
+        <activity android:name=".CrewLandingActivity" android:exported="false" />
+        <activity android:name=".RegistrationActivity" android:exported="false" />
         <activity android:name=".CreateCrewActivity" android:exported="false" />
-        <activity android:name=".HomeActivity" android:exported="false" />
-        <activity android:name=".CrewOverviewActivity" android:exported="false" />
-        <activity android:name=".ActivitiesActivity" android:exported="false" />
-        <activity android:name=".AddActivityActivity" android:exported="false" />
-        <activity android:name=".DashboardActivity" android:exported="false" />
+        <activity android:name=".MainHubActivity" android:exported="false" />
+        <activity android:name=".CrewDetailsActivity" android:exported="false" />
+        <activity android:name=".WorkoutHistoryActivity" android:exported="false" />
+        <activity android:name=".WorkoutTrackingActivity" android:exported="false" />
+        <activity android:name=".LeaderboardActivity" android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

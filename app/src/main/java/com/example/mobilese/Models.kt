@@ -55,5 +55,9 @@ data class Challenge(
 @Serializable
 data class ChallengeReward(
     @SerialName("challenge_id") val challengeId: String,
-    @SerialName("user_id") val userId: String
+    @SerialName("user_id") val userId: String,
+    // Die tatsaechlich ausgeschuettete Punktzahl wird mitgespeichert, damit sie
+    // spaeter nicht aus der aktuellen Crew-Groesse rekonstruiert werden muss.
+    // Diese haette sich zwischen Ausschuettung und Abfrage aendern koennen.
+    val points: Int = 0
 )

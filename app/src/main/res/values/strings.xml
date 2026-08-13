@@ -61,6 +61,7 @@
     <string name="location_status">Location: %s</string>
     <string name="location_not_shared">Not shared</string>
     <string name="location_fetching">Fetching...</string>
+    <string name="location_permission_denied">Location permission denied</string>
     <string name="gps_btn">GPS</string>
     <string name="save_workout">Save Workout</string>
     <string name="cancel_btn">Cancel</string>

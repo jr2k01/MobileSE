@@ -181,13 +181,16 @@ class MainHubActivity : AppCompatActivity() {
             }
         }
 
-        val latestThree = allActivities.sortedByDescending { it.timestamp }.take(3)
+        // Nach dem normalisierten ISO-Schluessel sortieren. Ein direkter
+        // Vergleich der Anzeigetexte wuerde zuerst nach Tag und erst danach
+        // nach Monat und Jahr sortieren.
+        val latestThree = allActivities.sortedByDescending { ActivityTime.sortKey(it.timestamp) }.take(3)
 
         for (act in latestThree) {
             val view = inflater.inflate(R.layout.item_feed_entry, container, false)
             view.findViewById<TextView>(R.id.tvLatestActivityUser).text = act.userName
             view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = act.sport
-            view.findViewById<TextView>(R.id.tvLatestActivityTime).text = act.timestamp
+            view.findViewById<TextView>(R.id.tvLatestActivityTime).text = ActivityTime.toDisplay(act.timestamp)
             view.findViewById<TextView>(R.id.tvLatestActivityDuration).text = getString(R.string.duration_unit, act.duration)
             
             val btnPlay = view.findViewById<ImageButton>(R.id.btnPlayVoice)
@@ -204,16 +207,34 @@ class MainHubActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Sprachnotizen liegen seit der Supabase-Migration als URL vor. prepare()
+     * wuerde dafuer synchron im Main-Thread auf das Netz warten und einen ANR
+     * riskieren, deshalb prepareAsync() mit Callback.
+     */
     private fun playVoiceNote(path: String) {
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
+            setOnPreparedListener { it.start() }
+            setOnErrorListener { _, what, extra ->
+                android.util.Log.e("Audio", "Playback error $what/$extra")
+                android.widget.Toast.makeText(
+                    this@MainHubActivity,
+                    "Playback failed",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+                true
+            }
             try {
                 setDataSource(path)
-                prepare()
-                start()
-                android.widget.Toast.makeText(this@MainHubActivity, "Playing voice note...", android.widget.Toast.LENGTH_SHORT).show()
+                prepareAsync()
             } catch (e: Exception) {
-                android.widget.Toast.makeText(this@MainHubActivity, "Playback failed", android.widget.Toast.LENGTH_SHORT).show()
+                android.util.Log.e("Audio", "Could not set data source: ${e.message}")
+                android.widget.Toast.makeText(
+                    this@MainHubActivity,
+                    "Playback failed",
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

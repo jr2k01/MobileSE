@@ -147,7 +147,7 @@ class LeaderboardActivity : AppCompatActivity() {
                 pb.setProgressTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent)))
                     
                 val challengeModel = TeamChallenge(challengeId, tvTitle.text.toString(), true, reward, members)
-                ChallengeManager.distributeChallengePoints(challengeModel, crewCode, backend)
+                ChallengeManager.distributeChallengePoints(challengeModel, backend)
                 loadLeaderboard(llLeaderboard, crewCode)
             }
 

@@ -30,7 +30,9 @@ class CreateCrewActivity : AppCompatActivity() {
         val btnBack = findViewById<Button>(R.id.btnBackFromCrew)
 
         val backend = AppRepository(this)
-        val currentUser = backend.getCurrentUser() ?: return
+        // finish() ist wichtig: ohne das bliebe eine leere, tote Activity
+        // sichtbar, wenn keine Sitzung vorhanden ist.
+        val currentUser = backend.getCurrentUser() ?: run { finish(); return }
 
         btnSave.setOnClickListener {
             val name = etCrewName.text.toString().trim()
@@ -42,7 +44,17 @@ class CreateCrewActivity : AppCompatActivity() {
             val uniqueCode = (name.take(3).uppercase() + (100..999).random().toString()).replace(" ", "X")
 
             lifecycleScope.launch {
-                backend.createCrew(name, currentUser, uniqueCode)
+                // Der Code ist zugleich Primaerschluessel. Schlaegt das Anlegen
+                // fehl (etwa weil der zufaellige Code schon vergeben ist), darf
+                // die UI keinen Erfolg melden.
+                if (!backend.createCrew(name, currentUser, uniqueCode)) {
+                    Toast.makeText(
+                        this@CreateCrewActivity,
+                        "Could not create crew. Please try again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
 
                 try {
                     val encoder = BarcodeEncoder()

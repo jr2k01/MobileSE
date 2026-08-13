@@ -19,8 +19,9 @@ class CrewDetailsActivity : AppCompatActivity() {
         setContentView(R.layout.screen_crew_details)
 
         val backend = AppRepository(this)
-        val currentUser = backend.getCurrentUser() ?: return
-        val joinedCrewCode = backend.getJoinedCrewCode() ?: return
+        // finish() verhindert, dass eine leere Activity stehen bleibt.
+        val currentUser = backend.getCurrentUser() ?: run { finish(); return }
+        val joinedCrewCode = backend.getJoinedCrewCode() ?: run { finish(); return }
 
         lifecycleScope.launch {
             val crewName = backend.getCrewName(joinedCrewCode)

@@ -103,11 +103,15 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         btnLogout.setOnClickListener {
-            backend.logout()
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
+            // logout() ist suspend, weil es zusaetzlich die Supabase-Sitzung
+            // beendet und nicht nur den lokalen Session-Marker loescht.
+            lifecycleScope.launch {
+                backend.logout()
+                val intent = Intent(this@ProfileActivity, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
         }
 
         findViewById<Button>(R.id.btnDeleteProfile).setOnClickListener {

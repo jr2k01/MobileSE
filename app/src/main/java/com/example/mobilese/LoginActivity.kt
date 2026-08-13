@@ -51,10 +51,5 @@ class LoginActivity : AppCompatActivity() {
         btnRegister.setOnClickListener {
             startActivity(Intent(this, RegistrationActivity::class.java))
         }
-
-        findViewById<Button>(R.id.btnDevReset).setOnClickListener {
-            backend.fullResetAllData()
-            Toast.makeText(this, "DEV: ALL DATA RESET", Toast.LENGTH_LONG).show()
-        }
     }
 }

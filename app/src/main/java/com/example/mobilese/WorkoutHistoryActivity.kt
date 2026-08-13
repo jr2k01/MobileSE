@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import coil.load
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -36,7 +37,9 @@ class WorkoutHistoryActivity : AppCompatActivity() {
 
     private suspend fun displayActivities(container: LinearLayout, email: String) {
         container.removeAllViews()
+        // Neueste zuerst - die Datenbank liefert keine garantierte Reihenfolge.
         val activities = backend.getUserActivities(email)
+            .sortedByDescending { ActivityTime.sortKey(it.timestamp) }
         val inflater = LayoutInflater.from(this)
 
         if (activities.isEmpty()) {
@@ -59,19 +62,33 @@ class WorkoutHistoryActivity : AppCompatActivity() {
             val ivPhoto = view.findViewById<ImageView>(R.id.ivActivityPhoto)
 
             tvSport.text = activity.sport
-            tvDate.text = activity.timestamp
+            tvDate.text = ActivityTime.toDisplay(activity.timestamp)
                 
             tvDuration.text = getString(R.string.duration_unit, activity.duration.toString())
             tvDuration.visibility = View.VISIBLE
                 
-            if (!activity.photoUrl.isNullOrEmpty()) {
-                if (!activity.photoUrl.startsWith("http")) {
-                    val imgFile = File(activity.photoUrl)
+            // Fotos liegen seit der Supabase-Migration als oeffentliche URL vor.
+            // Aeltere Eintraege koennen noch einen lokalen Dateipfad enthalten,
+            // deshalb werden beide Faelle behandelt.
+            val photoUrl = activity.photoUrl
+            if (!photoUrl.isNullOrEmpty()) {
+                if (photoUrl.startsWith("http")) {
+                    ivPhoto.visibility = View.VISIBLE
+                    ivPhoto.load(photoUrl) {
+                        crossfade(true)
+                        placeholder(android.R.drawable.ic_menu_gallery)
+                    }
+                } else {
+                    val imgFile = File(photoUrl)
                     if (imgFile.exists()) {
                         ivPhoto.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
                         ivPhoto.visibility = View.VISIBLE
+                    } else {
+                        ivPhoto.visibility = View.GONE
                     }
                 }
+            } else {
+                ivPhoto.visibility = View.GONE
             }
 
             if (!activity.location.isNullOrEmpty()) {

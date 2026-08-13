@@ -655,7 +655,9 @@ class AppRepository private constructor(context: Context) {
         withContext(Dispatchers.IO) {
             if (localPath.isEmpty()) return@withContext ""
             val file = File(localPath)
-            if (!file.exists()) return@withContext ""
+            // Leere Dateien entstehen, wenn eine Aufnahme abgebrochen wurde.
+            // Hochgeladen ergaeben sie eine URL, hinter der nichts steht.
+            if (!file.exists() || file.length() == 0L) return@withContext ""
             putBytes(bucket, file.name, file.readBytes())
         }
 

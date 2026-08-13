@@ -13,17 +13,17 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
@@ -38,6 +38,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         const val STATE_PHOTO_URI = "photo_uri"
         const val STATE_VOICE_PATH = "voice_path"
         const val STATE_LOCATION = "location"
+        const val STATE_SPORT = "sport"
     }
 
     private lateinit var repository: AppRepository
@@ -52,6 +53,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     private var photoPath: String = ""
     private var voicePath: String = ""
     private var locationText: String = ""
+    private var selectedSport: String = ""
 
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
@@ -89,7 +91,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         repository = AppRepository.get(this)
 
-        val actvSport = findViewById<AutoCompleteTextView>(R.id.actvSport)
+        val etSport = findViewById<EditText>(R.id.etSport)
+        val tilSport = findViewById<TextInputLayout>(R.id.tilSport)
         val etDuration = findViewById<EditText>(R.id.etDuration)
         val tilDistance = findViewById<TextInputLayout>(R.id.tilDistance)
         val etDistance = findViewById<EditText>(R.id.etDistance)
@@ -101,20 +104,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         btnRecord = findViewById(R.id.btnRecordVoice)
         ivVoiceStatus = findViewById(R.id.ivVoiceStatus)
 
-        restoreState(savedInstanceState)
+        restoreState(savedInstanceState, etSport, tilDistance)
 
-        actvSport.setAdapter(
-            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Sports.ALL)
-        )
-        actvSport.setOnItemClickListener { _, _, position, _ ->
-            val sport = Sports.ALL[position]
-            if (Sports.tracksDistance(sport)) {
-                tilDistance.visibility = View.VISIBLE
-            } else {
-                tilDistance.visibility = View.GONE
-                etDistance.setText("")
-            }
+        // Sowohl das Feld als auch der Pfeil rechts oeffnen die Auswahl.
+        val openSportPicker = View.OnClickListener {
+            showSportPicker(etSport, tilDistance, etDistance)
         }
+        etSport.setOnClickListener(openSportPicker)
+        tilSport.setEndIconOnClickListener(openSportPicker)
 
         findViewById<Button>(R.id.btnTakePhoto).setOnClickListener { takePhoto() }
         findViewById<Button>(R.id.btnGetLocation).setOnClickListener { checkLocationPermissions() }
@@ -126,7 +123,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             saveActivity(
-                sport = actvSport.text.toString().trim(),
+                sport = etSport.text.toString().trim(),
                 duration = etDuration.text.toString().trim(),
                 distance = etDistance.text.toString().trim(),
                 btnSave = btnSave
@@ -145,20 +142,64 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         outState.putString(STATE_PHOTO_URI, photoUri?.toString())
         outState.putString(STATE_VOICE_PATH, voicePath)
         outState.putString(STATE_LOCATION, locationText)
+        outState.putString(STATE_SPORT, selectedSport)
     }
 
-    private fun restoreState(state: Bundle?) {
+    private fun restoreState(
+        state: Bundle?,
+        etSport: EditText,
+        tilDistance: TextInputLayout
+    ) {
         if (state == null) return
         photoPath = state.getString(STATE_PHOTO_PATH).orEmpty()
         photoUri = state.getString(STATE_PHOTO_URI)?.let { Uri.parse(it) }
         voicePath = state.getString(STATE_VOICE_PATH).orEmpty()
         locationText = state.getString(STATE_LOCATION).orEmpty()
+        selectedSport = state.getString(STATE_SPORT).orEmpty()
 
+        if (selectedSport.isNotEmpty()) {
+            etSport.setText(selectedSport)
+            // Sichtbarkeit des Distanzfelds passend zur Sportart wiederherstellen.
+            tilDistance.visibility =
+                if (Sports.tracksDistance(selectedSport)) View.VISIBLE else View.GONE
+        }
         if (photoPath.isNotEmpty()) showPhotoPreview()
         if (voicePath.isNotEmpty()) tvVoiceStatus.setText(R.string.voice_recorded)
         if (locationText.isNotEmpty()) {
             tvLocation.text = getString(R.string.location_status, locationText)
         }
+    }
+
+    /**
+     * Auswahl der Sportart als Liste im Dialog.
+     *
+     * Bewusst ein Dialog und kein aufklappendes Menue: das Popup des
+     * ExposedDropdownMenu blieb auf dem Geraet unsichtbar und liess sich nicht
+     * antippen. Ein Dialog wird vom System als eigene, regulaere Oberflaeche
+     * gezeichnet und funktioniert unabhaengig davon.
+     */
+    private fun showSportPicker(
+        etSport: EditText,
+        tilDistance: TextInputLayout,
+        etDistance: EditText
+    ) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.train_question)
+            .setItems(Sports.ALL) { _, index ->
+                val sport = Sports.ALL[index]
+                etSport.setText(sport)
+                selectedSport = sport
+
+                // Die Distanz wird nur bei Sportarten abgefragt, die eine haben.
+                if (Sports.tracksDistance(sport)) {
+                    tilDistance.visibility = View.VISIBLE
+                } else {
+                    tilDistance.visibility = View.GONE
+                    etDistance.setText("")
+                }
+            }
+            .setNegativeButton(R.string.cancel_btn, null)
+            .show()
     }
 
     // --- Speichern ---
@@ -218,13 +259,34 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         val file = File(directory, "workout_${System.currentTimeMillis()}.jpg")
         photoPath = file.absolutePath
         photoUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file)
-        photoUri?.let { takePictureLauncher.launch(it) }
+
+        try {
+            photoUri?.let { takePictureLauncher.launch(it) }
+        } catch (e: android.content.ActivityNotFoundException) {
+            // Auf Geraeten ohne Kamera-App wuerde launch() sonst die App beenden.
+            Log.e("Camera", "No camera app available: ${e.message}")
+            photoPath = ""
+            toast(R.string.no_camera_app)
+        }
     }
 
+    /**
+     * Zeigt das aufgenommene Foto in der Vorschau.
+     *
+     * Die ImageView ist im Layout als Platzhalter gestaltet: eingefaerbtes
+     * Kamera-Symbol, viel Innenabstand, halb durchsichtig. Alle drei
+     * Eigenschaften muessen zurueckgesetzt werden, sonst wird das Foto flaechig
+     * eingefaerbt angezeigt. Der Farbfilter blieb bisher stehen - die Vorschau
+     * war deshalb ein grauer Fleck statt eines Bildes.
+     *
+     * Ohne runden Zuschnitt: das Feld ist querformatig, ein Kreis wurde darin
+     * zur Ellipse verzerrt.
+     */
     private fun showPhotoPreview() {
         ivPreview.setPadding(0, 0, 0, 0)
         ivPreview.alpha = 1.0f
-        ImageLoader.into(ivPreview, photoPath, circular = true)
+        ImageViewCompat.setImageTintList(ivPreview, null)
+        ImageLoader.into(ivPreview, photoPath)
     }
 
     // --- Sprachnotiz ---

@@ -157,6 +157,7 @@
     <string name="activity_saved">Activity saved</string>
     <string name="activity_save_failed">Could not save the activity</string>
     <string name="photo_storage_unavailable">Photo storage is not available</string>
+    <string name="no_camera_app">No camera app found on this device</string>
     <string name="recording_failed">Recording failed</string>
     <string name="playback_failed">Playback failed</string>
     <string name="record_short">REC</string>

@@ -25,8 +25,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
+        <!--
+            Kein ExposedDropdownMenu mehr: dessen Popup oeffnete sich zwar in
+            richtiger Groesse, zeichnete aber nichts und nahm keine Beruehrungen
+            an - die Liste war unsichtbar und unbedienbar. Fuer sechs feste
+            Eintraege genuegt ein Auswahldialog, der ohne eigenes Popup-Fenster
+            auskommt. Das Feld selbst ist nur noch Anzeige und Schaltflaeche.
+        -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:endIconMode="custom"
+            app:endIconDrawable="@android:drawable/arrow_down_float"
+            app:endIconTint="@color/primary"
             android:id="@+id/tilSport"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,11 +50,19 @@
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusBottomEnd="12dp">
 
-            <AutoCompleteTextView
-                android:id="@+id/actvSport"
+            <!--
+                focusable=false: das Feld wird nicht getippt, sondern
+                angetippt. So oeffnet der Klick zuverlaessig den Dialog,
+                statt die Tastatur einzublenden.
+            -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSport"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_main"
+                android:focusable="false"
+                android:clickable="true"
+                android:cursorVisible="false"
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 

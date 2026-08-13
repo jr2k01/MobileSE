@@ -8,37 +8,52 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.media.MediaRecorder
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
-import android.widget.*
+import android.view.View
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import coil.load
-import coil.transform.CircleCropTransformation
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
 
 class WorkoutTrackingActivity : AppCompatActivity() {
 
-    private lateinit var backend: AppRepository
-    private var currentUser: String = ""
-    
+    private companion object {
+        const val FILE_PROVIDER_AUTHORITY = "com.example.mobilese.fileprovider"
+        const val STATE_PHOTO_PATH = "photo_path"
+        const val STATE_PHOTO_URI = "photo_uri"
+        const val STATE_VOICE_PATH = "voice_path"
+        const val STATE_LOCATION = "location"
+    }
+
+    private lateinit var repository: AppRepository
+
     private lateinit var ivPreview: ImageView
     private lateinit var tvLocation: TextView
     private lateinit var tvVoiceStatus: TextView
     private lateinit var btnRecord: Button
-    
+    private lateinit var ivVoiceStatus: ImageView
+
     private var photoUri: Uri? = null
-    private var photoFile: File? = null
-    private var currentPath: String = ""
-    private var currentLocationString: String = "Waiting for GPS..."
-    
-    private var mediaRecorder: MediaRecorder? = null
+    private var photoPath: String = ""
     private var voicePath: String = ""
+    private var locationText: String = ""
+
+    private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
 
     // Referenzen, damit laufende Sensor-Zugriffe beim Verlassen des Screens
@@ -46,120 +61,178 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     private var locationManager: LocationManager? = null
     private var locationListener: LocationListener? = null
 
-    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
-            ivPreview.setPadding(0, 0, 0, 0)
-            ivPreview.alpha = 1.0f
-            ivPreview.load(photoUri) {
-                crossfade(true)
-                transformations(CircleCropTransformation())
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                showPhotoPreview()
+            } else {
+                Log.d("Camera", "Photo capture cancelled")
+                photoPath = ""
             }
-            currentPath = photoFile?.absolutePath ?: ""
-        } else {
-            Log.e("Camera", "Photo capture failed or cancelled")
         }
-    }
 
-    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
-            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
-            getLocation()
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            ) {
+                requestLocation()
+            }
+            if (permissions[Manifest.permission.RECORD_AUDIO] == true) {
+                startRecording()
+            }
         }
-        if (permissions[Manifest.permission.RECORD_AUDIO] == true) {
-            startRecording()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_tracking)
 
-        backend = AppRepository(this)
-        currentUser = backend.getCurrentUser() ?: run { finish(); return }
+        repository = AppRepository.get(this)
 
         val actvSport = findViewById<AutoCompleteTextView>(R.id.actvSport)
         val etDuration = findViewById<EditText>(R.id.etDuration)
-        val tilDistance = findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilDistance)
+        val tilDistance = findViewById<TextInputLayout>(R.id.tilDistance)
         val etDistance = findViewById<EditText>(R.id.etDistance)
+        val btnSave = findViewById<Button>(R.id.btnSaveActivity)
+
         ivPreview = findViewById(R.id.ivWorkoutPhoto)
         tvLocation = findViewById(R.id.tvLocationStatus)
         tvVoiceStatus = findViewById(R.id.tvVoiceStatus)
         btnRecord = findViewById(R.id.btnRecordVoice)
-        val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
-        val btnGetLocation = findViewById<Button>(R.id.btnGetLocation)
-        val btnSave = findViewById<Button>(R.id.btnSaveActivity)
-        val btnCancel = findViewById<Button>(R.id.btnCancelAdd)
+        ivVoiceStatus = findViewById(R.id.ivVoiceStatus)
 
-        val sports = arrayOf("Running", "Cycling", "Swimming", "Yoga", "Football", "Gym")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, sports)
-        actvSport.setAdapter(adapter)
+        restoreState(savedInstanceState)
 
+        actvSport.setAdapter(
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Sports.ALL)
+        )
         actvSport.setOnItemClickListener { _, _, position, _ ->
-            val selection = adapter.getItem(position)
-            if (selection == "Running") {
-                tilDistance.visibility = android.view.View.VISIBLE
+            val sport = Sports.ALL[position]
+            if (Sports.tracksDistance(sport)) {
+                tilDistance.visibility = View.VISIBLE
             } else {
-                tilDistance.visibility = android.view.View.GONE
+                tilDistance.visibility = View.GONE
                 etDistance.setText("")
             }
         }
 
-        btnTakePhoto.setOnClickListener {
-            preparePhotoFile()
-            photoUri?.let { takePictureLauncher.launch(it) }
-        }
+        findViewById<Button>(R.id.btnTakePhoto).setOnClickListener { takePhoto() }
+        findViewById<Button>(R.id.btnGetLocation).setOnClickListener { checkLocationPermissions() }
+        findViewById<Button>(R.id.btnCancelAdd).setOnClickListener { finish() }
 
-        btnGetLocation.setOnClickListener {
-            checkLocationPermissions()
-        }
-        
         btnRecord.setOnClickListener {
-            if (isRecording) {
-                stopRecording()
-            } else {
-                checkAudioPermissions()
-            }
+            if (isRecording) stopRecording() else checkAudioPermission()
         }
 
         btnSave.setOnClickListener {
-            val sport = actvSport.text.toString()
-            val duration = etDuration.text.toString().trim()
-            val distance = etDistance.text.toString().trim().ifEmpty { "0" }
-            
-            if (sport.isEmpty()) {
-                Toast.makeText(this, "Please select a sport!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            
-            if (duration.isEmpty()) {
-                Toast.makeText(this, "Please enter duration!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (sport == "Running" && distance == "0") {
-                Toast.makeText(this, "Please enter kilometers run!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val intensity = when (sport) {
-                "Yoga" -> WorkoutIntensity.LOW
-                "Football" -> WorkoutIntensity.MEDIUM
-                "Running", "Swimming", "Cycling", "Gym" -> WorkoutIntensity.HIGH
-                else -> WorkoutIntensity.MEDIUM
-            }.name
-
-            lifecycleScope.launch {
-                backend.addActivity(currentUser, sport, currentPath, currentLocationString, duration, voicePath, distance, intensity)
-                Toast.makeText(this@WorkoutTrackingActivity, "Activity saved!", Toast.LENGTH_SHORT).show()
-                finish()
-            }
+            saveActivity(
+                sport = actvSport.text.toString().trim(),
+                duration = etDuration.text.toString().trim(),
+                distance = etDistance.text.toString().trim(),
+                btnSave = btnSave
+            )
         }
-
-        btnCancel.setOnClickListener { finish() }
     }
 
-    private fun checkAudioPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+    /**
+     * Ohne diese Sicherung war ein aufgenommenes Foto oder eine Sprachnotiz
+     * nach einer Bildschirmdrehung verloren: die Activity wird dabei neu
+     * erzeugt, und die Pfade standen nur in Feldern.
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_PHOTO_PATH, photoPath)
+        outState.putString(STATE_PHOTO_URI, photoUri?.toString())
+        outState.putString(STATE_VOICE_PATH, voicePath)
+        outState.putString(STATE_LOCATION, locationText)
+    }
+
+    private fun restoreState(state: Bundle?) {
+        if (state == null) return
+        photoPath = state.getString(STATE_PHOTO_PATH).orEmpty()
+        photoUri = state.getString(STATE_PHOTO_URI)?.let { Uri.parse(it) }
+        voicePath = state.getString(STATE_VOICE_PATH).orEmpty()
+        locationText = state.getString(STATE_LOCATION).orEmpty()
+
+        if (photoPath.isNotEmpty()) showPhotoPreview()
+        if (voicePath.isNotEmpty()) tvVoiceStatus.setText(R.string.voice_recorded)
+        if (locationText.isNotEmpty()) {
+            tvLocation.text = getString(R.string.location_status, locationText)
+        }
+    }
+
+    // --- Speichern ---
+
+    private fun saveActivity(sport: String, duration: String, distance: String, btnSave: Button) {
+        if (sport.isEmpty()) {
+            toast(R.string.select_sport)
+            return
+        }
+        val minutes = duration.toIntOrNull()
+        if (minutes == null || minutes <= 0) {
+            toast(R.string.enter_duration)
+            return
+        }
+
+        val kilometers = distance.replace(',', '.').toDoubleOrNull() ?: 0.0
+        if (Sports.tracksDistance(sport) && kilometers <= 0.0) {
+            toast(R.string.enter_distance)
+            return
+        }
+
+        // Eine laufende Aufnahme zuerst abschliessen, sonst waere die Datei
+        // beim Hochladen noch unvollstaendig.
+        if (isRecording) stopRecording()
+
+        btnSave.isEnabled = false
+        lifecycleScope.launch {
+            val saved = repository.addActivity(
+                sport = sport,
+                photoPath = photoPath,
+                location = locationText.ifEmpty { getString(R.string.location_not_shared) },
+                duration = minutes.toString(),
+                voicePath = voicePath,
+                distance = kilometers.toString(),
+                intensity = Sports.intensityFor(sport).name
+            )
+
+            if (saved) {
+                toast(R.string.activity_saved)
+                finish()
+            } else {
+                btnSave.isEnabled = true
+                toast(R.string.activity_save_failed)
+            }
+        }
+    }
+
+    // --- Foto ---
+
+    private fun takePhoto() {
+        val directory = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        if (directory == null) {
+            toast(R.string.photo_storage_unavailable)
+            return
+        }
+
+        val file = File(directory, "workout_${System.currentTimeMillis()}.jpg")
+        photoPath = file.absolutePath
+        photoUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file)
+        photoUri?.let { takePictureLauncher.launch(it) }
+    }
+
+    private fun showPhotoPreview() {
+        ivPreview.setPadding(0, 0, 0, 0)
+        ivPreview.alpha = 1.0f
+        ImageLoader.into(ivPreview, photoPath, circular = true)
+    }
+
+    // --- Sprachnotiz ---
+
+    private fun checkAudioPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
             startRecording()
         } else {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
@@ -167,81 +240,88 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
-        val fileName = "voice_${System.currentTimeMillis()}.3gp"
-        val file = File(getExternalFilesDir(null), fileName)
-        voicePath = file.absolutePath
+        val file = File(getExternalFilesDir(null), "voice_${System.currentTimeMillis()}.3gp")
 
         // Der parameterlose Konstruktor ist seit API 31 deprecated.
         @Suppress("DEPRECATION")
-        val recorder = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            MediaRecorder(this)
-        } else {
-            MediaRecorder()
-        }
+        val recorder =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) MediaRecorder(this)
+            else MediaRecorder()
 
-        mediaRecorder = recorder.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-            setOutputFile(voicePath)
+        try {
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+            recorder.setOutputFile(file.absolutePath)
+            recorder.prepare()
+            recorder.start()
+
+            mediaRecorder = recorder
+            voicePath = file.absolutePath
+            isRecording = true
+            btnRecord.setText(R.string.stop_short)
+            tvVoiceStatus.setText(R.string.stop_recording)
+            ivVoiceStatus.setColorFilter(ContextCompat.getColor(this, R.color.error))
+        } catch (e: Exception) {
+            // Recorder wieder freigeben, sonst bleibt das Mikrofon belegt.
+            Log.e("Audio", "Start recording failed: ${e.message}")
             try {
-                prepare()
-                start()
-                isRecording = true
-                btnRecord.text = "STOP"
-                tvVoiceStatus.text = getString(R.string.stop_recording)
-                findViewById<ImageView>(R.id.ivVoiceStatus).setColorFilter(ContextCompat.getColor(this@WorkoutTrackingActivity, R.color.error))
-            } catch (e: Exception) {
-                // Recorder wieder freigeben, sonst bleibt das Mikrofon belegt.
-                Log.e("Audio", "Start recording failed: ${e.message}")
-                try { release() } catch (ignored: Exception) {}
-                mediaRecorder = null
-                isRecording = false
-                voicePath = ""
-                Toast.makeText(this@WorkoutTrackingActivity, "Recording failed", Toast.LENGTH_SHORT).show()
+                recorder.release()
+            } catch (ignored: Exception) {
             }
+            mediaRecorder = null
+            isRecording = false
+            voicePath = ""
+            toast(R.string.recording_failed)
         }
     }
 
     private fun stopRecording() {
-        mediaRecorder?.apply {
+        mediaRecorder?.let { recorder ->
             try {
-                stop()
+                recorder.stop()
             } catch (e: Exception) {
-                // stop() wirft, wenn noch keine Daten aufgenommen wurden
+                // stop() wirft, wenn noch keine Daten aufgenommen wurden. Die
+                // Datei ist dann unbrauchbar und wird verworfen.
                 Log.e("Audio", "Stop recording failed: ${e.message}")
+                File(voicePath).delete()
+                voicePath = ""
             }
             try {
-                release()
+                recorder.release()
             } catch (e: Exception) {
                 Log.e("Audio", "Release failed: ${e.message}")
             }
         }
+
         mediaRecorder = null
         isRecording = false
-        btnRecord.text = "REC"
-        tvVoiceStatus.text = getString(R.string.voice_recorded)
-        findViewById<ImageView>(R.id.ivVoiceStatus).setColorFilter(ContextCompat.getColor(this, R.color.accent))
+        btnRecord.setText(R.string.record_short)
+        tvVoiceStatus.setText(
+            if (voicePath.isEmpty()) R.string.recording_failed else R.string.voice_recorded
+        )
+        ivVoiceStatus.setColorFilter(ContextCompat.getColor(this, R.color.accent))
     }
 
-    private fun preparePhotoFile() {
-        val fileName = "workout_${System.currentTimeMillis()}.jpg"
-        val storageDir = getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
-        photoFile = File(storageDir, fileName)
-        photoUri = FileProvider.getUriForFile(this, "com.example.mobilese.fileprovider", photoFile!!)
-    }
+    // --- Standort ---
 
     private fun checkLocationPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getLocation()
+        val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+
+        if (granted) {
+            requestLocation()
         } else {
-            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            requestPermissionLauncher.launch(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            )
         }
     }
 
-    private fun getLocation() {
-        tvLocation.text = getString(R.string.location_fetching)
+    private fun requestLocation() {
+        tvLocation.setText(R.string.location_fetching)
 
         val manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationManager = manager
@@ -249,37 +329,52 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         // Einen eventuell noch laufenden Versuch zuerst abmelden.
         stopLocationUpdates()
 
-        try {
-            val listener = object : LocationListener {
-                override fun onLocationChanged(location: Location) {
-                    currentLocationString = String.format(
-                        Locale.getDefault(),
-                        "Lat: %.4f, Lon: %.4f",
-                        location.latitude,
-                        location.longitude
-                    )
-                    tvLocation.text = getString(R.string.location_status, currentLocationString)
-                    stopLocationUpdates()
-                }
-
-                override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-                override fun onProviderEnabled(provider: String) {}
-                override fun onProviderDisabled(provider: String) {}
+        val listener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                locationText = String.format(
+                    Locale.getDefault(),
+                    "Lat: %.4f, Lon: %.4f",
+                    location.latitude,
+                    location.longitude
+                )
+                tvLocation.text = getString(R.string.location_status, locationText)
+                // Ein Fix genuegt - danach abmelden, statt weiter zu orten.
+                stopLocationUpdates()
             }
-            locationListener = listener
 
-            manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, listener)
-            manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, listener)
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
+        }
+        locationListener = listener
 
-        } catch (e: SecurityException) {
-            tvLocation.text = getString(R.string.location_permission_denied)
+        // Jeder Provider einzeln: fehlt einer auf dem Geraet, wirft
+        // requestLocationUpdates eine IllegalArgumentException und der zweite
+        // Provider waere nie angefragt worden.
+        val providers = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
+        val active = providers.count { provider ->
+            try {
+                manager.requestLocationUpdates(provider, 0L, 0f, listener)
+                true
+            } catch (e: SecurityException) {
+                tvLocation.setText(R.string.location_permission_denied)
+                false
+            } catch (e: IllegalArgumentException) {
+                Log.d("Location", "Provider $provider is not available")
+                false
+            }
+        }
+
+        if (active == 0) {
+            locationListener = null
+            tvLocation.setText(R.string.location_unavailable)
         }
     }
 
     /**
      * Meldet die Standortabfrage ab. Ohne das lief die Ortung weiter, wenn der
-     * Nutzer den Screen verliess, bevor ein Fix vorlag - inklusive Stromverbrauch
-     * und einer gehaltenen Referenz auf die Activity.
+     * Nutzer den Screen verliess, bevor ein Fix vorlag - inklusive
+     * Stromverbrauch und einer gehaltenen Referenz auf die Activity.
      */
     private fun stopLocationUpdates() {
         val listener = locationListener ?: return
@@ -294,9 +389,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         // Laufende Aufnahme beenden, sonst bleibt das Mikrofon belegt.
-        if (isRecording) {
-            stopRecording()
-        }
+        if (isRecording) stopRecording()
         stopLocationUpdates()
     }
+
+    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
 }

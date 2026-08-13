@@ -99,4 +99,67 @@
     <!-- Common -->
     <string name="back_desc">Back</string>
     <string name="logo_desc">CrewFit Logo</string>
+    <string name="unknown_member">Unknown</string>
+
+    <!--
+        Rueckmeldungen an den Nutzer. Diese Texte standen vorher fest im
+        Kotlin-Code. Als Ressourcen sind sie an einer Stelle gebuendelt und
+        koennen uebersetzt werden, ohne die Activities anzufassen.
+    -->
+
+    <!-- Login und Registrierung -->
+    <string name="fill_all_fields">Please fill in all fields</string>
+    <string name="login_failed">Email or password incorrect</string>
+    <string name="registration_success">Registration successful</string>
+    <string name="registration_failed">Registration failed</string>
+
+    <!-- Profil -->
+    <string name="profile_saved">Profile saved</string>
+    <string name="profile_save_failed">Could not save the profile</string>
+    <string name="profile_deleted">Profile and data deleted</string>
+    <string name="delete_profile_title">Delete profile?</string>
+    <string name="delete_profile_message">This will permanently delete all your workouts, points and account data. This cannot be undone.</string>
+    <string name="delete_profile_confirm">Delete everything</string>
+    <string name="image_saved">Image saved</string>
+    <string name="image_save_failed">Could not save the image</string>
+
+    <!-- Crew -->
+    <string name="scan_cancelled">Scan cancelled</string>
+    <string name="scan_crew_prompt">Scan your crew\'s QR code</string>
+    <string name="join_crew_title">Join Crew</string>
+    <string name="crew_code_hint">Enter unique crew code</string>
+    <string name="join_btn">Join</string>
+    <string name="invalid_crew_code">Invalid crew code</string>
+    <string name="joined_crew">Joined crew \'%s\'</string>
+    <string name="left_crew">Left crew \'%s\'</string>
+    <string name="leave_crew_failed">Could not leave the crew</string>
+    <string name="crew_name_required">Please enter a name</string>
+    <string name="crew_create_failed">Could not create the crew. Please try again.</string>
+    <string name="crew_created">Crew \'%s\' created</string>
+    <string name="qr_generation_failed">Could not generate the QR code</string>
+
+    <!-- Challenges -->
+    <string name="challenge_added">Challenge added</string>
+    <string name="challenge_add_failed">Could not add the challenge</string>
+    <string name="challenge_deleted">Challenge deleted</string>
+    <string name="challenge_delete_failed">Could not delete the challenge</string>
+    <string name="challenge_goal_invalid">Please enter a goal greater than zero</string>
+    <string name="progress_km">%1$d / %2$d km</string>
+    <string name="progress_sessions">%1$d / %2$d sessions</string>
+    <string name="contribution_km">%d km</string>
+    <string name="contribution_sessions">%d sessions</string>
+
+    <!-- Workouts -->
+    <string name="no_activities_yet">No activities recorded yet.</string>
+    <string name="select_sport">Please select a sport</string>
+    <string name="enter_duration">Please enter a duration in minutes</string>
+    <string name="enter_distance">Please enter the kilometers you ran</string>
+    <string name="activity_saved">Activity saved</string>
+    <string name="activity_save_failed">Could not save the activity</string>
+    <string name="photo_storage_unavailable">Photo storage is not available</string>
+    <string name="recording_failed">Recording failed</string>
+    <string name="playback_failed">Playback failed</string>
+    <string name="record_short">REC</string>
+    <string name="stop_short">STOP</string>
+    <string name="location_unavailable">No location provider available</string>
 </resources>

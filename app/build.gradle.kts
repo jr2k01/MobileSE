@@ -34,6 +34,21 @@ android {
     }
 }
 
+/*
+ * Abhaengigkeiten bewusst knapp gehalten.
+ *
+ * Entfernt wurden:
+ *  - Coil: Bilder werden von ImageLoader.kt geladen, rund 200 Zeilen ueber
+ *    HttpURLConnection, BitmapFactory und LruCache aus dem Android-SDK.
+ *  - supabase-realtime: war eingebunden, aber kein Bildschirm hoerte auf
+ *    Live-Updates. Das Modul hielt nur eine WebSocket-Verbindung offen.
+ *  - ktor-client-core und ktor-client-serialization: kommen bereits
+ *    transitiv ueber Supabase herein. Direkt gebraucht wird nur die
+ *    Android-Engine.
+ *
+ * Geblieben sind Supabase als Backend-Anbindung und ZXing fuer die QR-Codes -
+ * eine Kamera-Erkennung von Hand zu schreiben waere nicht sinnvoll.
+ */
 dependencies {
     implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
@@ -42,25 +57,17 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
 
-    // Supabase
+    // Backend
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.auth)
-    implementation(libs.supabase.realtime)
     implementation(libs.supabase.storage)
-
-    // Ktor
     implementation(libs.ktor.client.android)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.serialization)
-
-    // Serialization
     implementation(libs.kotlinx.serialization.json)
-    
-    // Coil
-    implementation(libs.coil.kt)
 
+    // QR-Codes
     implementation(libs.zxing.android.embedded)
     implementation(libs.zxing.core)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

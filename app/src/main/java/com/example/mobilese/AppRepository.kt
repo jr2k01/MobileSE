@@ -10,237 +10,313 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Ein Backend für die App, das nun Supabase nutzt.
+ * Zugriff auf das Supabase-Backend.
+ *
+ * Zwei Entwurfsentscheidungen praegen diese Klasse:
+ *
+ * 1. **Singleton.** Vorher legte jede Activity mit `AppRepository(this)` einen
+ *    eigenen Supabase-Client an, und jeder Client bringt einen eigenen
+ *    HTTP-Engine-Pool mit. Beim Durchklicken der App entstanden so laufend
+ *    neue Verbindungspools, die nie wieder freigegeben wurden. Der Client wird
+ *    jetzt einmal pro Prozess erzeugt.
+ *
+ * 2. **Sammelabfragen statt Schleifen.** Die Bildschirme brauchen fast immer
+ *    denselben Datensatz: alle Mitglieder einer Crew mit ihren Aktivitaeten und
+ *    Challenges. Frueher wurde das in verschachtelten Schleifen Zeile fuer
+ *    Zeile geholt - bei fuenf Mitgliedern und drei Challenges kamen so ueber
+ *    fuenfzig aufeinanderfolgende Netzanfragen zusammen. [loadCrewSnapshot]
+ *    holt denselben Bestand mit fuenf Abfragen, davon drei parallel.
+ *
+ * Alle Netz- und Dateizugriffe laufen auf [Dispatchers.IO]. Die Aufrufer
+ * starten aus dem lifecycleScope, also im Main-Thread, und duerfen dort weder
+ * JSON dekodieren noch Dateien lesen.
  */
-class AppRepository(context: Context) {
+class AppRepository private constructor(context: Context) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences("CrewFitDatabase", Context.MODE_PRIVATE)
+    companion object {
+        /**
+         * Projekt-URL und oeffentlicher anon-Key. Der anon-Key ist zur
+         * Veroeffentlichung in Clients vorgesehen; der Datenschutz haengt an
+         * den Row-Level-Security-Regeln in Supabase, nicht an seiner
+         * Geheimhaltung. Ein Service-Role-Key duerfte hier niemals stehen.
+         */
+        private const val SUPABASE_URL = "https://ghhtaaoedlvhipmnuziu.supabase.co"
+        private const val SUPABASE_ANON_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoaHRhYW9lZGx2aGlwbW51eml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzODQ3NjUsImV4cCI6MjEwMTk2MDc2NX0.YVXEZgVJpkSTd7Ms5LrwmQgD0cUFBvfzYykYe9KILhg"
 
-    val client = createSupabaseClient(
-        supabaseUrl = "https://ghhtaaoedlvhipmnuziu.supabase.co",
-        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoaHRhYW9lZGx2aGlwbW51eml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzODQ3NjUsImV4cCI6MjEwMTk2MDc2NX0.YVXEZgVJpkSTd7Ms5LrwmQgD0cUFBvfzYykYe9KILhg"
-    ) {
+        private const val PREFS_NAME = "CrewFitDatabase"
+        private const val KEY_SESSION_USER = "current_session_user"
+        private const val KEY_JOINED_CREW = "user_joined_crew_code"
+
+        @Volatile
+        private var instance: AppRepository? = null
+
+        /** Liefert die prozessweit einzige Instanz. */
+        fun get(context: Context): AppRepository =
+            instance ?: synchronized(this) {
+                instance ?: AppRepository(context.applicationContext).also { instance = it }
+            }
+    }
+
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private val client: SupabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY) {
         install(Auth)
         install(Postgrest)
         install(Storage)
-        install(Realtime)
+        // Realtime war installiert, wurde aber nirgends verwendet. Das Modul
+        // haelt eine WebSocket-Verbindung offen und kostet Akku, ohne dass ein
+        // Bildschirm auf Live-Updates hoert.
     }
 
-    // --- STORAGE ---
+    // --- SESSION ---
 
-    private suspend fun uploadFile(bucket: String, localPath: String): String {
-        if (localPath.isEmpty()) return ""
-        val file = File(localPath)
-        if (!file.exists()) return ""
-        val fileName = "${System.currentTimeMillis()}_${file.name}"
-        return try {
-            client.storage[bucket].upload(fileName, file.readBytes())
-            // Correct way to get the public URL in current SDK versions
-            client.storage[bucket].publicUrl(fileName)
+    /**
+     * Die Benutzer-ID der laufenden Sitzung, oder null wenn niemand angemeldet ist.
+     *
+     * [Auth.awaitInitialization] ist hier entscheidend: Supabase stellt eine
+     * gespeicherte Sitzung beim Start asynchron wieder her. Wer direkt nach dem
+     * Kaltstart `currentUserOrNull()` abfragt, bekommt null zurueck, obwohl der
+     * Nutzer angemeldet ist. Genau daran scheiterten frueher die ersten
+     * Schreibzugriffe nach dem App-Start - sie brachen still ab, weil keine ID
+     * ermittelt werden konnte.
+     */
+    suspend fun currentUserId(): String? = withContext(Dispatchers.IO) {
+        try {
+            client.auth.awaitInitialization()
+            client.auth.currentUserOrNull()?.id
         } catch (e: Exception) {
-            Log.e("SupabaseStorage", "Upload error in bucket $bucket: ${e.message}")
-            ""
+            Log.e("SupabaseAuth", "Session check failed: ${e.message}")
+            null
         }
+    }
+
+    /**
+     * Prueft, ob eine gueltige Sitzung besteht, und raeumt den lokalen
+     * Sitzungsmarker auf, wenn das Token abgelaufen oder ungueltig ist.
+     * Ohne diesen Abgleich landete man mit einer toten Sitzung im Hauptmenue,
+     * wo dann jeder Schreibzugriff wirkungslos blieb.
+     */
+    suspend fun hasValidSession(): Boolean {
+        if (getCurrentUser() == null) return false
+        if (currentUserId() != null) return true
+        clearLocalSession()
+        return false
+    }
+
+    fun setCurrentUser(email: String) =
+        prefs.edit().putString(KEY_SESSION_USER, email).apply()
+
+    fun getCurrentUser(): String? = prefs.getString(KEY_SESSION_USER, null)
+
+    fun getJoinedCrewCode(): String? = prefs.getString(KEY_JOINED_CREW, null)
+
+    fun setJoinedCrewCode(code: String?) =
+        prefs.edit().putString(KEY_JOINED_CREW, code).apply()
+
+    private fun clearLocalSession() {
+        prefs.edit().remove(KEY_SESSION_USER).remove(KEY_JOINED_CREW).apply()
     }
 
     // --- AUTH ---
 
-    suspend fun registerUser(email: String, password: String, name: String, birthDate: String): Boolean {
-        return try {
-            Log.d("SupabaseAuth", "Starting registration for $email")
+    suspend fun registerUser(
+        email: String,
+        password: String,
+        name: String,
+        birthDate: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
             val userInfo = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
             }
-            
-            val userId = userInfo?.id ?: run {
-                Log.e("SupabaseAuth", "Registration successful but no ID returned. CHECK SUPABASE 'Confirm Email' settings!")
-                return false
+
+            val userId = userInfo?.id
+            if (userId == null) {
+                // Tritt auf, wenn in Supabase "Confirm Email" aktiv ist: das
+                // Konto existiert, eine Sitzung gibt es aber erst nach der
+                // Bestaetigung per Mail.
+                Log.w("SupabaseAuth", "Registered without session, email confirmation is likely enabled")
+                return@withContext false
             }
 
-            Log.d("SupabaseAuth", "User registered, ID: $userId. Now creating profile...")
-            
-            // Create profile
             try {
-                client.postgrest["profiles"].insert(UserProfile(id = userId, email = email, name = name, birthdate = birthDate))
-                Log.d("SupabaseDB", "Profile created successfully")
+                client.postgrest["profiles"].insert(
+                    UserProfile(id = userId, email = email, name = name, birthdate = birthDate)
+                )
             } catch (e: Exception) {
-                Log.e("SupabaseDB", "Profile creation FAILED: ${e.message}. Check RLS settings!")
-                // We return true because Auth was successful, but the profile might need fixing
+                Log.e("SupabaseDB", "Profile creation failed: ${e.message}. Check the RLS policies.")
             }
-            
+
             setCurrentUser(email)
             true
         } catch (e: Exception) {
-            Log.e("SupabaseAuth", "Registration FAILED: ${e.message}")
+            Log.e("SupabaseAuth", "Registration failed: ${e.message}")
             false
         }
     }
 
-    suspend fun loginUser(email: String, password: String): Boolean {
-        return try {
+    suspend fun loginUser(email: String, password: String): Boolean = withContext(Dispatchers.IO) {
+        try {
             client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
-            val user = client.auth.currentUserOrNull()
-            if (user != null) {
-                setCurrentUser(user.email ?: "")
-                fetchAndCacheUserCrew(user.id)
-                true
-            } else false
+            val user = client.auth.currentUserOrNull() ?: return@withContext false
+            setCurrentUser(user.email ?: email)
+            cacheJoinedCrew(user.id)
+            true
         } catch (e: Exception) {
-            Log.e("SupabaseAuth", "Login error: ${e.message}")
+            Log.e("SupabaseAuth", "Login failed: ${e.message}")
             false
         }
     }
 
     /**
-     * Meldet den Nutzer ab. Neben dem lokalen Session-Marker muss auch die
+     * Meldet den Nutzer ab. Neben dem lokalen Sitzungsmarker muss auch die
      * Supabase-Sitzung beendet werden - sonst bleibt das Auth-Token auf dem
-     * Geraet gueltig und getCurrentUserId() liefert weiterhin die ID des
+     * Geraet gueltig und die naechste Abfrage liefert weiterhin die ID des
      * abgemeldeten Nutzers.
      */
     suspend fun logout() {
-        try {
-            client.auth.signOut()
-        } catch (e: Exception) {
-            Log.e("SupabaseAuth", "Sign out error: ${e.message}")
+        withContext(Dispatchers.IO) {
+            try {
+                client.auth.signOut()
+            } catch (e: Exception) {
+                Log.e("SupabaseAuth", "Sign out failed: ${e.message}")
+            }
         }
         clearLocalSession()
     }
 
-    private fun clearLocalSession() {
-        prefs.edit().remove("current_session_user").remove("user_joined_crew_code").apply()
-    }
-
     /**
-     * Loescht die Daten des angemeldeten Nutzers.
+     * Loescht alle Daten des angemeldeten Nutzers.
      *
-     * Reihenfolge ist wichtig: erst die abhaengigen Datensaetze und die
-     * hochgeladenen Dateien, danach das Profil. Umgekehrt waeren die
-     * Storage-Pfade nicht mehr ermittelbar.
+     * Die Reihenfolge ist wichtig: erst die hochgeladenen Dateien und die
+     * abhaengigen Zeilen, danach das Profil. Umgekehrt waeren die Storage-Pfade
+     * nicht mehr zu ermitteln.
      *
-     * Der Auth-Benutzer selbst kann vom Client aus nicht geloescht werden,
-     * das erfordert den Service-Role-Key und muesste serverseitig
-     * (Edge Function) passieren. Siehe Future Work in der Dokumentation.
+     * Der Auth-Benutzer selbst laesst sich vom Client aus nicht loeschen, das
+     * verlangt den Service-Role-Key und muesste serverseitig passieren
+     * (Edge Function). Siehe Future Work in der Dokumentation.
      */
-    suspend fun deleteUserProfile(email: String) {
-        val userId = getCurrentUserId() ?: return
+    suspend fun deleteUserProfile() {
+        val userId = currentUserId() ?: return
 
-        // Medien der eigenen Aktivitaeten einsammeln, bevor die Zeilen weg sind
-        val ownActivities = try {
-            client.postgrest["activities"].select {
-                filter { eq("user_id", userId) }
-            }.decodeList<Activity>()
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Could not read activities before deletion: ${e.message}")
-            emptyList()
+        withContext(Dispatchers.IO) {
+            val ownActivities = try {
+                client.postgrest["activities"].select {
+                    filter { eq("user_id", userId) }
+                }.decodeList<Activity>()
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not read activities before deletion: ${e.message}")
+                emptyList()
+            }
+
+            for (activity in ownActivities) {
+                deleteFileByPublicUrl("photos", activity.photoUrl)
+                deleteFileByPublicUrl("voice_notes", activity.voiceUrl)
+            }
+
+            deleteFileByPublicUrl("avatars", getProfileById(userId)?.avatarUrl)
+
+            deleteRows("activities", "user_id", userId)
+            deleteRows("crew_members", "user_id", userId)
+            deleteRows("challenge_rewards", "user_id", userId)
+            deleteRows("profiles", "id", userId)
         }
-
-        for (activity in ownActivities) {
-            deleteFileByPublicUrl("photos", activity.photoUrl)
-            deleteFileByPublicUrl("voice_notes", activity.voiceUrl)
-        }
-
-        val avatarUrl = try {
-            client.postgrest["profiles"].select {
-                filter { eq("id", userId) }
-            }.decodeSingle<UserProfile>().avatarUrl
-        } catch (e: Exception) { null }
-        deleteFileByPublicUrl("avatars", avatarUrl)
-
-        deleteRows("activities", "user_id", userId)
-        deleteRows("crew_members", "user_id", userId)
-        deleteRows("challenge_rewards", "user_id", userId)
-        deleteRows("profiles", "id", userId)
 
         logout()
     }
 
-    private suspend fun deleteRows(table: String, column: String, value: String) {
+    // --- PROFILE ---
+
+    suspend fun getProfile(email: String): UserProfile? = withContext(Dispatchers.IO) {
         try {
-            client.postgrest[table].delete {
-                filter { eq(column, value) }
-            }
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Delete from $table failed: ${e.message}")
-        }
-    }
-
-    /**
-     * Entfernt eine Datei aus einem Storage-Bucket anhand ihrer oeffentlichen
-     * URL. Der Dateiname ist das letzte Pfadsegment der URL.
-     */
-    private suspend fun deleteFileByPublicUrl(bucket: String, publicUrl: String?) {
-        if (publicUrl.isNullOrEmpty() || !publicUrl.startsWith("http")) return
-        val fileName = publicUrl.substringAfterLast('/')
-        if (fileName.isEmpty()) return
-        try {
-            client.storage[bucket].delete(fileName)
-        } catch (e: Exception) {
-            Log.e("SupabaseStorage", "Delete $fileName from $bucket failed: ${e.message}")
-        }
-    }
-
-    // --- PROFILES ---
-
-    suspend fun saveUserProfile(email: String, name: String, age: String, height: String, weight: String, birthDate: String) {
-        val userId = getCurrentUserId() ?: return
-        try {
-            client.postgrest["profiles"].upsert(
-                UserProfile(id = userId, email = email, name = name, age = age, height = height, weight = weight, birthdate = birthDate)
-            )
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Save profile error: ${e.message}")
-        }
-    }
-
-    suspend fun getUserName(email: String): String {
-        return try {
-            val response = client.postgrest["profiles"].select {
+            client.postgrest["profiles"].select {
                 filter { eq("email", email) }
-            }.decodeSingle<UserProfile>()
-            response.name ?: "Unknown"
-        } catch (e: Exception) { "Unknown" }
+                limit(1)
+            }.decodeSingleOrNull<UserProfile>()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load profile for $email: ${e.message}")
+            null
+        }
     }
 
-    suspend fun getUserData(email: String, key: String): String {
-        return try {
-            val profile = client.postgrest["profiles"].select {
-                filter { eq("email", email) }
-            }.decodeSingle<UserProfile>()
-            when(key) {
-                "name" -> profile.name
-                "age" -> profile.age
-                "height" -> profile.height
-                "weight" -> profile.weight
-                "birthdate" -> profile.birthdate
-                "profile_image_path" -> profile.avatarUrl
-                else -> ""
-            } ?: ""
-        } catch (e: Exception) { "" }
+    private suspend fun getProfileById(userId: String): UserProfile? = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["profiles"].select {
+                filter { eq("id", userId) }
+                limit(1)
+            }.decodeSingleOrNull<UserProfile>()
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    suspend fun saveUserImagePath(email: String, localPath: String) {
-        val userId = getCurrentUserId() ?: return
-        val cloudUrl = uploadFile("avatars", localPath)
-        if (cloudUrl.isNotEmpty()) {
+    suspend fun saveUserProfile(
+        email: String,
+        name: String,
+        age: String,
+        height: String,
+        weight: String,
+        birthDate: String
+    ): Boolean {
+        val userId = currentUserId() ?: return false
+        return withContext(Dispatchers.IO) {
             try {
-                Log.d("SupabaseDB", "Updating avatar URL to: $cloudUrl")
+                // Das vorhandene Profil wird zuerst gelesen, damit ein bereits
+                // gesetztes Avatar-Bild beim Speichern nicht verloren geht -
+                // upsert ersetzt die komplette Zeile.
+                val existing = getProfileById(userId)
+                client.postgrest["profiles"].upsert(
+                    UserProfile(
+                        id = userId,
+                        email = email,
+                        name = name,
+                        age = age,
+                        height = height,
+                        weight = weight,
+                        birthdate = birthDate,
+                        avatarUrl = existing?.avatarUrl
+                    )
+                )
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Saving the profile failed: ${e.message}")
+                false
+            }
+        }
+    }
+
+    /** Laedt ein neues Profilbild hoch und hinterlegt dessen URL. */
+    suspend fun saveUserImage(localPath: String): Boolean {
+        val userId = currentUserId() ?: return false
+        val cloudUrl = uploadImage("avatars", localPath)
+        if (cloudUrl.isEmpty()) return false
+
+        return withContext(Dispatchers.IO) {
+            try {
                 client.postgrest["profiles"].update({
                     UserProfile::avatarUrl setTo cloudUrl
                 }) {
                     filter { eq("id", userId) }
                 }
+                true
             } catch (e: Exception) {
-                Log.e("SupabaseDB", "Update image path error: ${e.message}")
+                Log.e("SupabaseDB", "Saving the avatar URL failed: ${e.message}")
+                false
             }
         }
     }
@@ -249,270 +325,384 @@ class AppRepository(context: Context) {
 
     /**
      * Legt eine Crew an. Der Code ist zugleich der Primaerschluessel, ein
-     * bereits vergebener Code laesst den Insert fehlschlagen. Frueher wurde
-     * der Fehler nur geloggt und der Nutzer anschliessend trotzdem der
-     * fremden Crew mit demselben Code hinzugefuegt - deshalb wird das
-     * Ergebnis jetzt zurueckgegeben und von der UI ausgewertet.
+     * bereits vergebener Code laesst den Insert fehlschlagen. Das Ergebnis wird
+     * zurueckgegeben, damit die UI keinen Erfolg meldet, wenn der Nutzer in
+     * Wahrheit einer fremden Crew mit demselben Code beigetreten waere.
      */
-    suspend fun createCrew(crewName: String, creatorEmail: String, code: String): Boolean {
-        val userId = getCurrentUserId() ?: return false
-        return try {
-            client.postgrest["crews"].insert(Crew(id = code, name = crewName, creatorId = userId))
-            joinCrew(code, creatorEmail)
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Create crew error: ${e.message}")
-            false
+    suspend fun createCrew(crewName: String, code: String): Boolean {
+        val userId = currentUserId() ?: return false
+        val created = withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["crews"].insert(Crew(id = code, name = crewName, creatorId = userId))
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Creating the crew failed: ${e.message}")
+                false
+            }
+        }
+        return created && joinCrew(code)
+    }
+
+    suspend fun joinCrew(code: String): Boolean {
+        val userId = currentUserId() ?: return false
+        return withContext(Dispatchers.IO) {
+            if (!crewExists(code)) {
+                Log.d("SupabaseDB", "Join rejected, no crew with code $code")
+                return@withContext false
+            }
+            try {
+                client.postgrest["crew_members"].insert(CrewMember(crewId = code, userId = userId))
+                setJoinedCrewCode(code)
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Joining the crew failed: ${e.message}")
+                false
+            }
         }
     }
 
-    /** Prueft, ob zu einem Code ueberhaupt eine Crew existiert. */
-    suspend fun crewExists(code: String): Boolean {
-        return try {
+    private suspend fun crewExists(code: String): Boolean = try {
+        client.postgrest["crews"].select {
+            filter { eq("id", code) }
+            limit(1)
+        }.decodeList<Crew>().isNotEmpty()
+    } catch (e: Exception) {
+        false
+    }
+
+    suspend fun getCrewName(code: String): String = withContext(Dispatchers.IO) {
+        try {
             client.postgrest["crews"].select {
                 filter { eq("id", code) }
-            }.decodeList<Crew>().isNotEmpty()
-        } catch (e: Exception) { false }
-    }
-
-    suspend fun joinCrew(code: String, userEmail: String): Boolean {
-        val userId = getCurrentUserId() ?: return false
-        if (!crewExists(code)) {
-            Log.d("SupabaseDB", "Join rejected, no crew with code $code")
-            return false
-        }
-        return try {
-            client.postgrest["crew_members"].insert(CrewMember(crewId = code, userId = userId))
-            setJoinedCrewCode(code)
-            true
+                limit(1)
+            }.decodeSingleOrNull<Crew>()?.name ?: "Unknown Crew"
         } catch (e: Exception) {
-            Log.e("SupabaseDB", "Join crew error: ${e.message}")
-            false
+            "Unknown Crew"
         }
     }
 
-    suspend fun getCrewName(code: String): String {
-        return try {
-            val response = client.postgrest["crews"].select {
-                filter { eq("id", code) }
-            }.decodeSingle<Crew>()
-            response.name
-        } catch (e: Exception) { "Unknown Crew" }
-    }
-
-    suspend fun getCrewMembers(code: String): Set<String> {
-        return try {
-            // Join with profiles to get emails
-            val memberIds = client.postgrest["crew_members"].select {
-                filter { eq("crew_id", code) }
-            }.decodeList<CrewMember>().map { it.userId }
-            
-            val profiles = client.postgrest["profiles"].select {
-                filter {
-                    isIn("id", memberIds)
+    suspend fun leaveCrew(code: String): Boolean {
+        val userId = currentUserId() ?: return false
+        return withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["crew_members"].delete {
+                    filter {
+                        eq("crew_id", code)
+                        eq("user_id", userId)
+                    }
                 }
-            }.decodeList<UserProfile>()
-            
-            profiles.mapNotNull { it.email }.toSet()
-        } catch (e: Exception) { emptySet() }
-    }
-
-    suspend fun leaveCrew(code: String, userEmail: String) {
-        val userId = getCurrentUserId() ?: return
-        try {
-            client.postgrest["crew_members"].delete {
-                filter {
-                    eq("crew_id", code)
-                    eq("user_id", userId)
-                }
+                setJoinedCrewCode(null)
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Leaving the crew failed: ${e.message}")
+                false
             }
-            setJoinedCrewCode(null)
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Leave crew error: ${e.message}")
         }
     }
 
-    // --- ACTIVITIES ---
+    /**
+     * Holt den kompletten Datenbestand einer Crew.
+     *
+     * Die drei voneinander unabhaengigen Abfragen laufen parallel, die beiden
+     * abhaengigen (Profile brauchen die Mitglieder-IDs, Belohnungen die
+     * Challenge-IDs) danach. Statt einer langen Kette einzelner Aufrufe bleiben
+     * so zwei Wartezeiten uebrig.
+     */
+    suspend fun loadCrewSnapshot(crewCode: String): CrewSnapshot = withContext(Dispatchers.IO) {
+        coroutineScope {
+            val memberIdsAsync = async { selectMemberIds(crewCode) }
+            val activitiesAsync = async { selectCrewActivities(crewCode) }
+            val challengesAsync = async { selectCrewChallenges(crewCode) }
 
-    suspend fun addActivity(email: String, sport: String, photoPath: String, location: String, duration: String, voicePath: String = "", distance: String = "0", intensity: String = "MEDIUM") {
-        try {
-            val userId = getCurrentUserId() ?: return
-            val crewId = getJoinedCrewCode() ?: "no_crew"
-            // ISO-8601, damit die Sortierung als Text der chronologischen
-            // Reihenfolge entspricht. Formatiert wird erst in der Anzeige.
-            val timestamp = ActivityTime.now()
+            val memberIds = memberIdsAsync.await()
+            val challenges = challengesAsync.await()
 
-            val cloudPhotoUrl = uploadFile("photos", photoPath)
-            val cloudVoiceUrl = uploadFile("voice_notes", voicePath)
+            val profilesAsync = async { selectProfiles(memberIds) }
+            val rewardsAsync = async { selectRewards(challenges.map { it.id }) }
 
-            client.postgrest["activities"].insert(
-                Activity(
-                    userId = userId,
-                    crewId = crewId,
-                    sport = sport,
-                    duration = duration.toIntOrNull() ?: 0,
-                    distance = distance.replace(",", ".").toDoubleOrNull() ?: 0.0,
-                    location = location,
-                    voiceUrl = cloudVoiceUrl,
-                    photoUrl = cloudPhotoUrl,
-                    intensity = intensity,
-                    timestamp = timestamp
-                )
+            CrewSnapshot(
+                members = profilesAsync.await(),
+                activities = activitiesAsync.await(),
+                challenges = challenges,
+                rewards = rewardsAsync.await()
             )
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Add activity error: ${e.message}")
         }
     }
 
-    suspend fun getUserActivities(email: String): List<Activity> {
-        val userId = emailToId(email) ?: return emptyList()
-        return try {
-            client.postgrest["activities"].select {
-                filter { eq("user_id", userId) }
-            }.decodeList<Activity>()
-        } catch (e: Exception) { emptyList() }
+    /**
+     * Nur die Mitglieder einer Crew - fuer Bildschirme, die keine Aktivitaeten
+     * und Challenges brauchen. Zwei Abfragen statt der fuenf eines vollen
+     * Snapshots.
+     */
+    suspend fun getCrewMembers(crewCode: String): List<UserProfile> = withContext(Dispatchers.IO) {
+        selectProfiles(selectMemberIds(crewCode))
     }
 
-    suspend fun getUserActivitiesForCrew(email: String, crewCode: String): List<Activity> {
-        val userId = emailToId(email) ?: return emptyList()
+    private suspend fun selectMemberIds(crewCode: String): List<String> = try {
+        client.postgrest["crew_members"].select {
+            filter { eq("crew_id", crewCode) }
+        }.decodeList<CrewMember>().map { it.userId }
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not load crew members: ${e.message}")
+        emptyList()
+    }
+
+    private suspend fun selectProfiles(userIds: List<String>): List<UserProfile> {
+        if (userIds.isEmpty()) return emptyList()
         return try {
-            client.postgrest["activities"].select {
-                filter {
-                    eq("user_id", userId)
-                    eq("crew_id", crewCode)
+            client.postgrest["profiles"].select {
+                filter { isIn("id", userIds) }
+            }.decodeList<UserProfile>()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load profiles: ${e.message}")
+            emptyList()
+        }
+    }
+
+    private suspend fun selectCrewActivities(crewCode: String): List<Activity> = try {
+        client.postgrest["activities"].select {
+            filter { eq("crew_id", crewCode) }
+        }.decodeList<Activity>()
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not load crew activities: ${e.message}")
+        emptyList()
+    }
+
+    private suspend fun selectCrewChallenges(crewCode: String): List<Challenge> = try {
+        client.postgrest["challenges"].select {
+            filter { eq("crew_id", crewCode) }
+        }.decodeList<Challenge>()
+            // Feste Reihenfolge: die ID ist der Anlagezeitpunkt in Millisekunden.
+            // Vorher wurde ein Set zurueckgegeben, wodurch die Challenges bei
+            // jedem Neuladen in anderer Reihenfolge auf dem Bildschirm standen.
+            .sortedBy { it.id }
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not load challenges: ${e.message}")
+        emptyList()
+    }
+
+    private suspend fun selectRewards(challengeIds: List<String>): List<ChallengeReward> {
+        if (challengeIds.isEmpty()) return emptyList()
+        return try {
+            client.postgrest["challenge_rewards"].select {
+                filter { isIn("challenge_id", challengeIds) }
+            }.decodeList<ChallengeReward>()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load challenge rewards: ${e.message}")
+            emptyList()
+        }
+    }
+
+    private suspend fun cacheJoinedCrew(userId: String) {
+        try {
+            val membership = client.postgrest["crew_members"].select {
+                filter { eq("user_id", userId) }
+                limit(1)
+            }.decodeList<CrewMember>().firstOrNull()
+            setJoinedCrewCode(membership?.crewId)
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not determine crew membership: ${e.message}")
+        }
+    }
+
+    // --- AKTIVITAETEN ---
+
+    suspend fun addActivity(
+        sport: String,
+        photoPath: String,
+        location: String,
+        duration: String,
+        voicePath: String = "",
+        distance: String = "0",
+        intensity: String = WorkoutIntensity.MEDIUM.name
+    ): Boolean {
+        val userId = currentUserId() ?: return false
+        val crewId = getJoinedCrewCode() ?: "no_crew"
+
+        return withContext(Dispatchers.IO) {
+            try {
+                // Foto und Sprachnotiz gleichzeitig hochladen statt nacheinander.
+                val uploads = coroutineScope {
+                    val photo = async { uploadImage("photos", photoPath) }
+                    val voice = async { uploadFile("voice_notes", voicePath) }
+                    photo.await() to voice.await()
                 }
-            }.decodeList<Activity>()
-        } catch (e: Exception) { emptyList() }
+
+                client.postgrest["activities"].insert(
+                    Activity(
+                        userId = userId,
+                        crewId = crewId,
+                        sport = sport,
+                        duration = duration.toIntOrNull() ?: 0,
+                        distance = distance.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                        location = location,
+                        voiceUrl = uploads.second,
+                        photoUrl = uploads.first,
+                        intensity = intensity,
+                        // ISO-8601, damit die Sortierung als Text der
+                        // chronologischen Reihenfolge entspricht.
+                        timestamp = ActivityTime.now()
+                    )
+                )
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Saving the activity failed: ${e.message}")
+                false
+            }
+        }
+    }
+
+    /** Die eigenen Aktivitaeten, neueste zuerst. */
+    suspend fun getOwnActivities(): List<Activity> {
+        val userId = currentUserId() ?: return emptyList()
+        return withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["activities"].select {
+                    filter { eq("user_id", userId) }
+                }.decodeList<Activity>()
+                    // Sortiert wird im Client, weil aeltere Datensaetze noch im
+                    // deutschen Datumsformat vorliegen koennen und die Datenbank
+                    // diese Mischform nicht chronologisch ordnen kann.
+                    .sortedByDescending { ActivityTime.sortKey(it.timestamp) }
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not load own activities: ${e.message}")
+                emptyList()
+            }
+        }
     }
 
     // --- CHALLENGES ---
 
-    suspend fun addCrewChallenge(crewCode: String, type: String, goal: Int, reward: Int = 0) {
-        val id = System.currentTimeMillis().toString()
-        try {
-            client.postgrest["challenges"].insert(Challenge(id = id, crewId = crewCode, type = type, goal = goal, reward = reward))
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Add challenge error: ${e.message}")
+    suspend fun addCrewChallenge(crewCode: String, type: String, goal: Int, reward: Int): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["challenges"].insert(
+                    Challenge(
+                        id = System.currentTimeMillis().toString(),
+                        crewId = crewCode,
+                        type = type,
+                        goal = goal,
+                        reward = reward
+                    )
+                )
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Adding the challenge failed: ${e.message}")
+                false
+            }
         }
-    }
 
-    suspend fun getCrewChallenges(crewCode: String): Set<Challenge> {
-        return try {
-            client.postgrest["challenges"].select {
-                filter { eq("crew_id", crewCode) }
-            }.decodeList<Challenge>().toSet()
-        } catch (e: Exception) { emptySet() }
-    }
-
-    suspend fun deleteCrewChallenge(crewCode: String, challengeId: String) {
-        try {
+    suspend fun deleteCrewChallenge(challengeId: String): Boolean = withContext(Dispatchers.IO) {
+        val deleted = try {
             client.postgrest["challenges"].delete {
                 filter { eq("id", challengeId) }
             }
+            true
         } catch (e: Exception) {
-            Log.e("SupabaseDB", "Delete challenge error: ${e.message}")
+            Log.e("SupabaseDB", "Deleting the challenge failed: ${e.message}")
+            false
         }
-    }
 
-    suspend fun getPointsForCrew(email: String, crewCode: String): Int {
-        val activities = getUserActivitiesForCrew(email, crewCode)
-        var totalPoints = 0
-        for (activity in activities) {
-            val intensity = try { WorkoutIntensity.valueOf(activity.intensity) } catch (e: Exception) { WorkoutIntensity.MEDIUM }
-            totalPoints += PointsCalculator.calculateWorkoutPoints(activity.duration, intensity)
-        }
-        totalPoints += getUserChallengePoints(email, crewCode)
-        return totalPoints
+        // Die Belohnungen der Challenge mitloeschen, sonst zaehlen ihre Punkte
+        // in der Rangliste weiter, obwohl die Challenge weg ist.
+        //
+        // Bewusst in einem eigenen try-Block: fehlt fuer challenge_rewards eine
+        // DELETE-Regel in den RLS-Einstellungen, schlaegt nur das Aufraeumen
+        // fehl. Die Challenge ist dann trotzdem geloescht, und der Nutzer darf
+        // keine Fehlermeldung fuer etwas bekommen, das funktioniert hat.
+        deleteRows("challenge_rewards", "challenge_id", challengeId)
+
+        deleted
     }
 
     /**
-     * Summiert die Challenge-Punkte, die ein Nutzer innerhalb dieser Crew
-     * erhalten hat. challenge_rewards kennt keine Crew, deshalb wird ueber
-     * die Challenges der Crew gefiltert.
+     * Schreibt die Belohnungen einer abgeschlossenen Challenge.
      *
-     * Diese Funktion war bis zur Bereinigung ein Platzhalter mit "return 0",
-     * wodurch abgeschlossene Challenges zwar als ausgeschuettet markiert
-     * wurden, aber nie Punkte ergaben.
+     * Alle Eintraege gehen in einem einzigen Insert raus statt in einem Aufruf
+     * pro Person. Die tatsaechlich vergebene Punktzahl steht im Eintrag selbst,
+     * damit sie sich nicht aendert, wenn die Crew spaeter waechst oder
+     * schrumpft.
      */
-    suspend fun getUserChallengePoints(email: String, crewCode: String): Int {
-        val userId = emailToId(email) ?: return 0
-        return try {
-            val crewChallengeIds = client.postgrest["challenges"].select {
-                filter { eq("crew_id", crewCode) }
-            }.decodeList<Challenge>().map { it.id }.toSet()
-
-            if (crewChallengeIds.isEmpty()) return 0
-
-            client.postgrest["challenge_rewards"].select {
-                filter { eq("user_id", userId) }
-            }.decodeList<ChallengeReward>()
-                .filter { it.challengeId in crewChallengeIds }
-                .sumOf { it.points }
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Challenge points error: ${e.message}")
-            0
-        }
-    }
-
-    suspend fun isChallengeRewarded(email: String, challengeId: String): Boolean {
-        val userId = emailToId(email) ?: return true
-        return try {
-            val response = client.postgrest["challenge_rewards"].select {
-                filter {
-                    eq("challenge_id", challengeId)
-                    eq("user_id", userId)
-                }
-            }.decodeList<ChallengeReward>()
-            response.isNotEmpty()
-        } catch (e: Exception) { true }
-    }
-
-    /**
-     * Vermerkt die Ausschuettung einer Challenge-Belohnung inklusive der
-     * tatsaechlich vergebenen Punktzahl. Der Eintrag verhindert zugleich,
-     * dass dieselbe Belohnung mehrfach gutgeschrieben wird.
-     */
-    suspend fun markChallengeRewarded(email: String, challengeId: String, points: Int) {
-        val userId = emailToId(email) ?: return
+    suspend fun awardChallenge(award: PendingAward): Boolean = withContext(Dispatchers.IO) {
         try {
             client.postgrest["challenge_rewards"].insert(
-                ChallengeReward(challengeId = challengeId, userId = userId, points = points)
+                award.userIds.map { ChallengeReward(award.challengeId, it, award.pointsPerUser) }
             )
+            true
         } catch (e: Exception) {
-            Log.e("SupabaseDB", "Mark reward error: ${e.message}")
+            Log.e("SupabaseDB", "Awarding the challenge failed: ${e.message}")
+            false
         }
     }
 
-    // --- SESSION & CACHE ---
-    
-    fun setCurrentUser(email: String) = prefs.edit().putString("current_session_user", email).apply()
-    fun getCurrentUser(): String? = prefs.getString("current_session_user", null)
-    
-    fun getJoinedCrewCode(): String? = prefs.getString("user_joined_crew_code", null)
-    fun setJoinedCrewCode(code: String?) = prefs.edit().putString("user_joined_crew_code", code).apply()
-    fun getJoinedCrew(): String? = getJoinedCrewCode()
+    // --- STORAGE ---
 
-    fun getCurrentUserId(): String? = client.auth.currentUserOrNull()?.id
-    
-    private suspend fun fetchAndCacheUserCrew(userId: String) {
-        try {
-            val membership = client.postgrest["crew_members"].select {
-                filter { eq("user_id", userId) }
-            }.decodeList<CrewMember>().firstOrNull()
-            setJoinedCrewCode(membership?.crewId)
-        } catch (e: Exception) {}
+    /**
+     * Laedt ein Bild verkleinert hoch. Kamerafotos sind schnell mehrere
+     * Megabyte gross; ohne die Verkleinerung wandert das Original ins Netz und
+     * muss von jedem Crew-Mitglied wieder heruntergeladen werden.
+     */
+    private suspend fun uploadImage(bucket: String, localPath: String): String =
+        withContext(Dispatchers.IO) {
+            if (localPath.isEmpty()) return@withContext ""
+            // Laesst sich die Datei nicht als Bild lesen, wandert sie unveraendert hoch.
+            val bytes = ImageLoader.compressForUpload(localPath)
+                ?: return@withContext uploadFile(bucket, localPath)
+            putBytes(bucket, File(localPath).name, bytes)
+        }
+
+    private suspend fun uploadFile(bucket: String, localPath: String): String =
+        withContext(Dispatchers.IO) {
+            if (localPath.isEmpty()) return@withContext ""
+            val file = File(localPath)
+            if (!file.exists()) return@withContext ""
+            putBytes(bucket, file.name, file.readBytes())
+        }
+
+    private suspend fun putBytes(bucket: String, name: String, bytes: ByteArray): String {
+        val remoteName = "${System.currentTimeMillis()}_$name"
+        return try {
+            client.storage[bucket].upload(remoteName, bytes)
+            client.storage[bucket].publicUrl(remoteName)
+        } catch (e: Exception) {
+            Log.e("SupabaseStorage", "Upload to $bucket failed: ${e.message}")
+            ""
+        }
     }
 
-    private suspend fun emailToId(email: String): String? {
-        // First check current user
-        val current = client.auth.currentUserOrNull()
-        if (current?.email == email) return current.id
-        
-        // Otherwise look up in profiles
-        return try {
-            val profile = client.postgrest["profiles"].select {
-                filter { eq("email", email) }
-            }.decodeSingle<UserProfile>()
-            profile.id
-        } catch (e: Exception) { null }
+    /**
+     * Entfernt eine Datei aus einem Bucket anhand ihrer oeffentlichen URL.
+     * Der Dateiname ist das letzte Pfadsegment.
+     */
+    private suspend fun deleteFileByPublicUrl(bucket: String, publicUrl: String?) {
+        if (publicUrl.isNullOrEmpty() || !publicUrl.startsWith("http")) return
+        val fileName = publicUrl.substringAfterLast('/')
+        if (fileName.isEmpty()) return
+        try {
+            client.storage[bucket].delete(fileName)
+        } catch (e: Exception) {
+            Log.e("SupabaseStorage", "Deleting $fileName from $bucket failed: ${e.message}")
+        }
+    }
+
+    private suspend fun deleteRows(table: String, column: String, value: String) {
+        try {
+            client.postgrest[table].delete {
+                filter { eq(column, value) }
+            }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Deleting from $table failed: ${e.message}")
+        }
     }
 }
+
+/**
+ * Der Datenbestand einer Crew zu einem Zeitpunkt. Alle Bildschirme rechnen
+ * ihre Anzeige aus diesem Objekt aus, statt einzeln nachzufragen.
+ */
+data class CrewSnapshot(
+    val members: List<UserProfile>,
+    val activities: List<Activity>,
+    val challenges: List<Challenge>,
+    val rewards: List<ChallengeReward>
+)

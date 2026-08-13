@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Tag-Schluessel, mit dem der ImageLoader vermerkt, welches Bild in einer
+        ImageView angefordert wurde. Ein eigener id-Eintrag ist noetig, weil
+        setTag(Object) ohne Schluessel mit anderen Tags kollidieren wuerde.
+    -->
+    <item name="image_loader_tag" type="id" />
+</resources>

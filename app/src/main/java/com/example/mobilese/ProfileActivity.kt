@@ -1,42 +1,42 @@
 package com.example.mobilese
 
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import coil.load
-import coil.transform.CircleCropTransformation
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
 class ProfileActivity : AppCompatActivity() {
 
+    private lateinit var repository: AppRepository
     private lateinit var ivProfilePicture: ImageView
     private var currentUserEmail: String = ""
-    private lateinit var backend: AppRepository
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            ivProfilePicture.setImageURI(it)
-            saveImageToInternalStorage(it)
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { storeProfilePicture(it) }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_profile)
 
-        backend = AppRepository(this)
-        currentUserEmail = backend.getCurrentUser() ?: run {
+        repository = AppRepository.get(this)
+        currentUserEmail = repository.getCurrentUser() ?: run {
             finish()
             return
         }
@@ -47,107 +47,131 @@ class ProfileActivity : AppCompatActivity() {
         val etAge = findViewById<EditText>(R.id.etAge)
         val etHeight = findViewById<EditText>(R.id.etHeight)
         val etWeight = findViewById<EditText>(R.id.etWeight)
-        ivProfilePicture = findViewById(R.id.ivProfilePicture)
         val btnSave = findViewById<Button>(R.id.btnSaveProfile)
         val btnLogout = findViewById<Button>(R.id.btnLogout)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
+        ivProfilePicture = findViewById(R.id.ivProfilePicture)
 
-        btnBack.setOnClickListener { finish() }
+        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
+        ivProfilePicture.setOnClickListener { pickImageLauncher.launch("image/*") }
 
-        ivProfilePicture.setOnClickListener {
-            pickImageLauncher.launch("image/*")
-        }
+        etEmail.setText(currentUserEmail)
 
+        // Ein einziger Abruf fuer das ganze Formular. Vorher wurde fuer jedes
+        // Feld einzeln dieselbe Zeile aus der Datenbank geholt - sechs
+        // Abfragen fuer sechs Felder.
         lifecycleScope.launch {
-            etName.setText(backend.getUserData(currentUserEmail, "name"))
-            etBirthDate.setText(backend.getUserData(currentUserEmail, "birthdate"))
-            etEmail.setText(currentUserEmail)
-            etAge.setText(backend.getUserData(currentUserEmail, "age"))
-            etHeight.setText(backend.getUserData(currentUserEmail, "height"))
-            etWeight.setText(backend.getUserData(currentUserEmail, "weight"))
-
-            val imagePath = backend.getUserData(currentUserEmail, "profile_image_path")
-            if (imagePath.isNotEmpty()) {
-                if (imagePath.startsWith("http")) {
-                    ivProfilePicture.load(imagePath) {
-                        crossfade(true)
-                        placeholder(android.R.drawable.ic_menu_gallery)
-                        transformations(CircleCropTransformation())
-                    }
-                } else {
-                    val imgFile = File(imagePath)
-                    if (imgFile.exists()) {
-                        ivProfilePicture.setImageBitmap(BitmapFactory.decodeFile(imgFile.absolutePath))
-                    }
-                }
-            }
+            val profile = repository.getProfile(currentUserEmail) ?: return@launch
+            etName.setText(profile.name.orEmpty())
+            etBirthDate.setText(profile.birthdate.orEmpty())
+            etAge.setText(profile.age.orEmpty())
+            etHeight.setText(profile.height.orEmpty())
+            etWeight.setText(profile.weight.orEmpty())
+            ImageLoader.into(
+                ivProfilePicture,
+                profile.avatarUrl,
+                circular = true,
+                placeholder = android.R.drawable.ic_menu_gallery
+            )
         }
 
         btnSave.setOnClickListener {
+            setBusy(true, btnSave, btnLogout)
             lifecycleScope.launch {
-                backend.saveUserProfile(
+                val saved = repository.saveUserProfile(
                     currentUserEmail,
-                    etName.text.toString(),
-                    etAge.text.toString(),
-                    etHeight.text.toString(),
-                    etWeight.text.toString(),
-                    etBirthDate.text.toString()
+                    etName.text.toString().trim(),
+                    etAge.text.toString().trim(),
+                    etHeight.text.toString().trim(),
+                    etWeight.text.toString().trim(),
+                    etBirthDate.text.toString().trim()
                 )
+                setBusy(false, btnSave, btnLogout)
 
-                Toast.makeText(this@ProfileActivity, "Profile saved!", Toast.LENGTH_SHORT).show()
-
-                val targetActivity = if (backend.getJoinedCrew() != null) MainHubActivity::class.java else CrewLandingActivity::class.java
-                startActivity(Intent(this@ProfileActivity, targetActivity))
+                if (!saved) {
+                    toast(R.string.profile_save_failed)
+                    return@launch
+                }
+                toast(R.string.profile_saved)
+                val target =
+                    if (repository.getJoinedCrewCode() != null) MainHubActivity::class.java
+                    else CrewLandingActivity::class.java
+                startActivity(Intent(this@ProfileActivity, target))
                 finish()
             }
         }
 
         btnLogout.setOnClickListener {
             // logout() ist suspend, weil es zusaetzlich die Supabase-Sitzung
-            // beendet und nicht nur den lokalen Session-Marker loescht.
+            // beendet und nicht nur den lokalen Sitzungsmarker loescht.
             lifecycleScope.launch {
-                backend.logout()
-                val intent = Intent(this@ProfileActivity, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
+                repository.logout()
+                openLogin()
             }
         }
 
         findViewById<Button>(R.id.btnDeleteProfile).setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Delete Profile?")
-                .setMessage("This will permanently delete all your workouts, points, and account data. This cannot be undone.")
-                .setPositiveButton("Delete Everything") { _, _ ->
-                    lifecycleScope.launch {
-                        backend.deleteUserProfile(currentUserEmail)
-                        Toast.makeText(this@ProfileActivity, "Profile and data deleted", Toast.LENGTH_LONG).show()
-                        val intent = Intent(this@ProfileActivity, LoginActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
-                        finish()
-                    }
+            confirmDeletion()
+        }
+    }
+
+    private fun confirmDeletion() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_profile_title)
+            .setMessage(R.string.delete_profile_message)
+            .setPositiveButton(R.string.delete_profile_confirm) { _, _ ->
+                lifecycleScope.launch {
+                    repository.deleteUserProfile()
+                    Toast.makeText(this@ProfileActivity, R.string.profile_deleted, Toast.LENGTH_LONG).show()
+                    openLogin()
                 }
-                .setNegativeButton("Cancel", null)
-                .show()
-        }
-    }
-
-    private fun saveImageToInternalStorage(uri: Uri) {
-        try {
-            val inputStream = contentResolver.openInputStream(uri)
-            val fileName = "profile_${currentUserEmail.replace("@", "_")}.jpg"
-            val file = File(filesDir, fileName)
-            val outputStream = FileOutputStream(file)
-            
-            inputStream?.use { input -> outputStream.use { output -> input.copyTo(output) } }
-
-            lifecycleScope.launch {
-                backend.saveUserImagePath(currentUserEmail, file.absolutePath)
-                Toast.makeText(this@ProfileActivity, "Image saved!", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error saving image", Toast.LENGTH_SHORT).show()
+            .setNegativeButton(R.string.cancel_btn, null)
+            .show()
+    }
+
+    /**
+     * Uebernimmt ein ausgewaehltes Bild als Profilbild.
+     *
+     * Dekodieren und Schreiben laufen auf [Dispatchers.IO]: das Kopieren der
+     * Originaldatei lief vorher im Main-Thread, was bei grossen Fotos sichtbar
+     * ruckelte. Gespeichert wird eine verkleinerte Fassung - fuer ein
+     * Profilbild reicht das, und der Upload wird um ein Vielfaches kleiner.
+     */
+    private fun storeProfilePicture(uri: Uri) {
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val bitmap = ImageLoader.decodeScaled(this@ProfileActivity, uri)
+                    ?: return@withContext null
+                try {
+                    val file = File(filesDir, "profile_${currentUserEmail.replace('@', '_')}.jpg")
+                    FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+                    file.absolutePath to bitmap
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
+            if (result == null) {
+                toast(R.string.image_save_failed)
+                return@launch
+            }
+
+            val (path, bitmap) = result
+            ivProfilePicture.setImageBitmap(bitmap)
+            toast(if (repository.saveUserImage(path)) R.string.image_saved else R.string.image_save_failed)
         }
     }
+
+    private fun openLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun setBusy(busy: Boolean, vararg views: View) {
+        views.forEach { it.isEnabled = !busy }
+    }
+
+    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
 }

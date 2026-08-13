@@ -1,63 +1,79 @@
 package com.example.mobilese
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.zxing.BarcodeFormat
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import com.journeyapps.barcodescanner.BarcodeEncoder
 
 class CrewDetailsActivity : AppCompatActivity() {
+
+    private lateinit var repository: AppRepository
+    private lateinit var crewCode: String
+    private var crewName: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_details)
 
-        val backend = AppRepository(this)
+        repository = AppRepository.get(this)
         // finish() verhindert, dass eine leere Activity stehen bleibt.
-        val currentUser = backend.getCurrentUser() ?: run { finish(); return }
-        val joinedCrewCode = backend.getJoinedCrewCode() ?: run { finish(); return }
-
-        lifecycleScope.launch {
-            val crewName = backend.getCrewName(joinedCrewCode)
-
-            findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
-        
-            findViewById<TextView>(R.id.tvOverviewCrewCode).text = joinedCrewCode
-            val ivQrCode = findViewById<ImageView>(R.id.ivOverviewQrCode)
-
-            try {
-                val encoder = BarcodeEncoder()
-                val bitmap: Bitmap = encoder.encodeBitmap(joinedCrewCode, BarcodeFormat.QR_CODE, 500, 500)
-                ivQrCode.setImageBitmap(bitmap)
-            } catch (e: Exception) {
-                Toast.makeText(this@CrewDetailsActivity, "Error generating QR code", Toast.LENGTH_SHORT).show()
-            }
-        
-            val members = backend.getCrewMembers(joinedCrewCode)
-            val membersText = members.joinToString("\n") { email -> 
-                "- $email" 
-            }
-            findViewById<TextView>(R.id.tvMembersList).text = membersText
-
-            findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener {
-                lifecycleScope.launch {
-                    backend.leaveCrew(joinedCrewCode, currentUser)
-                    Toast.makeText(this@CrewDetailsActivity, "Left crew '$crewName'", Toast.LENGTH_SHORT).show()
-            
-                    val intent = Intent(this@CrewDetailsActivity, CrewLandingActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                }
-            }
+        crewCode = repository.getJoinedCrewCode() ?: run {
+            finish()
+            return
         }
 
-        findViewById<android.widget.ImageButton>(R.id.btnBackCrew).setOnClickListener {
+        findViewById<ImageButton>(R.id.btnBackCrew).setOnClickListener { finish() }
+        findViewById<TextView>(R.id.tvOverviewCrewCode).text = crewCode
+        findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener { leaveCrew() }
+
+        lifecycleScope.launch {
+            // Name, Mitglieder und QR-Code haengen nicht voneinander ab und
+            // werden deshalb gleichzeitig geholt.
+            val (name, members, qr) = coroutineScope {
+                val nameAsync = async { repository.getCrewName(crewCode) }
+                val membersAsync = async { repository.getCrewMembers(crewCode) }
+                val qrAsync = async { QrCodes.generate(crewCode) }
+                Triple(nameAsync.await(), membersAsync.await(), qrAsync.await())
+            }
+
+            crewName = name
+            findViewById<TextView>(R.id.tvCrewNameDisplay).text = name
+            findViewById<TextView>(R.id.tvMembersList).text = members.joinToString("\n") { member ->
+                "- " + (member.name?.takeIf { it.isNotBlank() } ?: member.email.orEmpty())
+            }
+
+            if (qr == null) {
+                Toast.makeText(this@CrewDetailsActivity, R.string.qr_generation_failed, Toast.LENGTH_SHORT).show()
+            } else {
+                findViewById<ImageView>(R.id.ivOverviewQrCode).setImageBitmap(qr)
+            }
+        }
+    }
+
+    private fun leaveCrew() {
+        lifecycleScope.launch {
+            if (!repository.leaveCrew(crewCode)) {
+                Toast.makeText(this@CrewDetailsActivity, R.string.leave_crew_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            Toast.makeText(
+                this@CrewDetailsActivity,
+                getString(R.string.left_crew, crewName),
+                Toast.LENGTH_SHORT
+            ).show()
+
+            val intent = Intent(this@CrewDetailsActivity, CrewLandingActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
             finish()
         }
     }

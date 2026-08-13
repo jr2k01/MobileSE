@@ -16,24 +16,24 @@ import kotlinx.coroutines.launch
 
 class CrewLandingActivity : AppCompatActivity() {
 
-    private lateinit var backend: AppRepository
+    private lateinit var repository: AppRepository
 
-    // QR-Scanner initialisieren
-    private val barcodeLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
-        if (result.contents != null) {
-            joinCrew(result.contents)
-        } else {
-            Toast.makeText(this, "Scan cancelled", Toast.LENGTH_SHORT).show()
+    private val barcodeLauncher =
+        registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
+            val code = result.contents
+            if (code != null) {
+                joinCrew(code.trim())
+            } else {
+                Toast.makeText(this, R.string.scan_cancelled, Toast.LENGTH_SHORT).show()
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        backend = AppRepository(this)
-        
-        // Prüfen, ob bereits in Crew (via Code)
-        if (backend.getJoinedCrewCode() != null) {
+
+        repository = AppRepository.get(this)
+
+        if (repository.getJoinedCrewCode() != null) {
             startActivity(Intent(this, MainHubActivity::class.java))
             finish()
             return
@@ -47,14 +47,12 @@ class CrewLandingActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnJoinCrew).setOnClickListener {
             val options = ScanOptions()
-            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            options.setPrompt("Scan your crew's QR code")
+                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                .setPrompt(getString(R.string.scan_crew_prompt))
             barcodeLauncher.launch(options)
         }
 
-        findViewById<Button>(R.id.btnJoinByCode).setOnClickListener {
-            showJoinDialog()
-        }
+        findViewById<Button>(R.id.btnJoinByCode).setOnClickListener { showJoinDialog() }
 
         findViewById<ImageButton>(R.id.btnProfileIcon).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -62,36 +60,38 @@ class CrewLandingActivity : AppCompatActivity() {
     }
 
     private fun showJoinDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Join Crew")
-        val input = EditText(this)
-        input.hint = "Enter unique crew code"
-        builder.setView(input)
-        
-        builder.setPositiveButton("Join") { _, _ ->
-            joinCrew(input.text.toString().trim())
-        }
-        builder.setNegativeButton("Cancel") { d, _ -> d.cancel() }
-        builder.show()
+        val input = EditText(this).apply { setHint(R.string.crew_code_hint) }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.join_crew_title)
+            .setView(input)
+            .setPositiveButton(R.string.join_btn) { _, _ ->
+                joinCrew(input.text.toString().trim())
+            }
+            .setNegativeButton(R.string.cancel_btn, null)
+            .show()
     }
 
     private fun joinCrew(code: String) {
         if (code.isEmpty()) return
-        
-        val currentUser = backend.getCurrentUser() ?: return
-        
+
         lifecycleScope.launch {
-            // Versuch, der Crew via CODE beizutreten
-            if (backend.joinCrew(code, currentUser)) {
-                val crewName = backend.getCrewName(code)
-                Toast.makeText(this@CrewLandingActivity, "Joined crew '$crewName'!", Toast.LENGTH_LONG).show()
-                
-                val intent = Intent(this@CrewLandingActivity, MainHubActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-            } else {
-                Toast.makeText(this@CrewLandingActivity, "Invalid crew code!", Toast.LENGTH_SHORT).show()
+            if (!repository.joinCrew(code)) {
+                Toast.makeText(this@CrewLandingActivity, R.string.invalid_crew_code, Toast.LENGTH_SHORT).show()
+                return@launch
             }
+
+            val crewName = repository.getCrewName(code)
+            Toast.makeText(
+                this@CrewLandingActivity,
+                getString(R.string.joined_crew, crewName),
+                Toast.LENGTH_LONG
+            ).show()
+
+            val intent = Intent(this@CrewLandingActivity, MainHubActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
     }
 }

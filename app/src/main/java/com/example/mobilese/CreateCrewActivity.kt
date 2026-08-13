@@ -1,7 +1,6 @@
 package com.example.mobilese
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
@@ -11,78 +10,85 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.zxing.BarcodeFormat
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.launch
-import com.journeyapps.barcodescanner.BarcodeEncoder
 
 class CreateCrewActivity : AppCompatActivity() {
+
+    private lateinit var repository: AppRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_creation)
 
+        repository = AppRepository.get(this)
+
         val etCrewName = findViewById<EditText>(R.id.etCrewName)
         val btnSave = findViewById<Button>(R.id.btnSaveCrew)
-        val cvQrResult = findViewById<com.google.android.material.card.MaterialCardView>(R.id.cvQrResult)
-        val ivQrCode = findViewById<ImageView>(R.id.ivCrewQrCode)
-        val tvInstruction = findViewById<TextView>(R.id.tvQrInstruction)
-        val tvCodeLabel = findViewById<TextView>(R.id.tvCrewCodeLabel)
-        val tvUniqueCode = findViewById<TextView>(R.id.tvUniqueCrewCode)
         val btnBack = findViewById<Button>(R.id.btnBackFromCrew)
 
-        val backend = AppRepository(this)
-        // finish() ist wichtig: ohne das bliebe eine leere, tote Activity
-        // sichtbar, wenn keine Sitzung vorhanden ist.
-        val currentUser = backend.getCurrentUser() ?: run { finish(); return }
+        btnBack.setOnClickListener { finish() }
 
         btnSave.setOnClickListener {
             val name = etCrewName.text.toString().trim()
             if (name.isEmpty()) {
-                Toast.makeText(this, "Please enter a name!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.crew_name_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val uniqueCode = (name.take(3).uppercase() + (100..999).random().toString()).replace(" ", "X")
-
+            btnSave.isEnabled = false
             lifecycleScope.launch {
-                // Der Code ist zugleich Primaerschluessel. Schlaegt das Anlegen
-                // fehl (etwa weil der zufaellige Code schon vergeben ist), darf
-                // die UI keinen Erfolg melden.
-                if (!backend.createCrew(name, currentUser, uniqueCode)) {
-                    Toast.makeText(
-                        this@CreateCrewActivity,
-                        "Could not create crew. Please try again.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                val code = createCrewWithUniqueCode(name)
+                btnSave.isEnabled = true
+
+                if (code == null) {
+                    Toast.makeText(this@CreateCrewActivity, R.string.crew_create_failed, Toast.LENGTH_SHORT).show()
                     return@launch
                 }
-
-                try {
-                    val encoder = BarcodeEncoder()
-                    val bitmap: Bitmap = encoder.encodeBitmap(uniqueCode, BarcodeFormat.QR_CODE, 500, 500)
-                
-                    ivQrCode.setImageBitmap(bitmap)
-                    cvQrResult.visibility = View.VISIBLE
-                    ivQrCode.visibility = View.VISIBLE
-                    tvInstruction.visibility = View.VISIBLE
-                    tvCodeLabel.visibility = View.VISIBLE
-                    tvUniqueCode.visibility = View.VISIBLE
-                    tvUniqueCode.text = uniqueCode
-                
-                    Toast.makeText(this@CreateCrewActivity, "Crew '$name' created!", Toast.LENGTH_SHORT).show()
-
-                    btnBack.text = getString(R.string.continue_home)
-                    btnBack.setOnClickListener {
-                        val intent = Intent(this@CreateCrewActivity, MainHubActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
-                    }
-
-                } catch (e: Exception) {
-                    Toast.makeText(this@CreateCrewActivity, "Error generating QR code", Toast.LENGTH_SHORT).show()
-                }
+                showCreatedCrew(name, code, btnBack)
             }
         }
+    }
 
-        btnBack.setOnClickListener { finish() }
+    /**
+     * Legt die Crew an und versucht es bei einem bereits vergebenen Code
+     * erneut. Der Code ist der Primaerschluessel und besteht nur aus drei
+     * Buchstaben und drei Ziffern - Kollisionen sind selten, aber moeglich, und
+     * fuehrten vorher zu einer Fehlermeldung, obwohl ein zweiter Versuch
+     * gereicht haette.
+     */
+    private suspend fun createCrewWithUniqueCode(name: String): String? {
+        repeat(5) {
+            val code = (name.take(3).uppercase() + (100..999).random()).replace(" ", "X")
+            if (repository.createCrew(name, code)) return code
+        }
+        return null
+    }
+
+    private suspend fun showCreatedCrew(name: String, code: String, btnBack: Button) {
+        findViewById<TextView>(R.id.tvUniqueCrewCode).text = code
+        findViewById<MaterialCardView>(R.id.cvQrResult).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvQrInstruction).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvCrewCodeLabel).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvUniqueCrewCode).visibility = View.VISIBLE
+
+        val ivQrCode = findViewById<ImageView>(R.id.ivCrewQrCode)
+        val qr = QrCodes.generate(code)
+        if (qr == null) {
+            Toast.makeText(this, R.string.qr_generation_failed, Toast.LENGTH_SHORT).show()
+        } else {
+            ivQrCode.setImageBitmap(qr)
+            ivQrCode.visibility = View.VISIBLE
+        }
+
+        Toast.makeText(this, getString(R.string.crew_created, name), Toast.LENGTH_SHORT).show()
+
+        btnBack.setText(R.string.continue_home)
+        btnBack.setOnClickListener {
+            val intent = Intent(this, MainHubActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
     }
 }

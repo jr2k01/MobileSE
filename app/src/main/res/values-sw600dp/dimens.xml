@@ -2,15 +2,36 @@
 <!--
     Tablet: ab 600dp kuerzerer Bildschirmkante.
 
-    Mehr Luft am Rand und vor allem eine Obergrenze fuer die Inhaltsbreite.
-    Ein Eingabefeld ueber 1000 Pixel Breite ist nicht schoener, sondern
-    schlechter lesbar - der Blick verliert die Zeile.
+    Die Anordnung bleibt im Hochformat dieselbe wie auf dem Telefon - Leiste
+    unten, eine Spalte. Nur die Groessen wachsen mit, damit die Flaeche
+    genutzt wird und die Elemente nicht wie auf einem vergroesserten Telefon
+    verloren wirken.
+
+    content_max_width ist bewusst nicht begrenzt: der Inhalt soll die Breite
+    ausnutzen. Begrenzt wird erst im Querformat, siehe values-sw600dp-land.
 -->
 <resources>
-    <dimen name="screen_padding_horizontal">32dp</dimen>
-    <dimen name="content_max_width">620dp</dimen>
-    <dimen name="top_bar_padding_top">40dp</dimen>
-    <dimen name="profile_photo_size">140dp</dimen>
-    <dimen name="photo_card_height">280dp</dimen>
-    <dimen name="map_preview_height">200dp</dimen>
+    <dimen name="screen_padding_horizontal">40dp</dimen>
+    <dimen name="content_max_width">2000dp</dimen>
+    <dimen name="top_bar_padding_top">44dp</dimen>
+    <dimen name="card_padding">28dp</dimen>
+
+    <dimen name="profile_photo_size">160dp</dimen>
+
+    <dimen name="logo_size_large">150dp</dimen>
+    <dimen name="logo_size_medium">96dp</dimen>
+    <dimen name="logo_size_small">60dp</dimen>
+    <dimen name="logo_radius_small">30dp</dimen>
+
+    <dimen name="member_avatar_size">88dp</dimen>
+    <dimen name="member_avatar_radius">44dp</dimen>
+
+    <dimen name="leaderboard_avatar_size">56dp</dimen>
+    <dimen name="leaderboard_avatar_radius">28dp</dimen>
+
+    <dimen name="qr_code_size">280dp</dimen>
+
+    <dimen name="photo_card_height">340dp</dimen>
+    <dimen name="activity_photo_height">300dp</dimen>
+    <dimen name="map_preview_height">240dp</dimen>
 </resources>

@@ -9,9 +9,9 @@
     android:paddingBottom="4dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        app:cardCornerRadius="30dp"
+        android:layout_width="@dimen/member_avatar_size"
+        android:layout_height="@dimen/member_avatar_size"
+        app:cardCornerRadius="@dimen/member_avatar_radius"
         app:cardElevation="0dp"
         app:strokeWidth="2dp"
         app:strokeColor="?attr/colorPrimaryContainer"

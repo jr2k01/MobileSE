@@ -26,8 +26,8 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvLogoContainer"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="@dimen/logo_size_medium"
+            android:layout_height="@dimen/logo_size_medium"
             app:cardCornerRadius="36dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp"

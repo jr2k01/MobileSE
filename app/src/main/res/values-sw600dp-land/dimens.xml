@@ -2,15 +2,21 @@
 <!--
     Tablet im Querformat: viel Breite, wenig Hoehe.
 
-    Die Inhaltsbreite darf etwas groesser sein als im Hochformat, weil daneben
-    die Navigationsleiste als senkrechte Schiene steht. Die Hoehe wird wie beim
-    Telefon im Querformat gespart.
+    Hier greift die Begrenzung der Inhaltsbreite. Der Startbildschirm hat quer
+    ein eigenes Layout mit zwei Spalten, die uebrigen Bildschirme wuerden ihre
+    Zeilen sonst ueber die vollen 1280dp ziehen.
+
+    Alles, was vor allem Hoehe kostet, faellt kleiner aus als im Hochformat.
 -->
 <resources>
-    <dimen name="screen_padding_horizontal">40dp</dimen>
-    <dimen name="content_max_width">700dp</dimen>
+    <dimen name="content_max_width">760dp</dimen>
     <dimen name="top_bar_padding_top">28dp</dimen>
-    <dimen name="profile_photo_size">104dp</dimen>
-    <dimen name="photo_card_height">220dp</dimen>
-    <dimen name="map_preview_height">180dp</dimen>
+
+    <dimen name="profile_photo_size">120dp</dimen>
+    <dimen name="logo_size_large">104dp</dimen>
+    <dimen name="logo_size_medium">72dp</dimen>
+
+    <dimen name="photo_card_height">240dp</dimen>
+    <dimen name="activity_photo_height">220dp</dimen>
+    <dimen name="map_preview_height">190dp</dimen>
 </resources>

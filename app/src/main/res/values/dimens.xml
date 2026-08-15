@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Masse fuer Raender und Abstaende, an einer Stelle.
+    Masse fuer Raender, Abstaende und Bildgroessen, an einer Stelle.
 
     Der Sinn: dieselben Layouts liegen auf Telefon und Tablet, nur diese Werte
     unterscheiden sich. So braucht es nicht fuer jeden Bildschirm eine zweite
     Layoutdatei, die man bei jeder Aenderung doppelt pflegen muesste.
 
     Die Tablet-Werte stehen in values-sw600dp, die Querformat-Werte in
-    values-sw600dp-land. "sw600dp" meint die kuerzere Bildschirmkante: sie
-    aendert sich beim Drehen nicht, ein Tablet bleibt also in beiden Lagen ein
-    Tablet.
+    values-land und values-sw600dp-land. "sw600dp" meint die kuerzere
+    Bildschirmkante: sie aendert sich beim Drehen nicht, ein Tablet bleibt also
+    in beiden Lagen ein Tablet.
 -->
 <resources>
 
@@ -18,20 +18,44 @@
 
     <!--
         Groesste Breite, die ein Textblock oder Formular einnehmen darf.
-        Auf dem Telefon ist das mehr als der Bildschirm, wirkt also nicht; auf
-        dem Tablet verhindert es Eingabefelder ueber die volle Breite, die man
-        mit den Augen kaum noch verfolgen kann.
+        Auf Telefon und Tablet im Hochformat liegt der Wert ueber der
+        Bildschirmbreite, wirkt also nicht - der Inhalt nutzt die volle
+        Flaeche. Begrenzt wird nur im Querformat, wo sonst ueber tausend dp
+        breite Zeilen entstuenden.
     -->
     <dimen name="content_max_width">2000dp</dimen>
 
     <!-- Kopfbereich der Unterseiten -->
     <dimen name="top_bar_padding_top">52dp</dimen>
 
+    <!-- Innenabstand in Karten -->
+    <dimen name="card_padding">20dp</dimen>
+
     <!-- Profilbild auf dem Profilbildschirm -->
     <dimen name="profile_photo_size">112dp</dimen>
 
+    <!-- Logo auf den Anmeldebildschirmen und im Kopf des Startbildschirms -->
+    <dimen name="logo_size_large">112dp</dimen>
+    <dimen name="logo_size_medium">72dp</dimen>
+    <dimen name="logo_size_small">44dp</dimen>
+    <dimen name="logo_radius_small">22dp</dimen>
+
+    <!-- Mitgliederbild in der Leiste auf dem Startbildschirm -->
+    <dimen name="member_avatar_size">60dp</dimen>
+    <dimen name="member_avatar_radius">30dp</dimen>
+
+    <!-- Bild in einer Ranglistenzeile -->
+    <dimen name="leaderboard_avatar_size">40dp</dimen>
+    <dimen name="leaderboard_avatar_radius">20dp</dimen>
+
+    <!-- QR-Code der Crew -->
+    <dimen name="qr_code_size">196dp</dimen>
+
     <!-- Hoehe der Fotovorschau beim Eintragen eines Workouts -->
     <dimen name="photo_card_height">220dp</dimen>
+
+    <!-- Foto in der Aktivitaetenliste -->
+    <dimen name="activity_photo_height">200dp</dimen>
 
     <!-- Kartenausschnitt in der Aktivitaetenliste -->
     <dimen name="map_preview_height">140dp</dimen>

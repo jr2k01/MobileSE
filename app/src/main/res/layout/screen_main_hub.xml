@@ -18,9 +18,9 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvHomeLogoContainer"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            app:cardCornerRadius="22dp"
+            android:layout_width="@dimen/logo_size_small"
+            android:layout_height="@dimen/logo_size_small"
+            app:cardCornerRadius="@dimen/logo_radius_small"
             app:cardElevation="0dp"
             app:strokeWidth="0dp"
             app:cardBackgroundColor="@android:color/transparent"
@@ -108,7 +108,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="@dimen/card_padding">
 
                     <TextView
                         android:id="@+id/tvRankingLabel"

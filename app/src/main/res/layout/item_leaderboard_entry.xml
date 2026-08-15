@@ -24,9 +24,9 @@
             android:gravity="center" />
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:cardCornerRadius="20dp"
+            android:layout_width="@dimen/leaderboard_avatar_size"
+            android:layout_height="@dimen/leaderboard_avatar_size"
+            app:cardCornerRadius="@dimen/leaderboard_avatar_radius"
             app:cardElevation="0dp"
             app:strokeWidth="0dp"
             app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"

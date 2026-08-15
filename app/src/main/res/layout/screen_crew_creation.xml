@@ -88,8 +88,8 @@
                     android:text="@string/crew_qr_code" />
 
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="196dp"
-                    android:layout_height="196dp"
+                    android:layout_width="@dimen/qr_code_size"
+                    android:layout_height="@dimen/qr_code_size"
                     android:layout_marginTop="18dp"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"

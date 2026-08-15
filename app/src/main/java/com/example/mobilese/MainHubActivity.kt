@@ -3,8 +3,6 @@ package com.example.mobilese
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -20,10 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 /**
  * Startbildschirm: Crew-Name, Mitglieder, Top 3 und die letzten Aktivitaeten.
@@ -38,13 +32,10 @@ class MainHubActivity : AppCompatActivity() {
     private lateinit var repository: AppRepository
 
     private lateinit var tvCrewName: TextView
-    private lateinit var tvTime: TextView
     private lateinit var llMembers: LinearLayout
     private lateinit var llRanking: LinearLayout
     private lateinit var llLatestActivities: LinearLayout
 
-    private val handler = Handler(Looper.getMainLooper())
-    private var clockRunnable: Runnable? = null
     private var mediaPlayer: MediaPlayer? = null
 
     /** Laufender Ladevorgang, damit sich zwei Aufrufe nicht ueberholen. */
@@ -57,7 +48,6 @@ class MainHubActivity : AppCompatActivity() {
         repository = AppRepository.get(this)
 
         tvCrewName = findViewById(R.id.tvHomeCrewName)
-        tvTime = findViewById(R.id.tvGermanTime)
         llMembers = findViewById(R.id.llMembersContainer)
         llRanking = findViewById(R.id.llRankingContainer)
         llLatestActivities = findViewById(R.id.llLatestActivitiesContainer)
@@ -108,16 +98,8 @@ class MainHubActivity : AppCompatActivity() {
         refresh()
     }
 
-    override fun onStart() {
-        super.onStart()
-        startClock()
-    }
-
     override fun onStop() {
         super.onStop()
-        // Die Uhr lief bisher bis onDestroy weiter und weckte den Prozess auch
-        // im Hintergrund jede Sekunde auf.
-        stopClock()
         mediaPlayer?.release()
         mediaPlayer = null
     }
@@ -228,28 +210,6 @@ class MainHubActivity : AppCompatActivity() {
 
             llLatestActivities.addView(view)
         }
-    }
-
-    // --- Uhr ---
-
-    private fun startClock() {
-        if (clockRunnable != null) return
-        val format = SimpleDateFormat("HH:mm:ss 'DE'", Locale.GERMANY).apply {
-            timeZone = TimeZone.getTimeZone("Europe/Berlin")
-        }
-        val runnable = object : Runnable {
-            override fun run() {
-                tvTime.text = format.format(Date())
-                handler.postDelayed(this, 1000)
-            }
-        }
-        clockRunnable = runnable
-        handler.post(runnable)
-    }
-
-    private fun stopClock() {
-        clockRunnable?.let { handler.removeCallbacks(it) }
-        clockRunnable = null
     }
 
     /**

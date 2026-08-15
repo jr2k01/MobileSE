@@ -102,12 +102,20 @@
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusBottomEnd="12dp">
 
+            <!--
+                Das Datum wird im Kalender gewaehlt, nicht getippt.
+                focusable=false verhindert, dass stattdessen die Tastatur
+                aufgeht, und macht den Klick auf das Feld eindeutig.
+            -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etRegBirthDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_main"
-                android:inputType="date" />
+                android:focusable="false"
+                android:clickable="true"
+                android:cursorVisible="false"
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

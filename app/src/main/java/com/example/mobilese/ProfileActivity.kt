@@ -56,6 +56,20 @@ class ProfileActivity : AppCompatActivity() {
 
         etEmail.setText(currentUserEmail)
 
+        /**
+         * Geburtsdatum ueber den Kalender, Alter daraus abgeleitet.
+         *
+         * Das Altersfeld ist nur noch Anzeige. Vorher waren beides freie
+         * Textfelder: das Alter konnte dem Geburtsdatum widersprechen und war
+         * spaetestens nach dem naechsten Geburtstag veraltet.
+         */
+        etBirthDate.setOnClickListener {
+            BirthDatePicker.show(this, etBirthDate.text.toString()) { picked ->
+                etBirthDate.setText(picked)
+                etAge.setText(BirthDate.ageTextFrom(picked))
+            }
+        }
+
         // Ein einziger Abruf fuer das ganze Formular. Vorher wurde fuer jedes
         // Feld einzeln dieselbe Zeile aus der Datenbank geholt - sechs
         // Abfragen fuer sechs Felder.
@@ -63,7 +77,9 @@ class ProfileActivity : AppCompatActivity() {
             val profile = repository.getProfile(currentUserEmail) ?: return@launch
             etName.setText(profile.name.orEmpty())
             etBirthDate.setText(profile.birthdate.orEmpty())
-            etAge.setText(profile.age.orEmpty())
+            // Nicht das gespeicherte Alter anzeigen, sondern das aus dem
+            // Geburtsdatum berechnete - nur das ist heute noch richtig.
+            etAge.setText(BirthDate.ageTextFrom(profile.birthdate))
             etHeight.setText(profile.height.orEmpty())
             etWeight.setText(profile.weight.orEmpty())
             ImageLoader.into(
@@ -75,15 +91,20 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         btnSave.setOnClickListener {
+            val birthDate = etBirthDate.text.toString().trim()
+
             setBusy(true, btnSave, btnLogout)
             lifecycleScope.launch {
                 val saved = repository.saveUserProfile(
                     currentUserEmail,
                     etName.text.toString().trim(),
-                    etAge.text.toString().trim(),
+                    // Beim Speichern noch einmal aus dem Geburtsdatum
+                    // berechnet, damit in der Datenbank nie ein Alter landet,
+                    // das nicht dazu passt.
+                    BirthDate.ageTextFrom(birthDate),
                     etHeight.text.toString().trim(),
                     etWeight.text.toString().trim(),
-                    etBirthDate.text.toString().trim()
+                    birthDate
                 )
                 setBusy(false, btnSave, btnLogout)
 

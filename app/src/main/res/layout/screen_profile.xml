@@ -141,12 +141,16 @@
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusBottomEnd="12dp">
 
+                <!-- Auswahl ueber den Kalender, siehe screen_registration.xml -->
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etBirthDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_main"
-                    android:inputType="date" />
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:cursorVisible="false"
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Section 2 -->
@@ -174,7 +178,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:hint="@string/age_hint"
+                    android:hint="@string/age_calculated_hint"
                     android:textColorHint="@color/text_secondary"
                     app:hintTextColor="@color/primary"
                     app:boxCornerRadiusTopStart="12dp"
@@ -182,12 +186,22 @@
                     app:boxCornerRadiusBottomStart="12dp"
                     app:boxCornerRadiusBottomEnd="12dp">
 
+                    <!--
+                        Nur Anzeige: das Alter ergibt sich aus dem
+                        Geburtsdatum und laesst sich nicht eigenstaendig
+                        aendern. Sonst koennten beide Angaben auseinander
+                        laufen, und ein getipptes Alter waere nach dem
+                        naechsten Geburtstag falsch.
+                    -->
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etAge"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/text_main"
-                        android:inputType="number" />
+                        android:textColor="@color/text_secondary"
+                        android:focusable="false"
+                        android:clickable="false"
+                        android:cursorVisible="false"
+                        android:inputType="none" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout

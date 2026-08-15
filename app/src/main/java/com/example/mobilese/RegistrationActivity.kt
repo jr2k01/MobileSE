@@ -33,6 +33,13 @@ class RegistrationActivity : AppCompatActivity() {
         val btnRegister = findViewById<Button>(R.id.btnDoRegister)
         val btnBack = findViewById<Button>(R.id.btnBackToLogin)
 
+        // Geburtsdatum wird im Kalender gewaehlt statt getippt.
+        etBirthDate.setOnClickListener {
+            BirthDatePicker.show(this, etBirthDate.text.toString()) { picked ->
+                etBirthDate.setText(picked)
+            }
+        }
+
         btnRegister.setOnClickListener {
             val name = etName.text.toString().trim()
             val birthDate = etBirthDate.text.toString().trim()
@@ -44,6 +51,10 @@ class RegistrationActivity : AppCompatActivity() {
             // Bestaetigungsmails.
             if (name.isEmpty() || birthDate.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 toast(R.string.fill_all_fields)
+                return@setOnClickListener
+            }
+            if (!BirthDate.isValid(birthDate)) {
+                toast(R.string.select_birth_date)
                 return@setOnClickListener
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {

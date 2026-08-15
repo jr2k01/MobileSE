@@ -5,7 +5,11 @@ import android.content.SharedPreferences
 import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.exception.AuthErrorCode
+import io.github.jan.supabase.auth.exception.AuthRestException
+import io.github.jan.supabase.auth.exception.AuthWeakPasswordException
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -16,6 +20,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.io.File
 
 /**
@@ -130,57 +139,144 @@ class AppRepository private constructor(context: Context) {
 
     // --- AUTH ---
 
+    /**
+     * Legt ein Konto an.
+     *
+     * Entscheidend ist die Bedeutung des Rueckgabewerts von [Auth.signUpWith]:
+     * laut Dokumentation liefert er "the result of the sign-up or **null if
+     * auto-confirm is enabled** (resulting in a login)".
+     *
+     * Das wurde vorher genau verkehrt herum ausgewertet - null galt als Fehler,
+     * obwohl es die direkte Anmeldung bedeutet, und ein zurueckgegebenes
+     * UserInfo galt als fertige Registrierung, obwohl es gerade heisst, dass
+     * die Bestaetigung per Mail noch aussteht. In diesem Fall gibt es noch
+     * keine Sitzung.
+     *
+     * Name und Geburtsdatum wandern deshalb als Metadaten mit zum Konto: ohne
+     * Sitzung laesst sich noch keine Zeile in "profiles" schreiben, das
+     * verbieten die RLS-Regeln zu Recht. Das Profil entsteht bei der ersten
+     * Anmeldung aus diesen Metadaten, siehe [ensureProfileExists].
+     */
     suspend fun registerUser(
         email: String,
         password: String,
         name: String,
         birthDate: String
-    ): Boolean = withContext(Dispatchers.IO) {
+    ): RegistrationResult = withContext(Dispatchers.IO) {
         try {
             val userInfo = client.auth.signUpWith(Email) {
                 this.email = email
                 this.password = password
+                this.data = buildJsonObject {
+                    put("name", name)
+                    put("birthdate", birthDate)
+                }
             }
 
-            val userId = userInfo?.id
-            if (userId == null) {
-                // Tritt auf, wenn in Supabase "Confirm Email" aktiv ist: das
-                // Konto existiert, eine Sitzung gibt es aber erst nach der
-                // Bestaetigung per Mail.
-                Log.w("SupabaseAuth", "Registered without session, email confirmation is likely enabled")
-                return@withContext false
+            if (userInfo != null) {
+                Log.d("SupabaseAuth", "Sign-up accepted, confirmation email sent to $email")
+                return@withContext RegistrationResult.ConfirmationRequired
             }
 
-            try {
-                client.postgrest["profiles"].insert(
-                    UserProfile(id = userId, email = email, name = name, birthdate = birthDate)
-                )
-            } catch (e: Exception) {
-                Log.e("SupabaseDB", "Profile creation failed: ${e.message}. Check the RLS policies.")
-            }
-
-            setCurrentUser(email)
-            true
+            // Kein UserInfo: die Bestaetigung ist im Projekt abgeschaltet und
+            // der Nutzer ist bereits angemeldet.
+            val user = client.auth.currentUserOrNull()
+                ?: return@withContext RegistrationResult.Failed(AuthError.UNKNOWN)
+            setCurrentUser(user.email ?: email)
+            ensureProfileExists(user.id, user.email ?: email)
+            RegistrationResult.SignedIn
         } catch (e: Exception) {
             Log.e("SupabaseAuth", "Registration failed: ${e.message}")
+            RegistrationResult.Failed(errorFor(e))
+        }
+    }
+
+    suspend fun loginUser(email: String, password: String): LoginResult =
+        withContext(Dispatchers.IO) {
+            try {
+                client.auth.signInWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+                val user = client.auth.currentUserOrNull()
+                    ?: return@withContext LoginResult.Failed(AuthError.UNKNOWN)
+
+                setCurrentUser(user.email ?: email)
+                // Bei bestaetigter Registrierung ist dies die erste Sitzung des
+                // Nutzers - erst jetzt kann das Profil angelegt werden.
+                ensureProfileExists(user.id, user.email ?: email)
+                cacheJoinedCrew(user.id)
+                LoginResult.Success
+            } catch (e: Exception) {
+                Log.e("SupabaseAuth", "Login failed: ${e.message}")
+                LoginResult.Failed(errorFor(e))
+            }
+        }
+
+    /** Verschickt die Bestaetigungsmail erneut. */
+    suspend fun resendConfirmationEmail(email: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            client.auth.resendEmail(OtpType.Email.SIGNUP, email)
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseAuth", "Could not resend the confirmation email: ${e.message}")
             false
         }
     }
 
-    suspend fun loginUser(email: String, password: String): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Legt die Profilzeile an, falls sie noch fehlt.
+     *
+     * Bei aktivierter Mailbestaetigung gibt es waehrend der Registrierung noch
+     * keine Sitzung, also auch keine Schreibrechte. Name und Geburtsdatum
+     * stehen so lange in den Metadaten des Kontos und werden hier uebernommen.
+     */
+    private suspend fun ensureProfileExists(userId: String, email: String) {
+        if (getProfileById(userId) != null) return
+
+        val metadata = client.auth.currentUserOrNull()?.userMetadata
         try {
-            client.auth.signInWith(Email) {
-                this.email = email
-                this.password = password
-            }
-            val user = client.auth.currentUserOrNull() ?: return@withContext false
-            setCurrentUser(user.email ?: email)
-            cacheJoinedCrew(user.id)
-            true
+            client.postgrest["profiles"].insert(
+                UserProfile(
+                    id = userId,
+                    email = email,
+                    name = metadata.stringOrNull("name"),
+                    birthdate = metadata.stringOrNull("birthdate")
+                )
+            )
+            Log.d("SupabaseDB", "Profile created for $email")
         } catch (e: Exception) {
-            Log.e("SupabaseAuth", "Login failed: ${e.message}")
-            false
+            Log.e("SupabaseDB", "Profile creation failed: ${e.message}. Check the RLS policies.")
         }
+    }
+
+    private fun JsonObject?.stringOrNull(key: String): String? =
+        this?.get(key)?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }
+
+    /**
+     * Uebersetzt eine Ausnahme von Supabase in einen Grund, den die Oberflaeche
+     * dem Nutzer erklaeren kann. Ohne diese Unterscheidung stand bei jedem
+     * Problem nur "Registration failed" auf dem Bildschirm - auch dann, wenn
+     * lediglich das Stundenlimit fuer Bestaetigungsmails erreicht war.
+     */
+    private fun errorFor(e: Exception): AuthError {
+        if (e is AuthWeakPasswordException) return AuthError.WEAK_PASSWORD
+        if (e is AuthRestException) {
+            return when (e.errorCode) {
+                AuthErrorCode.EmailExists, AuthErrorCode.UserAlreadyExists ->
+                    AuthError.EMAIL_ALREADY_REGISTERED
+                AuthErrorCode.WeakPassword -> AuthError.WEAK_PASSWORD
+                AuthErrorCode.ValidationFailed -> AuthError.INVALID_EMAIL
+                AuthErrorCode.OverEmailSendRateLimit, AuthErrorCode.OverRequestRateLimit ->
+                    AuthError.RATE_LIMITED
+                AuthErrorCode.SignupDisabled -> AuthError.SIGNUP_DISABLED
+                AuthErrorCode.EmailNotConfirmed -> AuthError.EMAIL_NOT_CONFIRMED
+                AuthErrorCode.InvalidCredentials -> AuthError.INVALID_CREDENTIALS
+                else -> AuthError.UNKNOWN
+            }
+        }
+        if (e is java.io.IOException) return AuthError.NETWORK
+        return AuthError.UNKNOWN
     }
 
     /**

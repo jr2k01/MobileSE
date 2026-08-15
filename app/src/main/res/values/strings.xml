@@ -109,9 +109,28 @@
 
     <!-- Login und Registrierung -->
     <string name="fill_all_fields">Please fill in all fields</string>
-    <string name="login_failed">Email or password incorrect</string>
     <string name="registration_success">Registration successful</string>
-    <string name="registration_failed">Registration failed</string>
+
+    <!-- Bestaetigungsmail -->
+    <string name="confirm_email_title">Almost done</string>
+    <string name="confirm_email_message">We sent a confirmation link to %s.\n\nOpen the link in that email, then come back and log in. Check your spam folder if it does not arrive.</string>
+    <string name="got_it">Got it</string>
+    <string name="not_confirmed_title">Email not confirmed yet</string>
+    <string name="not_confirmed_message">Your account exists, but the email address still needs to be confirmed. Open the link we sent you, then log in again.</string>
+    <string name="resend_email">Send again</string>
+    <string name="resend_email_sent">Confirmation email sent again</string>
+    <string name="resend_email_failed">Could not send the email. Please try again later.</string>
+
+    <!-- Gruende, warum Anmeldung oder Registrierung scheitern -->
+    <string name="error_title">That did not work</string>
+    <string name="error_email_already_registered">This email address already has an account. Please log in instead.</string>
+    <string name="error_weak_password">The password is too short. Please use at least 6 characters.</string>
+    <string name="error_invalid_email">Please enter a valid email address.</string>
+    <string name="error_rate_limited">Too many attempts. The email service only allows a few messages per hour — please wait a while and try again.</string>
+    <string name="error_signup_disabled">Registration is currently disabled for this app.</string>
+    <string name="error_invalid_credentials">Email or password incorrect.</string>
+    <string name="error_network">No connection to the server. Please check your internet connection.</string>
+    <string name="error_unknown">Something went wrong. Please try again.</string>
 
     <!-- Profil -->
     <string name="profile_saved">Profile saved</string>

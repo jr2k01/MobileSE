@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -39,13 +40,22 @@ class LoginActivity : AppCompatActivity() {
             // eine parallele Anfrage.
             setBusy(true, btnLogin, btnRegister)
             lifecycleScope.launch {
-                val success = repository.loginUser(email, password)
+                val result = repository.loginUser(email, password)
                 setBusy(false, btnLogin, btnRegister)
-                if (success) {
-                    toast(R.string.welcome_back)
-                    openApp()
-                } else {
-                    toast(R.string.login_failed)
+
+                when (result) {
+                    LoginResult.Success -> {
+                        toast(R.string.welcome_back)
+                        openApp()
+                    }
+                    // Eigener Weg, weil der Nutzer hier etwas tun kann:
+                    // die Mail oeffnen oder sie sich erneut schicken lassen.
+                    is LoginResult.Failed ->
+                        if (result.error == AuthError.EMAIL_NOT_CONFIRMED) {
+                            showNotConfirmedDialog(email)
+                        } else {
+                            showError(result.error)
+                        }
                 }
             }
         }
@@ -85,9 +95,36 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
+    /**
+     * Das Konto besteht, die Adresse ist aber noch nicht bestaetigt. Statt
+     * einer Sackgasse bekommt der Nutzer hier den Weg nach vorne: nachsehen
+     * oder die Mail erneut anfordern.
+     */
+    private fun showNotConfirmedDialog(email: String) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.not_confirmed_title)
+            .setMessage(R.string.not_confirmed_message)
+            .setPositiveButton(R.string.got_it, null)
+            .setNeutralButton(R.string.resend_email) { _, _ ->
+                lifecycleScope.launch {
+                    val sent = repository.resendConfirmationEmail(email)
+                    toast(if (sent) R.string.resend_email_sent else R.string.resend_email_failed)
+                }
+            }
+            .show()
+    }
+
+    private fun showError(error: AuthError) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.error_title)
+            .setMessage(error.messageRes())
+            .setPositiveButton(R.string.got_it, null)
+            .show()
+    }
+
     private fun setBusy(busy: Boolean, vararg buttons: View) {
         buttons.forEach { it.isEnabled = !busy }
     }
 
-    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
+    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
 }

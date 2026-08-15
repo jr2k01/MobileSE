@@ -150,6 +150,20 @@
                 android:orientation="vertical"
                 android:layout_marginTop="12dp" />
 
+            <Button
+                android:id="@+id/btnAllActivities"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/see_all_activities"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@color/primary"
+                app:strokeColor="@color/primary"
+                app:cornerRadius="12dp" />
+
         </LinearLayout>
     </ScrollView>
 
@@ -192,15 +206,11 @@
             android:contentDescription="@string/crew_ranking"
             app:tint="@color/text_secondary" />
 
-        <ImageButton
-            android:id="@+id/btnActivitiesListIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_recent_history"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/latest_activities_label"
-            app:tint="@color/text_secondary" />
+        <!--
+            Der Knopf zu den Aktivitaeten ist hier entfallen. Er sitzt jetzt
+            direkt unter der Liste der letzten Aktivitaeten, wo er im
+            Zusammenhang steht, statt als weiteres Symbol in der Leiste.
+        -->
 
         <ImageButton
             android:id="@+id/btnProfileIcon"

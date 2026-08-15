@@ -28,6 +28,17 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Nur in der Crew-Ansicht sichtbar: von wem der Eintrag stammt. -->
+            <TextView
+                android:id="@+id/tvActivityAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:visibility="gone"
+                android:layout_marginBottom="4dp" />
+
             <TextView
                 android:id="@+id/tvActivitySport"
                 android:layout_width="wrap_content"

@@ -39,12 +39,52 @@
             android:layout_marginStart="8dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!--
+        Umschalter zwischen den eigenen Aktivitaeten und denen der ganzen
+        Crew. MaterialButtonToggleGroup gehoert zur bereits eingebundenen
+        Material-Bibliothek und sorgt selbst dafuer, dass immer genau eine
+        Schaltflaeche ausgewaehlt ist.
+    -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/tgActivityScope"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="8dp"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:layout_constraintTop_toBottomOf="@id/clTop">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScopeMine"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:text="@string/scope_mine"
+            android:textAllCaps="false"
+            android:textColor="@color/text_main"
+            app:strokeColor="@color/divider" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnScopeCrew"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:text="@string/scope_crew"
+            android:textAllCaps="false"
+            android:textColor="@color/text_main"
+            app:strokeColor="@color/divider" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/clTop"
+        app:layout_constraintTop_toBottomOf="@id/tgActivityScope"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout

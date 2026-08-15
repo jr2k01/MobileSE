@@ -195,6 +195,10 @@
 
     <!-- Workouts -->
     <string name="no_activities_yet">No activities recorded yet.</string>
+    <string name="see_all_activities">See all activities</string>
+    <string name="scope_mine">My activities</string>
+    <string name="scope_crew">Whole crew</string>
+    <string name="no_crew_activities_yet">Nobody in the crew has recorded an activity yet.</string>
     <string name="select_sport">Please select a sport</string>
     <string name="enter_duration">Please enter a duration in minutes</string>
     <string name="enter_distance">Please enter the kilometers you ran</string>

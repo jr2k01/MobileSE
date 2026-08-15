@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -63,7 +64,9 @@ class MainHubActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btnAddActivityIcon).setOnClickListener {
             startActivity(Intent(this, WorkoutTrackingActivity::class.java))
         }
-        findViewById<ImageButton>(R.id.btnActivitiesListIcon).setOnClickListener {
+        // Steht jetzt unter der Liste der letzten Aktivitaeten statt in der
+        // Navigationsleiste.
+        findViewById<Button>(R.id.btnAllActivities).setOnClickListener {
             startActivity(Intent(this, WorkoutHistoryActivity::class.java))
         }
         findViewById<ImageButton>(R.id.btnDashboardIcon).setOnClickListener {

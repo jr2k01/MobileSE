@@ -96,6 +96,11 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             if (permissions[Manifest.permission.RECORD_AUDIO] == true) {
                 startRecording()
             }
+            if (permissions[Manifest.permission.CAMERA] == true) {
+                takePhoto()
+            } else if (permissions.containsKey(Manifest.permission.CAMERA)) {
+                toast(R.string.camera_permission_denied)
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -129,7 +134,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         etSport.setOnClickListener(openSportPicker)
         tilSport.setEndIconOnClickListener(openSportPicker)
 
-        findViewById<Button>(R.id.btnTakePhoto).setOnClickListener { takePhoto() }
+        findViewById<Button>(R.id.btnTakePhoto).setOnClickListener { checkCameraPermission() }
         findViewById<Button>(R.id.btnGetLocation).setOnClickListener { checkLocationPermissions() }
         findViewById<Button>(R.id.btnCancelAdd).setOnClickListener { finish() }
 
@@ -260,6 +265,18 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             kilometers = parsed
         }
 
+        // Foto und Standort sind Pflicht - sie sind der Nachweis, dass das
+        // Workout wirklich stattgefunden hat, und genau darum geht es in der
+        // Crew. Nur die Sprachnotiz bleibt freiwillig.
+        if (photoPath.isEmpty()) {
+            toast(R.string.error_photo_required)
+            return
+        }
+        if (locationText.isEmpty()) {
+            toast(R.string.error_location_required)
+            return
+        }
+
         // Eine laufende Aufnahme zuerst abschliessen, sonst waere die Datei
         // beim Hochladen noch unvollstaendig.
         if (isRecording) stopRecording()
@@ -269,7 +286,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             val saved = repository.addActivity(
                 sport = sport,
                 photoPath = photoPath,
-                location = locationText.ifEmpty { getString(R.string.location_not_shared) },
+                location = locationText,
                 duration = minutes.toString(),
                 voicePath = voicePath,
                 distance = kilometers.toString(),
@@ -291,6 +308,25 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
     // --- Foto ---
 
+    /**
+     * Holt die Kamera-Berechtigung, bevor die Kamera-App gestartet wird.
+     *
+     * Notwendig, weil die App CAMERA im Manifest deklariert: Android verlangt
+     * die Berechtigung dann auch fuer ACTION_IMAGE_CAPTURE, obwohl nur die
+     * fremde Kamera-App geoeffnet wird. Ohne diese Abfrage warf das System
+     * eine SecurityException und die App stuerzte ab - reproduzierbar, sobald
+     * die Berechtigung einmal abgelehnt worden war.
+     */
+    private fun checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            takePhoto()
+        } else {
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
+        }
+    }
+
     private fun takePhoto() {
         val directory = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         if (directory == null) {
@@ -309,6 +345,12 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             Log.e("Camera", "No camera app available: ${e.message}")
             photoPath = ""
             toast(R.string.no_camera_app)
+        } catch (e: SecurityException) {
+            // Zusaetzliche Absicherung, falls die Berechtigung zwischen Abfrage
+            // und Start entzogen wird.
+            Log.e("Camera", "Camera permission missing: ${e.message}")
+            photoPath = ""
+            toast(R.string.camera_permission_denied)
         }
     }
 

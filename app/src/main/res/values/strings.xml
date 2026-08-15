@@ -66,7 +66,8 @@
     <string name="challenge_progress">%1$d / %2$d achieved</string>
     <string name="challenge_completed">Challenge Completed!</string>
     <string name="take_photo">Take Photo</string>
-    <string name="record_voice">Record Voice Note</string>
+    <!-- Als einziges Feld beim Workout freiwillig, deshalb ausgewiesen -->
+    <string name="record_voice">Voice Note (optional)</string>
     <string name="stop_recording">Stop Recording</string>
     <string name="voice_recorded">Voice note recorded</string>
     <string name="play_voice">Play Voice Note</string>
@@ -216,10 +217,13 @@
     <string name="select_sport">Please select a sport</string>
     <string name="enter_duration">Please enter a duration in minutes</string>
     <string name="enter_distance">Please enter the kilometers you ran</string>
+    <string name="error_photo_required">Please take a photo of your workout</string>
+    <string name="error_location_required">Please set where you trained</string>
     <string name="activity_saved">Activity saved</string>
     <string name="activity_save_failed">Could not save the activity</string>
     <string name="photo_storage_unavailable">Photo storage is not available</string>
     <string name="no_camera_app">No camera app found on this device</string>
+    <string name="camera_permission_denied">CrewFit needs camera access to attach a photo</string>
     <string name="recording_failed">Recording failed</string>
     <string name="playback_failed">Playback failed</string>
     <string name="record_short">REC</string>

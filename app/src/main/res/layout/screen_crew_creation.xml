@@ -6,11 +6,21 @@
     android:fillViewport="true"
     android:background="?attr/colorSurface">
 
+    <!-- ContentColumnWrapper: haelt die volle Breite, damit die
+         Inhaltsspalte darin zentriert begrenzt werden kann. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        app:layout_constraintWidth_max="@dimen/content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingStart="@dimen/screen_padding_horizontal"
+        android:paddingEnd="@dimen/screen_padding_horizontal"
         android:paddingTop="64dp"
         android:paddingBottom="32dp">
 
@@ -125,5 +135,6 @@
             android:text="@string/back_btn"
             app:layout_constraintTop_toBottomOf="@id/cvQrResult" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

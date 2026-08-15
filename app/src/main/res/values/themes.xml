@@ -162,6 +162,46 @@
         <item name="android:color">@android:color/transparent</item>
     </style>
 
+    <!--
+        Auf dem Tablet steht die Navigation als senkrechte Schiene am Rand
+        statt als Leiste unten. Gleiche Farbgebung, gleiche Ueberlegung zum
+        aktiven Marker wie bei der Leiste.
+    -->
+    <style name="Widget.CrewFit.NavRail" parent="Widget.Material3.NavigationRailView">
+        <item name="backgroundTint">@color/md_surface_container</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.CrewFit.NavRail.Indicator</item>
+        <item name="itemIconTint">@color/md_on_surface_variant</item>
+        <item name="itemTextColor">@color/md_on_surface_variant</item>
+    </style>
+
+    <style name="Widget.CrewFit.NavRail.Indicator" parent="Widget.Material3.NavigationRailView.ActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+    <!--
+        Die Inhaltsspalte eines Bildschirms.
+
+        Auf dem Telefon nimmt sie die volle Breite ein, auf dem Tablet hoert
+        sie bei content_max_width auf und steht mittig. Eine Zeile, die ueber
+        die ganze Tablet-Breite laeuft, ist nicht besser lesbar, sondern
+        schlechter - der Blick findet den Zeilenanfang nicht wieder.
+
+        Wird in eine ConstraintLayout gelegt, die die volle Breite haelt.
+    -->
+    <style name="ContentColumn">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingStart">@dimen/screen_padding_horizontal</item>
+        <item name="android:paddingEnd">@dimen/screen_padding_horizontal</item>
+        <item name="layout_constraintWidth_max">@dimen/content_max_width</item>
+        <item name="layout_constraintStart_toStartOf">parent</item>
+        <item name="layout_constraintEnd_toEndOf">parent</item>
+        <item name="layout_constraintTop_toTopOf">parent</item>
+    </style>
+
     <!-- Abschnittsueberschrift ueber Listen und Karten -->
     <style name="TextAppearance.CrewFit.SectionLabel" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textColor">@color/md_on_surface_variant</item>

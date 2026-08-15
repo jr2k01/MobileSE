@@ -15,7 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -80,7 +80,10 @@ class MainHubActivity : AppCompatActivity() {
      * man auf keinem davon ist.
      */
     private fun setUpBottomNavigation() {
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        // NavigationBarView ist die gemeinsame Oberklasse: auf dem Telefon
+        // liegt hier die untere Leiste, auf dem Tablet die senkrechte
+        // Schiene. Der Code muss den Unterschied nicht kennen.
+        val bottomNav = findViewById<NavigationBarView>(R.id.bottomNav)
         bottomNav.menu.setGroupCheckable(0, false, true)
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -130,6 +133,12 @@ class MainHubActivity : AppCompatActivity() {
             llLatestActivities.removeAllViews()
             return
         }
+
+        // Bis der Name geladen ist, bleibt das Feld leer statt eine
+        // Zwischenaussage zu treffen. Vorher stand hier der Vorgabetext aus
+        // dem Layout - "Not joined any crew" - obwohl eine Crew vorhanden war
+        // und nur noch nicht geladen.
+        tvCrewName.text = ""
 
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {

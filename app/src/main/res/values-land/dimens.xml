@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Querformat auf dem Telefon.
+
+    Es steht deutlich weniger Hoehe zur Verfuegung, deshalb schrumpfen die
+    Elemente, die vor allem Platz kosten: der Abstand ueber der Kopfzeile, das
+    Profilbild und die Bildflaechen. Alle Bildschirme liegen ohnehin in einer
+    ScrollView, gescrollt wird also notfalls - aber moeglichst wenig.
+-->
+<resources>
+    <!--
+        Auch quer gehaltene Telefone sind breit genug, dass eine Zeile ueber
+        die volle Breite unangenehm zu lesen waere - rund 1000dp. Deshalb hier
+        dieselbe Begrenzung wie auf dem Tablet.
+    -->
+    <dimen name="content_max_width">620dp</dimen>
+    <dimen name="top_bar_padding_top">24dp</dimen>
+    <dimen name="profile_photo_size">88dp</dimen>
+    <dimen name="photo_card_height">180dp</dimen>
+    <dimen name="map_preview_height">160dp</dimen>
+</resources>

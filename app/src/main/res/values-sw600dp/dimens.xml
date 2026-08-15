@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tablet: ab 600dp kuerzerer Bildschirmkante.
+
+    Mehr Luft am Rand und vor allem eine Obergrenze fuer die Inhaltsbreite.
+    Ein Eingabefeld ueber 1000 Pixel Breite ist nicht schoener, sondern
+    schlechter lesbar - der Blick verliert die Zeile.
+-->
+<resources>
+    <dimen name="screen_padding_horizontal">32dp</dimen>
+    <dimen name="content_max_width">620dp</dimen>
+    <dimen name="top_bar_padding_top">40dp</dimen>
+    <dimen name="profile_photo_size">140dp</dimen>
+    <dimen name="photo_card_height">280dp</dimen>
+    <dimen name="map_preview_height">200dp</dimen>
+</resources>

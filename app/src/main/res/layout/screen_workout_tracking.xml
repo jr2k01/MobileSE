@@ -6,12 +6,22 @@
     android:fillViewport="true"
     android:background="?attr/colorSurface">
 
+    <!-- ContentColumnWrapper: haelt die volle Breite, damit die
+         Inhaltsspalte darin zentriert begrenzt werden kann. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:layout_constraintWidth_max="@dimen/content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         android:paddingTop="56dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
+        android:paddingStart="@dimen/screen_padding_horizontal"
+        android:paddingEnd="@dimen/screen_padding_horizontal"
         android:paddingBottom="32dp">
 
         <TextView
@@ -97,7 +107,7 @@
             android:id="@+id/cvPhoto"
             style="@style/Widget.CrewFit.Card"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
+            android:layout_height="@dimen/photo_card_height"
             android:layout_marginTop="24dp"
             app:layout_constraintTop_toBottomOf="@id/tilDistance">
 
@@ -151,7 +161,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingStart="20dp"
+                android:paddingStart="@dimen/screen_padding_horizontal"
                 android:paddingEnd="12dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp">
@@ -202,7 +212,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingStart="20dp"
+                android:paddingStart="@dimen/screen_padding_horizontal"
                 android:paddingEnd="12dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="12dp">
@@ -296,5 +306,6 @@
             android:textColor="?attr/colorError"
             app:layout_constraintTop_toBottomOf="@id/btnSaveActivity" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

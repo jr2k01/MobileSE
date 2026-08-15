@@ -6,9 +6,19 @@
     android:fillViewport="true"
     android:background="?attr/colorSurface">
 
+    <!-- ContentColumnWrapper: haelt die volle Breite, damit die
+         Inhaltsspalte darin zentriert begrenzt werden kann. -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        app:layout_constraintWidth_max="@dimen/content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         android:paddingTop="72dp"
         android:paddingStart="28dp"
         android:paddingEnd="28dp"
@@ -113,5 +123,6 @@
             android:layout_marginTop="6dp"
             app:layout_constraintTop_toBottomOf="@id/btnLogin" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

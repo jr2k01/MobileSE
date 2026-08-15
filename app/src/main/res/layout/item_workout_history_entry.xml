@@ -94,7 +94,7 @@
                 <ImageView
                     android:id="@+id/ivActivityMap"
                     android:layout_width="match_parent"
-                    android:layout_height="140dp"
+                    android:layout_height="@dimen/map_preview_height"
                     android:scaleType="centerCrop"
                     android:contentDescription="@string/location_map_desc" />
             </com.google.android.material.card.MaterialCardView>

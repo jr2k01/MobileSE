@@ -3,41 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
-    <!-- Notch Puffer -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/clTop"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="48dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageButton
-            android:id="@+id/btnBackActivities"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_margin="16dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/back_desc"
-            android:src="@android:drawable/ic_menu_revert"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_main" />
-
-        <TextView
-            android:id="@+id/tvActivitiesTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/latest_activities_label"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_main"
-            app:layout_constraintTop_toTopOf="@id/btnBackActivities"
-            app:layout_constraintBottom_toBottomOf="@id/btnBackActivities"
-            app:layout_constraintStart_toEndOf="@id/btnBackActivities"
-            android:layout_marginStart="8dp" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <include
+        android:id="@+id/topBar"
+        layout="@layout/part_top_bar"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!--
         Umschalter zwischen den eigenen Aktivitaeten und denen der ganzen
@@ -51,39 +22,34 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         app:singleSelection="true"
         app:selectionRequired="true"
-        app:layout_constraintTop_toBottomOf="@id/clTop">
+        app:layout_constraintTop_toBottomOf="@id/topBar">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnScopeMine"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="48dp"
-            android:text="@string/scope_mine"
-            android:textAllCaps="false"
-            android:textColor="@color/text_main"
-            app:strokeColor="@color/divider" />
+            android:text="@string/scope_mine" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnScopeCrew"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="48dp"
-            android:text="@string/scope_crew"
-            android:textAllCaps="false"
-            android:textColor="@color/text_main"
-            app:strokeColor="@color/divider" />
+            android:text="@string/scope_crew" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:fillViewport="true"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/tgActivityScope"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -92,7 +58,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp" />
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp" />
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

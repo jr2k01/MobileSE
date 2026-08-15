@@ -2,93 +2,87 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cvChallengeRoot"
+    style="@style/Widget.CrewFit.Card.Outlined"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/divider">
+    android:layout_marginBottom="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/tvChallengeTitle"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@id/btnDeleteChallenge"
-                android:text="Running Challenge"
-                android:textColor="@color/text_main"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
 
             <ImageButton
                 android:id="@+id/btnDeleteChallenge"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete Challenge"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="@color/text_secondary" />
-        </RelativeLayout>
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/delete_challenge_desc"
+                android:src="@drawable/ic_delete"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvChallengeProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="10 / 100 km"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
 
-        <ProgressBar
+        <!-- M3-Fortschrittsbalken: abgerundet, mit Abstand zur Spur -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/pbChallenge"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="12dp"
-            android:progress="10"
-            android:max="100"
-            android:progressTint="@color/primary"
-            android:progressBackgroundTint="@color/divider" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:trackThickness="10dp"
+            app:trackCornerRadius="5dp"
+            app:indicatorColor="?attr/colorPrimary"
+            app:trackColor="?attr/colorSurfaceContainerHighest" />
 
         <TextView
             android:id="@+id/tvChallengeStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:text="@string/challenge_completed"
-            android:textColor="@color/accent"
-            android:textSize="12sp"
-            android:textStyle="bold"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorSecondary"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            app:drawableStartCompat="@drawable/ic_check"
+            app:drawableTint="?attr/colorSecondary"
             android:visibility="gone" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:background="@color/divider" />
+            android:layout_marginTop="18dp"
+            android:background="?attr/colorOutlineVariant" />
 
         <TextView
+            style="@style/TextAppearance.CrewFit.SectionLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="CONTRIBUTIONS"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.1"/>
+            android:layout_marginTop="14dp"
+            android:text="@string/contributions_label" />
 
         <LinearLayout
             android:id="@+id/llContributionsContainer"

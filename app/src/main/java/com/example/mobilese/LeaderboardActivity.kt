@@ -36,7 +36,7 @@ class LeaderboardActivity : AppCompatActivity() {
         crewCode = repository.getJoinedCrewCode() ?: run { finish(); return }
 
         llLeaderboard = findViewById(R.id.llLeaderboardContainer)
-        findViewById<ImageButton>(R.id.btnBackDashboard).setOnClickListener { finish() }
+        setUpTopBar(R.string.crew_ranking)
 
         load()
     }

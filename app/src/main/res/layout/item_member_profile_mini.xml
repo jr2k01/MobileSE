@@ -5,23 +5,25 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="12dp">
+    android:paddingEnd="16dp"
+    android:paddingBottom="4dp">
 
     <com.google.android.material.card.MaterialCardView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        app:cardCornerRadius="32dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        app:cardCornerRadius="30dp"
         app:cardElevation="0dp"
         app:strokeWidth="2dp"
-        app:strokeColor="@color/primary">
+        app:strokeColor="?attr/colorPrimaryContainer"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
 
         <ImageView
             android:id="@+id/ivMemberPhoto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:background="@color/surface"/>
+            android:contentDescription="@string/profile_desc"
+            android:src="@drawable/ic_image" />
     </com.google.android.material.card.MaterialCardView>
 
     <TextView
@@ -29,11 +31,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Name"
-        android:textSize="12sp"
-        android:textColor="@color/text_main"
-        android:textStyle="bold"
-        android:maxWidth="80dp"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:maxWidth="76dp"
         android:ellipsize="end"
         android:maxLines="1" />
 

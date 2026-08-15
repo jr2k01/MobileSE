@@ -1,48 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Theme nach Material Design 3.
+
+    Vorher lag hier Theme.MaterialComponents (Material 2) mit einer Handvoll
+    Farben. Material 3 bringt das vollstaendige Rollensystem mit, dazu die
+    aktuelle Typo-Skala und weichere Formen - Komponenten sehen damit von
+    selbst zeitgemaess aus, statt in jedem Layout einzeln zurechtgebogen zu
+    werden.
+
+    Die App bleibt durchgehend dunkel, deshalb Theme.Material3.Dark statt
+    DayNight. Das war schon die bisherige Absicht ("forced to Dark Mode") und
+    passt zu einer Sport-App fuer den Abend.
+-->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme forced to Dark Mode. -->
-    <style name="Base.Theme.MobileSE" parent="Theme.MaterialComponents.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryVariant">@color/primary_dark</item>
-        <item name="colorOnPrimary">@color/background</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorSecondaryVariant">@color/accent</item>
-        <item name="colorOnSecondary">@color/background</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor">@color/background</item>
+
+    <style name="Base.Theme.MobileSE" parent="Theme.Material3.Dark.NoActionBar">
+
+        <!-- Farbrollen -->
+        <item name="colorPrimary">@color/md_primary</item>
+        <item name="colorOnPrimary">@color/md_on_primary</item>
+        <item name="colorPrimaryContainer">@color/md_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/md_on_primary_container</item>
+
+        <item name="colorSecondary">@color/md_secondary</item>
+        <item name="colorOnSecondary">@color/md_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/md_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/md_on_secondary_container</item>
+
+        <item name="colorTertiary">@color/md_tertiary</item>
+        <item name="colorOnTertiary">@color/md_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/md_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/md_on_tertiary_container</item>
+
+        <item name="colorError">@color/md_error</item>
+        <item name="colorOnError">@color/md_on_error</item>
+        <item name="colorErrorContainer">@color/md_error_container</item>
+        <item name="colorOnErrorContainer">@color/md_on_error_container</item>
+
+        <item name="android:colorBackground">@color/md_surface</item>
+        <item name="colorSurface">@color/md_surface</item>
+        <item name="colorOnSurface">@color/md_on_surface</item>
+        <item name="colorSurfaceVariant">@color/md_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/md_on_surface_variant</item>
+
+        <item name="colorSurfaceContainerLowest">@color/md_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/md_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/md_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/md_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/md_surface_container_highest</item>
+
+        <item name="colorOutline">@color/md_outline</item>
+        <item name="colorOutlineVariant">@color/md_outline_variant</item>
+        <item name="colorSurfaceInverse">@color/md_inverse_surface</item>
+        <item name="colorOnSurfaceInverse">@color/md_inverse_on_surface</item>
+
+        <!-- Systemleisten fliessen in den Bildschirm ueber -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/md_surface_container</item>
         <item name="android:windowLightStatusBar">false</item>
-        <!-- Background color -->
-        <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowBackground">@color/md_surface</item>
 
-        <!-- Text Colors -->
-        <item name="android:textColorPrimary">@color/text_main</item>
-        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <!-- Formen und Komponentenstile -->
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.CrewFit.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.CrewFit.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.CrewFit.Large</item>
 
-        <!-- Card styles -->
-        <item name="materialCardViewStyle">@style/Widget.App.CardView</item>
-    </style>
-
-    <style name="Widget.App.CardView" parent="Widget.MaterialComponents.CardView">
-        <item name="cardBackgroundColor">@color/surface</item>
-        <item name="cardElevation">2dp</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.MediumComponent</item>
-    </style>
-
-    <style name="ShapeAppearance.App.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">16dp</item>
-    </style>
-
-    <!-- Eine Zeile der Passwort-Anforderungen unter dem Eingabefeld. -->
-    <style name="PasswordRule">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textSize">13sp</item>
-        <item name="android:paddingTop">2dp</item>
-        <item name="android:paddingBottom">2dp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="materialCardViewStyle">@style/Widget.CrewFit.Card</item>
+        <item name="materialButtonStyle">@style/Widget.CrewFit.Button</item>
+        <item name="textInputStyle">@style/Widget.CrewFit.TextField</item>
+        <item name="bottomNavigationStyle">@style/Widget.CrewFit.BottomNav</item>
     </style>
 
     <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
+
+    <!-- === Formen === -->
+
+    <style name="ShapeAppearance.CrewFit.Small" parent="ShapeAppearance.Material3.Corner.Small">
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.CrewFit.Medium" parent="ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="ShapeAppearance.CrewFit.Large" parent="ShapeAppearance.Material3.Corner.Large">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- === Komponenten === -->
+
+    <!--
+        Karten ohne Schlagschatten, dafuer mit abgesetzter Flaeche. Das ist
+        die in Material 3 uebliche Art, Ebenen zu zeigen, und wirkt ruhiger
+        als Schatten auf dunklem Grund.
+    -->
+    <style name="Widget.CrewFit.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/md_surface_container</item>
+        <item name="cardElevation">0dp</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.CrewFit.Medium</item>
+    </style>
+
+    <style name="Widget.CrewFit.Card.Outlined" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">@color/md_surface_container_low</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/md_outline_variant</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.CrewFit.Medium</item>
+    </style>
+
+    <!-- Gefuellte Schaltflaeche in voller Hoehe, wie sie M3 vorsieht -->
+    <style name="Widget.CrewFit.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">56dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.CrewFit.Button.Tonal" parent="Widget.Material3.Button.TonalButton">
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.CrewFit.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.CrewFit.Button.Text" parent="Widget.Material3.Button.TextButton" />
+
+    <style name="Widget.CrewFit.TextField" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+        <item name="startIconTint">@color/md_on_surface_variant</item>
+    </style>
+
+    <style name="Widget.CrewFit.TextField.Dropdown" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxCornerRadiusTopStart">16dp</item>
+        <item name="boxCornerRadiusTopEnd">16dp</item>
+        <item name="boxCornerRadiusBottomStart">16dp</item>
+        <item name="boxCornerRadiusBottomEnd">16dp</item>
+    </style>
+
+    <!--
+        Die Leiste wechselt keine Reiter, sondern startet fuenf eigene
+        Bildschirme - der Startbildschirm selbst steht nicht darin. Deshalb
+        ohne aktiven Marker und mit einheitlicher Farbe: sonst erschiene
+        dauerhaft ein Eintrag als "hier bist du gerade", was nie stimmt.
+    -->
+    <style name="Widget.CrewFit.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/md_surface_container</item>
+        <item name="itemIconSize">24dp</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.CrewFit.BottomNav.Indicator</item>
+        <item name="itemIconTint">@color/md_on_surface_variant</item>
+        <item name="itemTextColor">@color/md_on_surface_variant</item>
+        <item name="itemRippleColor">@color/md_primary</item>
+    </style>
+
+    <style name="Widget.CrewFit.BottomNav.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
+    </style>
+
+    <!-- Abschnittsueberschrift ueber Listen und Karten -->
+    <style name="TextAppearance.CrewFit.SectionLabel" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/md_on_surface_variant</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+    </style>
+
+    <!-- Eine Zeile der Passwort-Anforderungen unter dem Eingabefeld. -->
+    <style name="PasswordRule" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:textColor">@color/md_on_surface_variant</item>
+    </style>
 </resources>

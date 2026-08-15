@@ -1,19 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Farbsystem nach Material Design 3.
+
+    Material 3 arbeitet nicht mit einzelnen Farben, sondern mit Rollen: zu
+    jeder Grundfarbe gehoert eine Kontrastfarbe ("on...") und eine gedaempfte
+    Flaechenvariante ("...Container"). Wer sich daran haelt, bekommt lesbare
+    Kontraste geschenkt, statt sie pro Bildschirm von Hand zu stimmen.
+
+    Die App bleibt bewusst durchgehend dunkel - das war schon vorher so und
+    passt zu einer Sport-App, die auch abends benutzt wird. Deshalb sind hier
+    die Dark-Scheme-Werte hinterlegt: helle Grundfarben auf dunklen Flaechen.
+
+    Die Markenfarben bleiben erhalten: Indigo als Primaerfarbe, Smaragdgruen
+    fuer Erfolge und Fortschritt.
+-->
 <resources>
+
+    <!-- === Primaer: Indigo, traegt die Hauptaktionen === -->
+    <color name="md_primary">#AEB6FF</color>
+    <color name="md_on_primary">#1B1B5C</color>
+    <color name="md_primary_container">#3A3F9E</color>
+    <color name="md_on_primary_container">#E0E3FF</color>
+
+    <!-- === Sekundaer: Smaragd, steht fuer Fortschritt und Erfolg === -->
+    <color name="md_secondary">#6FE7B7</color>
+    <color name="md_on_secondary">#00382A</color>
+    <color name="md_secondary_container">#00513E</color>
+    <color name="md_on_secondary_container">#8CFFD1</color>
+
+    <!-- === Tertiaer: warmer Akzent fuer Auszeichnungen === -->
+    <color name="md_tertiary">#FFB77C</color>
+    <color name="md_on_tertiary">#4A2800</color>
+    <color name="md_tertiary_container">#6A3B00</color>
+    <color name="md_on_tertiary_container">#FFDCC2</color>
+
+    <!-- === Fehler === -->
+    <color name="md_error">#FFB4AB</color>
+    <color name="md_on_error">#690005</color>
+    <color name="md_error_container">#93000A</color>
+    <color name="md_on_error_container">#FFDAD6</color>
+
+    <!-- === Flaechen, von der tiefsten zur hoechsten Ebene === -->
+    <color name="md_surface">#101319</color>
+    <color name="md_on_surface">#E3E2E9</color>
+    <color name="md_surface_variant">#45464F</color>
+    <color name="md_on_surface_variant">#C6C6D0</color>
+
+    <color name="md_surface_container_lowest">#0B0E13</color>
+    <color name="md_surface_container_low">#181B21</color>
+    <color name="md_surface_container">#1C1F26</color>
+    <color name="md_surface_container_high">#272A31</color>
+    <color name="md_surface_container_highest">#32353C</color>
+
+    <color name="md_outline">#90909A</color>
+    <color name="md_outline_variant">#45464F</color>
+
+    <color name="md_inverse_surface">#E3E2E9</color>
+    <color name="md_inverse_on_surface">#2E3036</color>
+    <color name="md_scrim">#000000</color>
+
+    <!--
+        Altnamen aus der Zeit vor Material 3. Sie werden noch aus dem
+        Kotlin-Code heraus verwendet (etwa fuer den Marker auf der Karte) und
+        zeigen deshalb auf die neuen Rollen, statt eigene Werte zu haben.
+    -->
+    <color name="primary">@color/md_primary</color>
+    <color name="primary_dark">@color/md_primary_container</color>
+    <color name="accent">@color/md_secondary</color>
+    <color name="background">@color/md_surface</color>
+    <color name="surface">@color/md_surface_container</color>
+    <color name="card_bg">@color/md_surface_container</color>
+    <color name="text_main">@color/md_on_surface</color>
+    <color name="text_secondary">@color/md_on_surface_variant</color>
+    <color name="error">@color/md_error</color>
+    <color name="divider">@color/md_outline_variant</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-
-    <!-- Modern Fitness Palette - Dark Mode Focus -->
-    <color name="primary">#818CF8</color>
-    <color name="primary_dark">#6366F1</color>
-    <color name="accent">#34D399</color>
-    <color name="background">#0F172A</color>
-    <color name="surface">#1E293B</color>
-    <color name="text_main">#F1F5F9</color>
-    <color name="text_secondary">#94A3B8</color>
-    <color name="error">#FB7185</color>
-
-    <!-- Helper for dark cards -->
-    <color name="card_bg">#1E293B</color>
-    <color name="divider">#334155</color>
 </resources>

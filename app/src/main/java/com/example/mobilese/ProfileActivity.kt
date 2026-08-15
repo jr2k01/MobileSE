@@ -51,7 +51,7 @@ class ProfileActivity : AppCompatActivity() {
         val btnLogout = findViewById<Button>(R.id.btnLogout)
         ivProfilePicture = findViewById(R.id.ivProfilePicture)
 
-        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
+        setUpTopBar(R.string.my_profile)
         ivProfilePicture.setOnClickListener { pickImageLauncher.launch("image/*") }
 
         etEmail.setText(currentUserEmail)

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die Ziele der unteren Navigationsleiste.
+
+    Frueher waren das fuenf ImageButtons in einem LinearLayout - ohne
+    Beschriftung, ohne Zustand, ohne die Abstaende, die Material vorsieht. Eine
+    BottomNavigationView bringt all das mit und ist das, was Nutzer aus
+    anderen Android-Apps kennen.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        checkableBehavior="none": alle fuenf Eintraege fuehren auf einen
+        eigenen Bildschirm, der Startbildschirm selbst steht nicht in der
+        Leiste. Ohne das markierte die Leiste dauerhaft den ersten Eintrag als
+        "hier bist du gerade", obwohl man auf keinem davon ist.
+    -->
+    <group android:checkableBehavior="none">
+
+        <item
+            android:id="@+id/navCrew"
+            android:icon="@drawable/ic_group"
+            android:title="@string/nav_crew" />
+
+        <item
+            android:id="@+id/navAddWorkout"
+            android:icon="@drawable/ic_add"
+            android:title="@string/nav_add" />
+
+        <item
+            android:id="@+id/navLeaderboard"
+            android:icon="@drawable/ic_leaderboard"
+            android:title="@string/nav_ranking" />
+
+        <item
+            android:id="@+id/navChallenges"
+            android:icon="@drawable/ic_flag"
+            android:title="@string/nav_challenges" />
+
+        <item
+            android:id="@+id/navProfile"
+            android:icon="@drawable/ic_person"
+            android:title="@string/nav_profile" />
+    </group>
+</menu>

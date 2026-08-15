@@ -4,56 +4,53 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <TextView
+        style="@style/TextAppearance.CrewFit.SectionLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Choose Challenge Type"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_secondary"
-        android:textAllCaps="true" />
+        android:text="@string/challenge_type_label" />
 
     <RadioGroup
         android:id="@+id/rgChallengeType"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="8dp">
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/rbRunning"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:text="@string/challenge_type_running"
-            android:checked="true"
-            android:textColor="@color/text_main" />
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:checked="true" />
 
-        <RadioButton
+        <com.google.android.material.radiobutton.MaterialRadioButton
             android:id="@+id/rbGym"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/challenge_type_gym"
-            android:textColor="@color/text_main" />
+            android:minHeight="48dp"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:text="@string/challenge_type_gym" />
     </RadioGroup>
 
     <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        style="@style/Widget.CrewFit.TextField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="@string/challenge_goal_hint"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp">
+        android:layout_marginTop="16dp"
+        android:hint="@string/challenge_goal_hint">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etChallengeGoal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:textColor="@color/text_main" />
+            android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

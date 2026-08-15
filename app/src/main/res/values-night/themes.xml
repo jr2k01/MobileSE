@@ -1,16 +1,9 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Same as default to ensure Dark Mode always -->
-    <style name="Base.Theme.MobileSE" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryVariant">@color/primary_dark</item>
-        <item name="colorOnPrimary">@color/background</item>
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorSecondaryVariant">@color/accent</item>
-        <item name="colorOnSecondary">@color/background</item>
-        <item name="android:statusBarColor">@color/background</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:textColorPrimary">@color/text_main</item>
-        <item name="android:textColorSecondary">@color/text_secondary</item>
-    </style>
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die App ist durchgehend dunkel gestaltet, das Basis-Theme in values/ ist
+    bereits ein Dark-Theme. Diese Datei existiert nur, damit der Nachtmodus des
+    Systems nichts daran aendert; sie erbt unveraendert.
+-->
+<resources>
+    <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
 </resources>

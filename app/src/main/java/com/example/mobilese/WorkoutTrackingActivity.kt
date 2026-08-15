@@ -325,6 +325,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     private fun showPhotoPreview() {
         ivPreview.setPadding(0, 0, 0, 0)
         ivPreview.alpha = 1.0f
+        // Vom klein zentrierten Platzhalter auf ein formatfuellendes Foto.
+        ivPreview.scaleType = ImageView.ScaleType.CENTER_CROP
         ImageViewCompat.setImageTintList(ivPreview, null)
         ImageLoader.into(ivPreview, photoPath)
     }

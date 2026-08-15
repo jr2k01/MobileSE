@@ -27,6 +27,13 @@
     <string name="manual_code_btn">Enter code manually</string>
     <string name="profile_desc">Profile</string>
 
+    <!-- Untere Navigationsleiste -->
+    <string name="nav_crew">Crew</string>
+    <string name="nav_add">Workout</string>
+    <string name="nav_ranking">Ranking</string>
+    <string name="nav_challenges">Challenges</string>
+    <string name="nav_profile">Profile</string>
+
     <!-- Home -->
     <string name="your_crew_prefix">Your Crew: %s</string>
     <string name="members_label">Members</string>
@@ -47,8 +54,11 @@
     <string name="distance_hint">Distance (km)</string>
     <string name="add_challenge_btn">Add Crew Challenge</string>
     <string name="crew_challenges_title">Crew Challenges</string>
+    <string name="contributions_label">Contributions</string>
+    <string name="delete_challenge_desc">Delete challenge</string>
     <string name="no_challenges_yet">No challenges yet. Add one to get the crew moving.</string>
     <string name="create_challenge_title">Create New Challenge</string>
+    <string name="challenge_type_label">Challenge type</string>
     <string name="challenge_type_running">Running (Total km)</string>
     <string name="challenge_type_gym">Gym Sessions (Total count)</string>
     <string name="challenge_goal_hint">Goal (km or sessions)</string>
@@ -85,6 +95,8 @@
     <string name="height_hint">Height (cm)</string>
     <string name="weight_hint">Weight (kg)</string>
     <string name="save_profile">Save Profile</string>
+    <string name="tap_to_change_photo">Tap the picture to change it</string>
+    <string name="delete_profile_btn">Delete profile &amp; all data</string>
     <string name="logout_btn">Logout</string>
 
     <!-- Create Crew -->

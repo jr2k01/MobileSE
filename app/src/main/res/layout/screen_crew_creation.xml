@@ -4,127 +4,126 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="32dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="64dp"
+        android:paddingBottom="32dp">
 
         <TextView
             android:id="@+id/tvCreateTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/found_new_crew"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_main"
+            android:textAppearance="?attr/textAppearanceDisplaySmall"
+            android:textColor="?attr/colorOnSurface"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="32dp" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:id="@+id/tilCrewName"
+            style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/crew_name_question"
-            android:layout_marginTop="32dp"
-            android:textColorHint="@color/text_secondary"
-            app:hintTextColor="@color/primary"
-            app:layout_constraintTop_toBottomOf="@id/tvCreateTitle"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp">
+            android:layout_marginTop="28dp"
+            app:startIconDrawable="@drawable/ic_group"
+            app:layout_constraintTop_toBottomOf="@id/tvCreateTitle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etCrewName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_main"
                 android:inputType="text" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveCrew"
+            style="@style/Widget.CrewFit.Button"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="@string/create_crew_btn"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/background"
-            app:cornerRadius="12dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:text="@string/create_crew_btn"
             app:layout_constraintTop_toBottomOf="@id/tilCrewName" />
 
+        <!-- Erscheint erst, wenn die Crew angelegt wurde -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvQrResult"
+            style="@style/Widget.CrewFit.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="4dp"
             android:visibility="gone"
+            app:shapeAppearance="@style/ShapeAppearance.CrewFit.Large"
             app:layout_constraintTop_toBottomOf="@id/btnSaveCrew">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="32dp"
-                android:gravity="center">
+                android:gravity="center"
+                android:padding="24dp">
 
                 <TextView
                     android:id="@+id/tvQrInstruction"
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/crew_qr_code"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_main"/>
+                    android:visibility="gone"
+                    android:text="@string/crew_qr_code" />
 
-                <ImageView
-                    android:id="@+id/ivCrewQrCode"
-                    android:layout_width="220dp"
-                    android:layout_height="220dp"
-                    android:layout_marginTop="24dp"
-                    android:contentDescription="@string/crew_qr_code" />
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="196dp"
+                    android:layout_height="196dp"
+                    android:layout_marginTop="18dp"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <ImageView
+                        android:id="@+id/ivCrewQrCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:visibility="gone"
+                        android:padding="14dp"
+                        android:contentDescription="@string/crew_qr_code" />
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
                     android:id="@+id/tvCrewCodeLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
                     android:text="@string/manual_code_label"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginTop="24dp"/>
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:id="@+id/tvUniqueCrewCode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="CODE"
-                    android:textSize="28sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary"
-                    android:letterSpacing="0.1"/>
+                    android:visibility="gone"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textColor="?attr/colorPrimary"
+                    android:letterSpacing="0.15" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBackFromCrew"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
+            style="@style/Widget.CrewFit.Button.Text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/back_btn"
-            android:textAllCaps="false"
-            android:textColor="@color/text_secondary"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/cvQrResult"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:text="@string/back_btn"
+            app:layout_constraintTop_toBottomOf="@id/cvQrResult" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

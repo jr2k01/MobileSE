@@ -15,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -61,25 +62,38 @@ class MainHubActivity : AppCompatActivity() {
         llRanking = findViewById(R.id.llRankingContainer)
         llLatestActivities = findViewById(R.id.llLatestActivitiesContainer)
 
-        findViewById<ImageButton>(R.id.btnAddActivityIcon).setOnClickListener {
-            startActivity(Intent(this, WorkoutTrackingActivity::class.java))
-        }
-        // Steht jetzt unter der Liste der letzten Aktivitaeten statt in der
+        // Steht unter der Liste der letzten Aktivitaeten statt in der
         // Navigationsleiste.
         findViewById<Button>(R.id.btnAllActivities).setOnClickListener {
             startActivity(Intent(this, WorkoutHistoryActivity::class.java))
         }
-        findViewById<ImageButton>(R.id.btnDashboardIcon).setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
-        }
-        findViewById<ImageButton>(R.id.btnProfileIcon).setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-        }
-        findViewById<ImageButton>(R.id.btnCrewOverviewIcon).setOnClickListener {
-            startActivity(Intent(this, CrewDetailsActivity::class.java))
-        }
-        findViewById<ImageButton>(R.id.btnChallengesIcon).setOnClickListener {
-            startActivity(Intent(this, CrewChallengesActivity::class.java))
+
+        setUpBottomNavigation()
+    }
+
+    /**
+     * Die Ziele der unteren Leiste.
+     *
+     * Alle fuenf fuehren auf einen eigenen Bildschirm; der Startbildschirm
+     * selbst steht nicht in der Leiste. Deshalb wird die Auswahl abgeschaltet -
+     * sonst erschiene dauerhaft ein Eintrag als "hier bist du gerade", obwohl
+     * man auf keinem davon ist.
+     */
+    private fun setUpBottomNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        bottomNav.menu.setGroupCheckable(0, false, true)
+
+        bottomNav.setOnItemSelectedListener { item ->
+            val target = when (item.itemId) {
+                R.id.navCrew -> CrewDetailsActivity::class.java
+                R.id.navAddWorkout -> WorkoutTrackingActivity::class.java
+                R.id.navLeaderboard -> LeaderboardActivity::class.java
+                R.id.navChallenges -> CrewChallengesActivity::class.java
+                R.id.navProfile -> ProfileActivity::class.java
+                else -> return@setOnItemSelectedListener false
+            }
+            startActivity(Intent(this, target))
+            false
         }
     }
 

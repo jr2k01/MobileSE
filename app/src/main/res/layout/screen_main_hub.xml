@@ -3,25 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
-    <!-- Header mit Notch-Puffer und kreisförmigem Logo -->
+    <!-- Kopfbereich: Logo, Crew und Uhrzeit -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="56dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="16dp"
-        android:background="@color/surface"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="20dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cvHomeLogoContainer"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:cardCornerRadius="24dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            app:cardCornerRadius="22dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp"
             app:cardBackgroundColor="@android:color/transparent"
@@ -34,8 +33,7 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/logo_new"
                 android:contentDescription="@string/logo_desc"
-                android:scaleType="centerCrop"
-                android:padding="0dp" />
+                android:scaleType="centerCrop" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
@@ -43,10 +41,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/no_crew_joined"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_main"
-            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginStart="14dp"
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintStart_toEndOf="@id/cvHomeLogoContainer"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -55,10 +54,9 @@
             android:id="@+id/tvGermanTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00:00:00"
-            android:textSize="12sp"
-            android:textColor="@color/accent"
-            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorSecondary"
+            android:layout_marginStart="14dp"
             app:layout_constraintTop_toBottomOf="@id/tvHomeCrewName"
             app:layout_constraintStart_toEndOf="@id/cvHomeLogoContainer" />
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -67,29 +65,29 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/clHeader"
-        app:layout_constraintBottom_toTopOf="@id/llBottomNav">
+        app:layout_constraintBottom_toTopOf="@id/bottomNav">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
             <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/members_label"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:textAllCaps="true" />
+                android:text="@string/members_label" />
 
             <HorizontalScrollView
                 android:id="@+id/hsvMembers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:scrollbars="none">
 
                 <LinearLayout
@@ -100,48 +98,43 @@
                     android:gravity="center_vertical" />
             </HorizontalScrollView>
 
+            <!-- Top 3 der Crew -->
             <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/divider">
+                android:layout_marginTop="28dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="20dp">
 
                     <TextView
                         android:id="@+id/tvRankingLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/top_3_label"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_main" />
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
 
                     <LinearLayout
                         android:id="@+id/llRankingContainer"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="12dp" />
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tvLatestActivitiesLabel"
+                style="@style/TextAppearance.CrewFit.SectionLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/latest_activities_label"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_main"
-                android:layout_marginTop="32dp" />
+                android:layout_marginTop="32dp"
+                android:text="@string/latest_activities_label" />
 
             <LinearLayout
                 android:id="@+id/llLatestActivitiesContainer"
@@ -150,88 +143,25 @@
                 android:orientation="vertical"
                 android:layout_marginTop="12dp" />
 
-            <Button
+            <!-- Nachrangige Aktion: umrandet statt gefuellt, damit sie die
+                 Liste darueber nicht ueberstrahlt. -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAllActivities"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                style="@style/Widget.CrewFit.Button.Outlined"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:text="@string/see_all_activities"
-                android:textAllCaps="false"
-                android:textSize="16sp"
-                android:textColor="@color/primary"
-                app:strokeColor="@color/primary"
-                app:cornerRadius="12dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/see_all_activities" />
 
         </LinearLayout>
     </ScrollView>
 
-    <LinearLayout
-        android:id="@+id/llBottomNav"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        style="@style/Widget.CrewFit.BottomNav"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:background="@color/surface"
-        android:orientation="horizontal"
-        android:elevation="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <ImageButton
-            android:id="@+id/btnCrewOverviewIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_myplaces"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/your_crew"
-            app:tint="@color/text_secondary" />
-
-        <ImageButton
-            android:id="@+id/btnAddActivityIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_input_add"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Add"
-            app:tint="@color/primary" />
-
-        <ImageButton
-            android:id="@+id/btnDashboardIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/crew_ranking"
-            app:tint="@color/text_secondary" />
-
-        <!--
-            Der Knopf zu den Aktivitaeten ist hier entfallen. Er sitzt jetzt
-            direkt unter der Liste der letzten Aktivitaeten, wo er im
-            Zusammenhang steht, statt als weiteres Symbol in der Leiste.
-        -->
-
-        <ImageButton
-            android:id="@+id/btnChallengesIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_agenda"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/crew_challenges_title"
-            app:tint="@color/text_secondary" />
-
-        <ImageButton
-            android:id="@+id/btnProfileIcon"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_edit"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/my_profile"
-            app:tint="@color/text_secondary" />
-
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        app:menu="@menu/menu_bottom_nav"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

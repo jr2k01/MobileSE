@@ -9,7 +9,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
@@ -18,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -45,7 +45,7 @@ class CrewChallengesActivity : AppCompatActivity() {
 
         container = findViewById(R.id.llChallengesContainer)
 
-        findViewById<ImageButton>(R.id.btnBackChallenges).setOnClickListener { finish() }
+        setUpTopBar(R.string.crew_challenges_title)
         findViewById<Button>(R.id.btnLaunchChallenge).setOnClickListener { showAddChallengeDialog() }
 
         load()
@@ -109,14 +109,16 @@ class CrewChallengesActivity : AppCompatActivity() {
                 isDistance
             )
 
-            val progressBar = view.findViewById<ProgressBar>(R.id.pbChallenge)
+            val progressBar = view.findViewById<LinearProgressIndicator>(R.id.pbChallenge)
             progressBar.max = challenge.goal.coerceAtLeast(1)
-            progressBar.progress = total.coerceAtMost(progressBar.max)
+            progressBar.setProgressCompat(total.coerceAtMost(progressBar.max), true)
 
             if (total >= challenge.goal) {
                 view.findViewById<TextView>(R.id.tvChallengeStatus).visibility = View.VISIBLE
                 view.findViewById<MaterialCardView>(R.id.cvChallengeRoot).strokeColor = accent.defaultColor
-                progressBar.progressTintList = accent
+                // LinearProgressIndicator faerbt sich ueber setIndicatorColor,
+                // nicht ueber progressTintList wie die alte ProgressBar.
+                progressBar.setIndicatorColor(accent.defaultColor)
             }
 
             container.addView(view)

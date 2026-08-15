@@ -30,7 +30,7 @@ class CrewDetailsActivity : AppCompatActivity() {
             return
         }
 
-        findViewById<ImageButton>(R.id.btnBackCrew).setOnClickListener { finish() }
+        setUpTopBar(R.string.your_crew)
         findViewById<TextView>(R.id.tvOverviewCrewCode).text = crewCode
         findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener { leaveCrew() }
 

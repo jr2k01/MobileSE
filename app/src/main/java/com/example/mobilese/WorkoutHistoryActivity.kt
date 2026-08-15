@@ -42,7 +42,7 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         repository = AppRepository.get(this)
         container = findViewById(R.id.llActivitiesContainer)
 
-        findViewById<ImageButton>(R.id.btnBackActivities).setOnClickListener { finish() }
+        setUpTopBar(R.string.latest_activities_label)
 
         val toggle = findViewById<MaterialButtonToggleGroup>(R.id.tgActivityScope)
         toggle.check(R.id.btnScopeMine)
@@ -166,13 +166,14 @@ class WorkoutHistoryActivity : AppCompatActivity() {
      * eintreffende Bilder ist deshalb ausgeschlossen.
      */
     private fun showMap(view: View, activity: Activity) {
+        val cvMap = view.findViewById<View>(R.id.cvActivityMap)
         val ivMap = view.findViewById<ImageView>(R.id.ivActivityMap)
         val tvAttribution = view.findViewById<TextView>(R.id.tvActivityMapAttribution)
 
         val latitude = activity.latitude
         val longitude = activity.longitude
         if (latitude == null || longitude == null) {
-            ivMap.visibility = View.GONE
+            cvMap.visibility = View.GONE
             tvAttribution.visibility = View.GONE
             return
         }
@@ -186,7 +187,7 @@ class WorkoutHistoryActivity : AppCompatActivity() {
             ) ?: return@launch
 
             ivMap.setImageBitmap(map)
-            ivMap.visibility = View.VISIBLE
+            cvMap.visibility = View.VISIBLE
             tvAttribution.text = StaticMap.ATTRIBUTION
             tvAttribution.visibility = View.VISIBLE
         }

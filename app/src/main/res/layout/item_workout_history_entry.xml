@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.CrewFit.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="#F3F4F6">
+    android:layout_marginBottom="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -20,7 +17,8 @@
             android:layout_height="200dp"
             android:scaleType="centerCrop"
             android:visibility="gone"
-            android:background="#F3F4F6" />
+            android:contentDescription="@string/take_photo"
+            android:background="?attr/colorSurfaceContainerHighest" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,80 +31,82 @@
                 android:id="@+id/tvActivityAuthor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
                 android:visibility="gone"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="6dp" />
 
             <TextView
                 android:id="@+id/tvActivitySport"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Activity"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_main" />
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="?attr/colorOnSurface" />
 
             <TextView
                 android:id="@+id/tvActivityDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Date"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginTop="4dp" />
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="2dp" />
 
-            <TextView
+            <!-- Dauer als Chip, damit die Kennzahl aus dem Text heraussticht -->
+            <com.google.android.material.chip.Chip
                 android:id="@+id/tvActivityDuration"
+                style="@style/Widget.Material3.Chip.Assist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0 min"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary"
-                android:layout_marginTop="4dp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#F3F4F6"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginTop="12dp"
+                android:clickable="false"
+                android:checkable="false"
+                app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                app:chipStrokeWidth="0dp" />
 
             <TextView
                 android:id="@+id/tvActivityLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Location"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"
+                android:layout_marginTop="16dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
                 android:drawablePadding="8dp"
-                app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
-                app:drawableTint="@color/text_secondary" />
+                android:gravity="center_vertical"
+                app:drawableStartCompat="@drawable/ic_location_on"
+                app:drawableTint="?attr/colorOnSurfaceVariant" />
 
             <!--
                 Kartenausschnitt der Stelle. Nur sichtbar, wenn zu der
                 Aktivitaet Koordinaten gespeichert wurden - aeltere Eintraege
                 haben keine.
             -->
-            <ImageView
-                android:id="@+id/ivActivityMap"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvActivityMap"
                 android:layout_width="match_parent"
-                android:layout_height="140dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:scaleType="centerCrop"
                 android:visibility="gone"
-                android:contentDescription="@string/location_map_desc" />
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <ImageView
+                    android:id="@+id/ivActivityMap"
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/location_map_desc" />
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/tvActivityMapAttribution"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="10sp"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:visibility="gone"
-                android:textColor="@color/text_secondary" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -4,21 +4,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="80dp"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
+        android:paddingTop="56dp"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
         android:paddingBottom="32dp">
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cvRegLogoContainer"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            app:cardCornerRadius="40dp"
+            android:id="@+id/cvLogoContainer"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            app:cardCornerRadius="36dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp"
             app:cardBackgroundColor="@android:color/transparent"
@@ -26,81 +26,64 @@
             app:layout_constraintStart_toStartOf="parent">
 
             <ImageView
-                android:id="@+id/ivRegLogo"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:src="@drawable/logo_new"
                 android:contentDescription="@string/logo_desc"
-                android:scaleType="centerCrop"
-                android:padding="0dp" />
+                android:scaleType="centerCrop" />
         </com.google.android.material.card.MaterialCardView>
 
         <TextView
-            android:id="@+id/tvRegTitle"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvCreateTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/create_account"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_main"
-            app:layout_constraintTop_toBottomOf="@id/cvRegLogoContainer"
+            android:textAppearance="?attr/textAppearanceDisplaySmall"
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/cvLogoContainer"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="24dp"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
             android:id="@+id/tvRegSub"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/register_sub"
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintTop_toBottomOf="@id/tvRegTitle"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvCreateTitle"
             app:layout_constraintStart_toStartOf="parent"
-            android:layout_marginTop="4dp"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegName"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/full_name_hint"
-            android:layout_marginTop="32dp"
-            android:textColorHint="@color/text_secondary"
-            app:hintTextColor="@color/primary"
-            app:boxStrokeColor="@color/primary"
+            android:layout_marginTop="28dp"
             app:layout_constraintTop_toBottomOf="@id/tvRegSub"
-            app:startIconDrawable="@android:drawable/ic_menu_myplaces"
-            app:startIconTint="@color/text_secondary"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp">
+            app:startIconDrawable="@drawable/ic_person">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etRegName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_main"
+                android:autofillHints="name"
                 android:inputType="textPersonName" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegBirth"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/birth_date_hint"
-            android:layout_marginTop="16dp"
-            android:textColorHint="@color/text_secondary"
-            app:hintTextColor="@color/primary"
-            app:boxStrokeColor="@color/primary"
+            android:layout_marginTop="14dp"
             app:layout_constraintTop_toBottomOf="@id/tilRegName"
-            app:startIconDrawable="@android:drawable/ic_menu_today"
-            app:startIconTint="@color/text_secondary"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp">
+            app:startIconDrawable="@drawable/ic_calendar">
 
             <!--
                 Das Datum wird im Kalender gewaehlt, nicht getippt.
@@ -111,7 +94,6 @@
                 android:id="@+id/etRegBirthDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_main"
                 android:focusable="false"
                 android:clickable="true"
                 android:cursorVisible="false"
@@ -120,55 +102,38 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegEmail"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/email_hint"
-            android:layout_marginTop="16dp"
-            android:textColorHint="@color/text_secondary"
-            app:hintTextColor="@color/primary"
-            app:boxStrokeColor="@color/primary"
+            android:layout_marginTop="14dp"
             app:layout_constraintTop_toBottomOf="@id/tilRegBirth"
-            app:startIconDrawable="@android:drawable/ic_dialog_email"
-            app:startIconTint="@color/text_secondary"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp">
+            app:startIconDrawable="@drawable/ic_mail">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etRegEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_main"
+                android:autofillHints="emailAddress"
                 android:inputType="textEmailAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegPass"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/password_hint"
-            android:layout_marginTop="16dp"
-            android:textColorHint="@color/text_secondary"
-            app:hintTextColor="@color/primary"
-            app:boxStrokeColor="@color/primary"
+            android:layout_marginTop="14dp"
             app:layout_constraintTop_toBottomOf="@id/tilRegEmail"
-            app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-            app:startIconTint="@color/text_secondary"
-            app:passwordToggleEnabled="true"
-            app:passwordToggleTint="@color/text_secondary"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp">
+            app:startIconDrawable="@drawable/ic_lock"
+            app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etRegPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_main"
+                android:autofillHints="newPassword"
                 android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -178,68 +143,69 @@
             vorher, was verlangt wird, statt erst nach dem Absenden eine
             Absage zu bekommen.
         -->
-        <LinearLayout
-            android:id="@+id/llPasswordRules"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvPasswordRules"
+            style="@style/Widget.CrewFit.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="12dp"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
+            app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small"
             app:layout_constraintTop_toBottomOf="@id/tilRegPass">
 
-            <TextView
-                android:id="@+id/tvPasswordRulesTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/llPasswordRules"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/pw_requirements_title"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:layout_marginBottom="4dp" />
+                android:orientation="vertical"
+                android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvRuleLength"
-                style="@style/PasswordRule" />
+                <TextView
+                    android:id="@+id/tvPasswordRulesTitle"
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pw_requirements_title"
+                    android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:id="@+id/tvRuleUppercase"
-                style="@style/PasswordRule" />
+                <TextView
+                    android:id="@+id/tvRuleLength"
+                    style="@style/PasswordRule" />
 
-            <TextView
-                android:id="@+id/tvRuleLowercase"
-                style="@style/PasswordRule" />
+                <TextView
+                    android:id="@+id/tvRuleUppercase"
+                    style="@style/PasswordRule" />
 
-            <TextView
-                android:id="@+id/tvRuleDigit"
-                style="@style/PasswordRule" />
+                <TextView
+                    android:id="@+id/tvRuleLowercase"
+                    style="@style/PasswordRule" />
 
-            <TextView
-                android:id="@+id/tvRuleSpecial"
-                style="@style/PasswordRule" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tvRuleDigit"
+                    style="@style/PasswordRule" />
 
-        <Button
+                <TextView
+                    android:id="@+id/tvRuleSpecial"
+                    style="@style/PasswordRule" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDoRegister"
+            style="@style/Widget.CrewFit.Button"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:text="@string/register_btn"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/background"
-            app:cornerRadius="12dp"
             android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/llPasswordRules" />
+            app:layout_constraintTop_toBottomOf="@id/cvPasswordRules" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBackToLogin"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.CrewFit.Button.Text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/login_prompt"
-            android:textAllCaps="false"
-            android:textColor="@color/primary"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             app:layout_constraintTop_toBottomOf="@id/btnDoRegister" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

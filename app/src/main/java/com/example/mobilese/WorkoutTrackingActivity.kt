@@ -16,6 +16,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -39,6 +40,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         const val STATE_VOICE_PATH = "voice_path"
         const val STATE_LOCATION = "location"
         const val STATE_SPORT = "sport"
+        const val STATE_LATITUDE = "latitude"
+        const val STATE_LONGITUDE = "longitude"
     }
 
     private lateinit var repository: AppRepository
@@ -48,6 +51,13 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     private lateinit var tvVoiceStatus: TextView
     private lateinit var btnRecord: Button
     private lateinit var ivVoiceStatus: ImageView
+    private lateinit var llMapPreview: LinearLayout
+    private lateinit var ivLocationMap: ImageView
+    private lateinit var tvMapAttribution: TextView
+
+    /** Die zuletzt ermittelte Position, Grundlage fuer die Kartenvorschau. */
+    private var pickedLatitude: Double? = null
+    private var pickedLongitude: Double? = null
 
     private var photoUri: Uri? = null
     private var photoPath: String = ""
@@ -103,6 +113,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         tvVoiceStatus = findViewById(R.id.tvVoiceStatus)
         btnRecord = findViewById(R.id.btnRecordVoice)
         ivVoiceStatus = findViewById(R.id.ivVoiceStatus)
+        llMapPreview = findViewById(R.id.llMapPreview)
+        ivLocationMap = findViewById(R.id.ivLocationMap)
+        tvMapAttribution = findViewById(R.id.tvMapAttribution)
 
         restoreState(savedInstanceState, etSport, tilDistance)
 
@@ -143,6 +156,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         outState.putString(STATE_VOICE_PATH, voicePath)
         outState.putString(STATE_LOCATION, locationText)
         outState.putString(STATE_SPORT, selectedSport)
+        pickedLatitude?.let { outState.putDouble(STATE_LATITUDE, it) }
+        pickedLongitude?.let { outState.putDouble(STATE_LONGITUDE, it) }
     }
 
     private fun restoreState(
@@ -163,10 +178,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             tilDistance.visibility =
                 if (Sports.tracksDistance(selectedSport)) View.VISIBLE else View.GONE
         }
+        if (state.containsKey(STATE_LATITUDE)) pickedLatitude = state.getDouble(STATE_LATITUDE)
+        if (state.containsKey(STATE_LONGITUDE)) pickedLongitude = state.getDouble(STATE_LONGITUDE)
+
         if (photoPath.isNotEmpty()) showPhotoPreview()
         if (voicePath.isNotEmpty()) tvVoiceStatus.setText(R.string.voice_recorded)
         if (locationText.isNotEmpty()) {
-            tvLocation.text = getString(R.string.location_status, locationText)
+            showLocation()
+            showMapPreview()
         }
     }
 
@@ -408,15 +427,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         val listener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                locationText = String.format(
-                    Locale.getDefault(),
-                    "Lat: %.4f, Lon: %.4f",
-                    location.latitude,
-                    location.longitude
-                )
-                tvLocation.text = getString(R.string.location_status, locationText)
                 // Ein Fix genuegt - danach abmelden, statt weiter zu orten.
                 stopLocationUpdates()
+                onPositionFound(location.latitude, location.longitude)
             }
 
             override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
@@ -445,6 +458,108 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         if (active == 0) {
             locationListener = null
             tvLocation.setText(R.string.location_unavailable)
+        }
+    }
+
+    /**
+     * Sobald die Position feststeht, wird sie nicht mehr als Zahlenpaar
+     * uebernommen, sondern in Adressen uebersetzt, aus denen der Nutzer
+     * auswaehlt. Frueher landete "Lat: 52.1548, Lon: 9.9580" in der Datenbank -
+     * damit kann im Feed niemand etwas anfangen.
+     */
+    private fun onPositionFound(latitude: Double, longitude: Double) {
+        pickedLatitude = latitude
+        pickedLongitude = longitude
+        tvLocation.setText(R.string.location_looking_up)
+
+        lifecycleScope.launch {
+            val suggestions = LocationNames.suggestionsFor(this@WorkoutTrackingActivity, latitude, longitude)
+            showLocationChoices(suggestions, latitude, longitude)
+        }
+    }
+
+    /**
+     * Auswahl aus den gefundenen Adressen, dazu immer die Moeglichkeit, den
+     * Ort selbst zu benennen - ein Studio heisst "McFit" und nicht
+     * "Kaiserstrasse 12".
+     */
+    private fun showLocationChoices(
+        suggestions: List<String>,
+        latitude: Double,
+        longitude: Double
+    ) {
+        val coordinates = LocationNames.coordinatesLabel(latitude, longitude)
+        val entries = suggestions + listOf(
+            getString(R.string.location_enter_name),
+            getString(R.string.location_use_coordinates)
+        )
+
+        if (suggestions.isEmpty()) {
+            toast(R.string.location_lookup_failed)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.location_pick_title)
+            .setItems(entries.toTypedArray()) { _, index ->
+                when (index) {
+                    suggestions.size -> askForOwnName()
+                    suggestions.size + 1 -> applyLocation(coordinates)
+                    else -> applyLocation(suggestions[index])
+                }
+            }
+            .setOnCancelListener { showLocation() }
+            .show()
+    }
+
+    private fun askForOwnName() {
+        val input = EditText(this).apply {
+            setHint(R.string.location_name_hint)
+            setText(locationText)
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.location_name_title)
+            .setView(input)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotEmpty()) applyLocation(name) else showLocation()
+            }
+            .setNegativeButton(R.string.cancel_btn) { _, _ -> showLocation() }
+            .show()
+    }
+
+    private fun applyLocation(label: String) {
+        locationText = label
+        showLocation()
+        showMapPreview()
+    }
+
+    private fun showLocation() {
+        tvLocation.text =
+            if (locationText.isEmpty()) getString(R.string.location_not_shared)
+            else getString(R.string.location_status, locationText)
+    }
+
+    /** Kartenausschnitt der gewaehlten Stelle, aus OpenStreetMap-Kacheln. */
+    private fun showMapPreview() {
+        val latitude = pickedLatitude
+        val longitude = pickedLongitude
+        if (latitude == null || longitude == null) return
+
+        lifecycleScope.launch {
+            val map = StaticMap.preview(
+                this@WorkoutTrackingActivity,
+                latitude,
+                longitude,
+                ContextCompat.getColor(this@WorkoutTrackingActivity, R.color.primary)
+            )
+            if (map == null) {
+                llMapPreview.visibility = View.GONE
+                return@launch
+            }
+            ivLocationMap.setImageBitmap(map)
+            tvMapAttribution.text = StaticMap.ATTRIBUTION
+            llMapPreview.visibility = View.VISIBLE
         }
     }
 

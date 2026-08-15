@@ -52,6 +52,13 @@ object ImageLoader {
     private const val CACHE_DIR_NAME = "image_cache"
     private const val MAX_DISK_CACHE_BYTES = 20L * 1024 * 1024
 
+    /**
+     * Ein sprechender User-Agent ist Pflicht bei den Kachelservern von
+     * OpenStreetMap; anonyme Abrufe werden dort abgewiesen. Fuer die uebrigen
+     * Bilder schadet er nicht.
+     */
+    private const val USER_AGENT = "CrewFit/1.0 (Mobile Software Engineering student project)"
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /** Ein Achtel des verfuegbaren Heaps, gemessen in Kilobyte. */
@@ -158,6 +165,17 @@ object ImageLoader {
         }
     }
 
+    /**
+     * Laedt ein einzelnes Bild von einer URL und gibt es zurueck, statt es in
+     * eine View zu setzen. Wird von [StaticMap] gebraucht, das mehrere
+     * Kartenkacheln zu einem Bild zusammensetzt. Nutzt denselben Dateicache
+     * und dieselbe Sperre pro URL wie [into].
+     */
+    suspend fun remoteBitmap(context: Context, url: String): Bitmap? =
+        withContext(Dispatchers.IO) {
+            cachedDownload(context, url)?.let { decodeFile(it) }
+        }
+
     // --- interne Hilfen ---
 
     private suspend fun loadBitmap(context: Context, source: String, circular: Boolean): Bitmap? {
@@ -205,6 +223,7 @@ object ImageLoader {
                 connectTimeout = 10_000
                 readTimeout = 15_000
                 instanceFollowRedirects = true
+                setRequestProperty("User-Agent", USER_AGENT)
             }
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
                 Log.e("ImageLoader", "Download of $url failed: HTTP ${connection.responseCode}")

@@ -207,4 +207,14 @@
     <string name="record_short">REC</string>
     <string name="stop_short">STOP</string>
     <string name="location_unavailable">No location provider available</string>
+
+    <!-- Standortauswahl -->
+    <string name="location_pick_title">Where did you train?</string>
+    <string name="location_looking_up">Looking up the address…</string>
+    <string name="location_enter_name">Enter a name myself</string>
+    <string name="location_name_title">Name this place</string>
+    <string name="location_name_hint">e.g. McFit Hildesheim</string>
+    <string name="location_use_coordinates">Use coordinates only</string>
+    <string name="location_lookup_failed">No address found for this position. You can name the place yourself.</string>
+    <string name="location_map_desc">Map of the selected location</string>
 </resources>

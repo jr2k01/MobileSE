@@ -216,12 +216,22 @@
             app:strokeColor="@color/divider"
             app:layout_constraintTop_toBottomOf="@id/cvVoice">
 
+            <!--
+                MaterialCardView ist ein FrameLayout und stapelt mehrere
+                Kinder uebereinander. Standortzeile und Kartenvorschau stehen
+                deshalb gemeinsam in diesem senkrechten Container.
+            -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical">
 
                 <ImageView
                     android:layout_width="24dp"
@@ -248,6 +258,36 @@
                     android:text="@string/gps_btn"
                     android:textAllCaps="false"
                     android:textColor="@color/primary"/>
+            </LinearLayout>
+
+            <!--
+                Kartenvorschau des gewaehlten Ortes. Bleibt ausgeblendet,
+                solange kein Standort feststeht.
+            -->
+            <LinearLayout
+                android:id="@+id/llMapPreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:paddingTop="12dp">
+
+                <ImageView
+                    android:id="@+id/ivLocationMap"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/location_map_desc" />
+
+                <TextView
+                    android:id="@+id/tvMapAttribution"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="10sp"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

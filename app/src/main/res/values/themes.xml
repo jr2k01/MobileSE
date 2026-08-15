@@ -34,5 +34,15 @@
         <item name="cornerSize">16dp</item>
     </style>
 
+    <!-- Eine Zeile der Passwort-Anforderungen unter dem Eingabefeld. -->
+    <style name="PasswordRule">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
     <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
 </resources>

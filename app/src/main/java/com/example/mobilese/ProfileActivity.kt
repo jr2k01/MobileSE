@@ -92,18 +92,44 @@ class ProfileActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val birthDate = etBirthDate.text.toString().trim()
+            val name = etName.text.toString().trim()
+            val height = etHeight.text.toString().trim()
+            val weight = etWeight.text.toString().trim()
+
+            // Groesse und Gewicht sind freiwillig - aber wenn etwas drinsteht,
+            // muss es ein plausibler Wert sein.
+            if (!InputRules.isValidName(name)) {
+                toast(R.string.error_name_invalid)
+                return@setOnClickListener
+            }
+            if (height.isNotEmpty() && InputRules.heightOrNull(height) == null) {
+                toastFormatted(
+                    R.string.error_height_range,
+                    InputRules.MIN_HEIGHT_CM,
+                    InputRules.MAX_HEIGHT_CM
+                )
+                return@setOnClickListener
+            }
+            if (weight.isNotEmpty() && InputRules.weightOrNull(weight) == null) {
+                toastFormatted(
+                    R.string.error_weight_range,
+                    InputRules.MIN_WEIGHT_KG.toInt(),
+                    InputRules.MAX_WEIGHT_KG.toInt()
+                )
+                return@setOnClickListener
+            }
 
             setBusy(true, btnSave, btnLogout)
             lifecycleScope.launch {
                 val saved = repository.saveUserProfile(
                     currentUserEmail,
-                    etName.text.toString().trim(),
+                    name,
                     // Beim Speichern noch einmal aus dem Geburtsdatum
                     // berechnet, damit in der Datenbank nie ein Alter landet,
                     // das nicht dazu passt.
                     BirthDate.ageTextFrom(birthDate),
-                    etHeight.text.toString().trim(),
-                    etWeight.text.toString().trim(),
+                    height,
+                    weight,
                     birthDate
                 )
                 setBusy(false, btnSave, btnLogout)
@@ -195,4 +221,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
+
+    private fun toastFormatted(resId: Int, vararg args: Any) =
+        Toast.makeText(this, getString(resId, *args), Toast.LENGTH_LONG).show()
 }

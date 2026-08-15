@@ -31,8 +31,16 @@ class CreateCrewActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val name = etCrewName.text.toString().trim()
-            if (name.isEmpty()) {
-                Toast.makeText(this, R.string.crew_name_required, Toast.LENGTH_SHORT).show()
+            if (!InputRules.isValidCrewName(name)) {
+                Toast.makeText(
+                    this,
+                    getString(
+                        R.string.error_crew_name_invalid,
+                        InputRules.CREW_NAME_MIN_LENGTH,
+                        InputRules.CREW_NAME_MAX_LENGTH
+                    ),
+                    Toast.LENGTH_LONG
+                ).show()
                 return@setOnClickListener
             }
 

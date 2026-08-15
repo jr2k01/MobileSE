@@ -1,24 +1,26 @@
 package com.example.mobilese
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
 class RegistrationActivity : AppCompatActivity() {
 
-    private companion object {
-        /** Supabase weist kuerzere Passwoerter ohnehin ab. */
-        const val MIN_PASSWORD_LENGTH = 6
-    }
-
     private lateinit var repository: AppRepository
+
+    /** Zu jeder Regel die Zeile, die sie anzeigt, und ihr Text. */
+    private lateinit var ruleRows: Map<PasswordPolicy.Rule, Pair<TextView, Int>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +34,28 @@ class RegistrationActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.etRegPassword)
         val btnRegister = findViewById<Button>(R.id.btnDoRegister)
         val btnBack = findViewById<Button>(R.id.btnBackToLogin)
+
+        ruleRows = mapOf(
+            PasswordPolicy.Rule.LENGTH to
+                    (findViewById<TextView>(R.id.tvRuleLength) to R.string.pw_rule_length),
+            PasswordPolicy.Rule.UPPERCASE to
+                    (findViewById<TextView>(R.id.tvRuleUppercase) to R.string.pw_rule_uppercase),
+            PasswordPolicy.Rule.LOWERCASE to
+                    (findViewById<TextView>(R.id.tvRuleLowercase) to R.string.pw_rule_lowercase),
+            PasswordPolicy.Rule.DIGIT to
+                    (findViewById<TextView>(R.id.tvRuleDigit) to R.string.pw_rule_digit),
+            PasswordPolicy.Rule.SPECIAL to
+                    (findViewById<TextView>(R.id.tvRuleSpecial) to R.string.pw_rule_special)
+        )
+        showPasswordRules("")
+
+        // Regeln bei jedem Tastendruck neu bewerten, damit der Nutzer sieht,
+        // was noch fehlt, statt es nach dem Absenden zu erfahren.
+        etPassword.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = showPasswordRules(s?.toString() ?: "")
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+        })
 
         // Geburtsdatum wird im Kalender gewaehlt statt getippt.
         etBirthDate.setOnClickListener {
@@ -53,16 +77,27 @@ class RegistrationActivity : AppCompatActivity() {
                 toast(R.string.fill_all_fields)
                 return@setOnClickListener
             }
+            if (!InputRules.isValidName(name)) {
+                toast(R.string.error_name_invalid)
+                return@setOnClickListener
+            }
             if (!BirthDate.isValid(birthDate)) {
                 toast(R.string.select_birth_date)
+                return@setOnClickListener
+            }
+            // Ein Geburtsdatum von vor zwei Jahren ist zwar ein gueltiges
+            // Datum, aber kein plausibles Profil.
+            val age = BirthDate.ageFrom(birthDate)
+            if (age == null || age < InputRules.MIN_AGE_YEARS) {
+                toastFormatted(R.string.error_min_age, InputRules.MIN_AGE_YEARS)
                 return@setOnClickListener
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 toast(R.string.error_invalid_email)
                 return@setOnClickListener
             }
-            if (password.length < MIN_PASSWORD_LENGTH) {
-                toast(R.string.error_weak_password)
+            if (!PasswordPolicy.isValid(password)) {
+                toast(R.string.error_password_rules)
                 return@setOnClickListener
             }
 
@@ -122,9 +157,28 @@ class RegistrationActivity : AppCompatActivity() {
             .show()
     }
 
+    /** Faerbt jede Regelzeile je nachdem, ob sie erfuellt ist. */
+    private fun showPasswordRules(password: String) {
+        ruleRows.forEach { (rule, row) ->
+            val (view, labelRes) = row
+            val met = PasswordPolicy.isMet(rule, password)
+
+            view.text = getString(
+                if (met) R.string.rule_met else R.string.rule_unmet,
+                getString(labelRes)
+            )
+            view.setTextColor(
+                ContextCompat.getColor(this, if (met) R.color.accent else R.color.text_secondary)
+            )
+        }
+    }
+
     private fun setBusy(busy: Boolean, vararg buttons: View) {
         buttons.forEach { it.isEnabled = !busy }
     }
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+
+    private fun toastFormatted(resId: Int, vararg args: Any) =
+        Toast.makeText(this, getString(resId, *args), Toast.LENGTH_LONG).show()
 }

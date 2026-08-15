@@ -199,13 +199,20 @@ class LeaderboardActivity : AppCompatActivity() {
                 val type =
                     if (rgType.checkedRadioButtonId == R.id.rbRunning) ChallengeType.DISTANCE
                     else ChallengeType.WORKOUT_COUNT
-                val goal = etGoal.text.toString().replace(',', '.').toDoubleOrNull() ?: 0.0
-
-                if (goal <= 0) {
-                    Toast.makeText(this, R.string.challenge_goal_invalid, Toast.LENGTH_SHORT).show()
+                val goal = InputRules.challengeGoalOrNull(etGoal.text.toString())
+                if (goal == null) {
+                    Toast.makeText(
+                        this,
+                        getString(
+                            R.string.error_challenge_goal_range,
+                            InputRules.MIN_CHALLENGE_GOAL,
+                            InputRules.MAX_CHALLENGE_GOAL
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
                     return@setPositiveButton
                 }
-                addChallenge(type, goal)
+                addChallenge(type, goal.toDouble())
             }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()

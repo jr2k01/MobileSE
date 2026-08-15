@@ -209,16 +209,31 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             toast(R.string.select_sport)
             return
         }
-        val minutes = duration.toIntOrNull()
-        if (minutes == null || minutes <= 0) {
-            toast(R.string.enter_duration)
+        // Obergrenzen halten offensichtlichen Unsinn aus der Rangliste heraus:
+        // ein Workout ueber 5000 Minuten dauert dreieinhalb Tage und bringt
+        // fast 1500 Punkte.
+        val minutes = InputRules.durationOrNull(duration)
+        if (minutes == null) {
+            toastFormatted(
+                R.string.error_duration_range,
+                InputRules.MIN_DURATION_MINUTES,
+                InputRules.MAX_DURATION_MINUTES
+            )
             return
         }
 
-        val kilometers = distance.replace(',', '.').toDoubleOrNull() ?: 0.0
-        if (Sports.tracksDistance(sport) && kilometers <= 0.0) {
-            toast(R.string.enter_distance)
-            return
+        var kilometers = 0.0
+        if (Sports.tracksDistance(sport)) {
+            val parsed = InputRules.distanceOrNull(distance)
+            if (parsed == null) {
+                toastFormatted(
+                    R.string.error_distance_range,
+                    InputRules.MIN_DISTANCE_KM.toString(),
+                    InputRules.MAX_DISTANCE_KM.toInt()
+                )
+                return
+            }
+            kilometers = parsed
         }
 
         // Eine laufende Aufnahme zuerst abschliessen, sonst waere die Datei
@@ -456,4 +471,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     }
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
+
+    private fun toastFormatted(resId: Int, vararg args: Any) =
+        Toast.makeText(this, getString(resId, *args), Toast.LENGTH_LONG).show()
 }

@@ -114,6 +114,28 @@
     <string name="fill_all_fields">Please fill in all fields</string>
     <string name="registration_success">Registration successful</string>
 
+    <!-- Passwort-Anforderungen, live unter dem Eingabefeld abgehakt -->
+    <string name="pw_requirements_title">Your password needs:</string>
+    <string name="pw_rule_length">At least 8 characters</string>
+    <string name="pw_rule_uppercase">An uppercase letter (A–Z)</string>
+    <string name="pw_rule_lowercase">A lowercase letter (a–z)</string>
+    <string name="pw_rule_digit">A digit (0–9)</string>
+    <string name="pw_rule_special">A special character (e.g. ! ? # @)</string>
+    <!-- Haken bzw. offener Kreis vor der jeweiligen Regel -->
+    <string name="rule_met">✓  %s</string>
+    <string name="rule_unmet">○  %s</string>
+    <string name="error_password_rules">Please meet all password requirements listed below the field.</string>
+
+    <!-- Plausibilitaetsgrenzen der uebrigen Felder -->
+    <string name="error_name_invalid">Please enter your name (at least 2 characters).</string>
+    <string name="error_min_age">You need to be at least %d years old to use CrewFit.</string>
+    <string name="error_height_range">Please enter a height between %1$d and %2$d cm.</string>
+    <string name="error_weight_range">Please enter a weight between %1$d and %2$d kg.</string>
+    <string name="error_duration_range">Please enter a duration between %1$d and %2$d minutes.</string>
+    <string name="error_distance_range">Please enter a distance between %1$s and %2$d km.</string>
+    <string name="error_crew_name_invalid">The crew name needs between %1$d and %2$d characters.</string>
+    <string name="error_challenge_goal_range">Please enter a goal between %1$d and %2$d.</string>
+
     <!-- Bestaetigungsmail -->
     <string name="confirm_email_title">Almost done</string>
     <string name="confirm_email_message">We sent a confirmation link to %s.\n\nOpen the link in that email, then come back and log in. Check your spam folder if it does not arrive.</string>

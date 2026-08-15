@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Startbildschirm auf dem Tablet.
+    Startbildschirm auf dem Tablet im QUERFORMAT.
 
-    Zwei Unterschiede zur Telefonfassung:
+    Der Ordner heisst sw600dp-land, nicht sw600dp: im Hochformat soll das
+    Tablet dieselbe Anordnung zeigen wie das Telefon, also Leiste unten und
+    eine Spalte. Dafuer genuegt es, diese Datei auf das Querformat zu
+    beschraenken - dann greift im Hochformat automatisch wieder layout/.
+
+    Quer sind zwei Dinge anders:
 
     1. Statt der unteren Leiste steht die Navigation als senkrechte Schiene
        (NavigationRailView) am Rand. Das ist die Form, die Material 3 fuer
-       breite Bildschirme vorsieht - unten quer waeren die Ziele weit
-       auseinandergezogen und mit dem Daumen kaum erreichbar.
+       breite Bildschirme vorsieht, und quer ist die Hoehe knapp - eine Leiste
+       unten wuerde davon noch etwas wegnehmen.
 
     2. Der Inhalt liegt in zwei Spalten: links Crew und Rangliste, rechts die
-       letzten Aktivitaeten. Auf dem Telefon stehen sie untereinander, hier
-       waere darunter viel leere Flaeche.
+       letzten Aktivitaeten. Untereinander bliebe bei 800dp Hoehe und 1280dp
+       Breite rechts viel leere Flaeche.
 
     Beide Fassungen benutzen dieselbe Activity. Die Schiene traegt dieselbe ID
     wie die Leiste, und beide erben von NavigationBarView - der Code fragt nach

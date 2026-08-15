@@ -59,6 +59,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     private var pickedLatitude: Double? = null
     private var pickedLongitude: Double? = null
 
+    /** Ein selbst vergebener Ortsname, getrennt von den Geocoder-Vorschlaegen. */
+    private var customLocationName: String = ""
+
     private var photoUri: Uri? = null
     private var photoPath: String = ""
     private var voicePath: String = ""
@@ -511,10 +514,19 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             .show()
     }
 
+    /**
+     * Eingabe eines eigenen Ortsnamens.
+     *
+     * Vorbelegt wird nur ein zuvor selbst vergebener Name, damit ein Tippfehler
+     * korrigiert werden kann - nicht die zuletzt gewaehlte Adresse. Sonst
+     * muesste man erst eine lange Adresszeile loeschen, um "McFit" zu
+     * schreiben, und getippter Text landete vor dem vorhandenen.
+     */
     private fun askForOwnName() {
         val input = EditText(this).apply {
             setHint(R.string.location_name_hint)
-            setText(locationText)
+            setText(customLocationName)
+            setSelection(text.length)
         }
 
         AlertDialog.Builder(this)
@@ -522,7 +534,12 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 val name = input.text.toString().trim()
-                if (name.isNotEmpty()) applyLocation(name) else showLocation()
+                if (name.isEmpty()) {
+                    showLocation()
+                    return@setPositiveButton
+                }
+                customLocationName = name
+                applyLocation(name)
             }
             .setNegativeButton(R.string.cancel_btn) { _, _ -> showLocation() }
             .show()

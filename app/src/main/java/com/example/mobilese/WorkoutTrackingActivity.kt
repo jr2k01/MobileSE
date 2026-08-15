@@ -271,7 +271,10 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 duration = minutes.toString(),
                 voicePath = voicePath,
                 distance = kilometers.toString(),
-                intensity = Sports.intensityFor(sport).name
+                intensity = Sports.intensityFor(sport).name,
+                // Fuer die Kartenvorschau in der Historie.
+                latitude = pickedLatitude,
+                longitude = pickedLongitude
             )
 
             if (saved) {

@@ -73,6 +73,29 @@
                 android:drawablePadding="8dp"
                 app:drawableStartCompat="@android:drawable/ic_menu_mylocation"
                 app:drawableTint="@color/text_secondary" />
+
+            <!--
+                Kartenausschnitt der Stelle. Nur sichtbar, wenn zu der
+                Aktivitaet Koordinaten gespeichert wurden - aeltere Eintraege
+                haben keine.
+            -->
+            <ImageView
+                android:id="@+id/ivActivityMap"
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_marginTop="12dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:contentDescription="@string/location_map_desc" />
+
+            <TextView
+                android:id="@+id/tvActivityMapAttribution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="10sp"
+                android:visibility="gone"
+                android:textColor="@color/text_secondary" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

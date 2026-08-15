@@ -610,7 +610,9 @@ class AppRepository private constructor(context: Context) {
         duration: String,
         voicePath: String = "",
         distance: String = "0",
-        intensity: String = WorkoutIntensity.MEDIUM.name
+        intensity: String = WorkoutIntensity.MEDIUM.name,
+        latitude: Double? = null,
+        longitude: Double? = null
     ): Boolean {
         val userId = currentUserId() ?: return false
         val crewId = getJoinedCrewCode() ?: "no_crew"
@@ -624,22 +626,38 @@ class AppRepository private constructor(context: Context) {
                     photo.await() to voice.await()
                 }
 
-                client.postgrest["activities"].insert(
-                    Activity(
-                        userId = userId,
-                        crewId = crewId,
-                        sport = sport,
-                        duration = duration.toIntOrNull() ?: 0,
-                        distance = distance.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                        location = location,
-                        voiceUrl = uploads.second,
-                        photoUrl = uploads.first,
-                        intensity = intensity,
-                        // ISO-8601, damit die Sortierung als Text der
-                        // chronologischen Reihenfolge entspricht.
-                        timestamp = ActivityTime.now()
-                    )
+                val activity = Activity(
+                    userId = userId,
+                    crewId = crewId,
+                    sport = sport,
+                    duration = duration.toIntOrNull() ?: 0,
+                    distance = distance.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    location = location,
+                    voiceUrl = uploads.second,
+                    photoUrl = uploads.first,
+                    intensity = intensity,
+                    // ISO-8601, damit die Sortierung als Text der
+                    // chronologischen Reihenfolge entspricht.
+                    timestamp = ActivityTime.now(),
+                    latitude = latitude,
+                    longitude = longitude
                 )
+
+                try {
+                    client.postgrest["activities"].insert(activity)
+                } catch (e: Exception) {
+                    if (!isMissingColumn(e)) throw e
+                    // Die Koordinatenspalten fehlen in dieser Datenbank. Das
+                    // Workout selbst darf daran nicht scheitern - es wird ohne
+                    // sie gespeichert und bekommt in der Historie eben keine
+                    // Karte.
+                    Log.w(
+                        "SupabaseDB",
+                        "Saving without coordinates, the latitude/longitude columns are missing. " +
+                                "See the documentation for the required ALTER TABLE."
+                    )
+                    client.postgrest["activities"].insert(activity.withoutCoordinates())
+                }
                 true
             } catch (e: Exception) {
                 Log.e("SupabaseDB", "Saving the activity failed: ${e.message}")
@@ -647,6 +665,27 @@ class AppRepository private constructor(context: Context) {
             }
         }
     }
+
+    /** Erkennt die Meldung von Postgrest ueber eine unbekannte Spalte. */
+    private fun isMissingColumn(e: Exception): Boolean {
+        val message = e.message.orEmpty()
+        return message.contains("column", ignoreCase = true) &&
+                (message.contains("latitude", ignoreCase = true) ||
+                        message.contains("longitude", ignoreCase = true))
+    }
+
+    private fun Activity.withoutCoordinates() = ActivityWithoutCoordinates(
+        userId = userId,
+        crewId = crewId,
+        sport = sport,
+        duration = duration,
+        distance = distance,
+        location = location,
+        voiceUrl = voiceUrl,
+        photoUrl = photoUrl,
+        intensity = intensity,
+        timestamp = timestamp
+    )
 
     /** Die eigenen Aktivitaeten, neueste zuerst. */
     suspend fun getOwnActivities(): List<Activity> {

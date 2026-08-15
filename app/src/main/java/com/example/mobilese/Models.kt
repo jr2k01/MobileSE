@@ -40,6 +40,36 @@ data class Activity(
     @SerialName("voice_url") val voiceUrl: String? = null,
     @SerialName("photo_url") val photoUrl: String? = null,
     val intensity: String,
+    val timestamp: String,
+    // Koordinaten des Orts, damit die Historie eine Karte zeigen kann. Die
+    // Standardwerte sorgen dafuer, dass aeltere Zeilen ohne diese Spalten
+    // weiterhin gelesen werden koennen.
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
+
+/**
+ * Dieselbe Aktivitaet ohne Koordinatenfelder.
+ *
+ * Wird nur gebraucht, wenn in der Datenbank die Spalten latitude und longitude
+ * noch fehlen: Postgrest weist einen Insert ab, der unbekannte Spalten nennt,
+ * und ein null-Wert wuerde trotzdem als Spaltenname mitgeschickt. Ohne diesen
+ * Rueckfall koennte in einem solchen Projekt gar kein Workout mehr gespeichert
+ * werden.
+ *
+ * Sobald die Spalten ueberall angelegt sind, kann diese Klasse entfallen.
+ */
+@Serializable
+data class ActivityWithoutCoordinates(
+    @SerialName("user_id") val userId: String,
+    @SerialName("crew_id") val crewId: String,
+    val sport: String,
+    val duration: Int,
+    val distance: Double = 0.0,
+    val location: String? = null,
+    @SerialName("voice_url") val voiceUrl: String? = null,
+    @SerialName("photo_url") val photoUrl: String? = null,
+    val intensity: String,
     val timestamp: String
 )
 

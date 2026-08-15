@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -75,7 +76,45 @@ class WorkoutHistoryActivity : AppCompatActivity() {
                 tvLocation.visibility = View.VISIBLE
             }
 
+            showMap(view, activity)
+
             container.addView(view)
+        }
+    }
+
+    /**
+     * Kartenausschnitt zu einer Aktivitaet, sofern Koordinaten gespeichert
+     * wurden. Aeltere Eintraege haben keine und zeigen weiterhin nur den
+     * Ortsnamen.
+     *
+     * Die Views werden hier je Eintrag frisch erzeugt und nicht wie in einer
+     * RecyclerView wiederverwendet - eine Verwechslung durch spaet
+     * eintreffende Bilder ist deshalb ausgeschlossen.
+     */
+    private fun showMap(view: View, activity: Activity) {
+        val ivMap = view.findViewById<ImageView>(R.id.ivActivityMap)
+        val tvAttribution = view.findViewById<TextView>(R.id.tvActivityMapAttribution)
+
+        val latitude = activity.latitude
+        val longitude = activity.longitude
+        if (latitude == null || longitude == null) {
+            ivMap.visibility = View.GONE
+            tvAttribution.visibility = View.GONE
+            return
+        }
+
+        lifecycleScope.launch {
+            val map = StaticMap.preview(
+                this@WorkoutHistoryActivity,
+                latitude,
+                longitude,
+                ContextCompat.getColor(this@WorkoutHistoryActivity, R.color.primary)
+            ) ?: return@launch
+
+            ivMap.setImageBitmap(map)
+            ivMap.visibility = View.VISIBLE
+            tvAttribution.text = StaticMap.ATTRIBUTION
+            tvAttribution.visibility = View.VISIBLE
         }
     }
 }

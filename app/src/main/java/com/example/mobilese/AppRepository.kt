@@ -751,6 +751,29 @@ class AppRepository private constructor(context: Context) {
     }
 
     /**
+     * Schuettet alle faelligen Challenge-Belohnungen aus.
+     *
+     * Wird von der Rangliste und vom Challenge-Bildschirm aufgerufen: beide
+     * laden ohnehin einen Snapshot, und die Punkte sollen unabhaengig davon
+     * ankommen, welchen der beiden Bildschirme jemand oeffnet.
+     *
+     * @return true, wenn etwas geschrieben wurde und der Snapshot damit
+     *         veraltet ist.
+     */
+    suspend fun awardCompletedChallenges(snapshot: CrewSnapshot): Boolean {
+        val memberIds = snapshot.members.map { it.id }
+        var awarded = false
+
+        for (challenge in snapshot.challenges) {
+            val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
+            val award = ChallengeManager.pendingAward(challenge, total, memberIds, snapshot)
+                ?: continue
+            if (awardChallenge(award)) awarded = true
+        }
+        return awarded
+    }
+
+    /**
      * Schreibt die Belohnungen einer abgeschlossenen Challenge.
      *
      * Alle Eintraege gehen in einem einzigen Insert raus statt in einem Aufruf
@@ -758,7 +781,7 @@ class AppRepository private constructor(context: Context) {
      * damit sie sich nicht aendert, wenn die Crew spaeter waechst oder
      * schrumpft.
      */
-    suspend fun awardChallenge(award: PendingAward): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun awardChallenge(award: PendingAward): Boolean = withContext(Dispatchers.IO) {
         try {
             client.postgrest["challenge_rewards"].insert(
                 award.userIds.map { ChallengeReward(award.challengeId, it, award.pointsPerUser) }

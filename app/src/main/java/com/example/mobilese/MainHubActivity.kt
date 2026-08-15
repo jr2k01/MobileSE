@@ -78,6 +78,9 @@ class MainHubActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btnCrewOverviewIcon).setOnClickListener {
             startActivity(Intent(this, CrewDetailsActivity::class.java))
         }
+        findViewById<ImageButton>(R.id.btnChallengesIcon).setOnClickListener {
+            startActivity(Intent(this, CrewChallengesActivity::class.java))
+        }
     }
 
     override fun onResume() {

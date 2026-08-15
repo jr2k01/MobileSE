@@ -213,6 +213,16 @@
         -->
 
         <ImageButton
+            android:id="@+id/btnChallengesIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/crew_challenges_title"
+            app:tint="@color/text_secondary" />
+
+        <ImageButton
             android:id="@+id/btnProfileIcon"
             android:layout_width="0dp"
             android:layout_height="match_parent"

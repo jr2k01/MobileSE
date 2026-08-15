@@ -46,6 +46,8 @@
     <string name="intensity_high">High</string>
     <string name="distance_hint">Distance (km)</string>
     <string name="add_challenge_btn">Add Crew Challenge</string>
+    <string name="crew_challenges_title">Crew Challenges</string>
+    <string name="no_challenges_yet">No challenges yet. Add one to get the crew moving.</string>
     <string name="create_challenge_title">Create New Challenge</string>
     <string name="challenge_type_running">Running (Total km)</string>
     <string name="challenge_type_gym">Gym Sessions (Total count)</string>

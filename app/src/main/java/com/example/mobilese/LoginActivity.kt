@@ -6,8 +6,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -101,7 +101,7 @@ class LoginActivity : AppCompatActivity() {
      * oder die Mail erneut anfordern.
      */
     private fun showNotConfirmedDialog(email: String) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.not_confirmed_title)
             .setMessage(R.string.not_confirmed_message)
             .setPositiveButton(R.string.got_it, null)
@@ -115,7 +115,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun showError(error: AuthError) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.error_title)
             .setMessage(error.messageRes())
             .setPositiveButton(R.string.got_it, null)

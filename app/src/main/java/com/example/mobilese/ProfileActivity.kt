@@ -11,8 +11,8 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -162,7 +162,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun confirmDeletion() {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.delete_profile_title)
             .setMessage(R.string.delete_profile_message)
             .setPositiveButton(R.string.delete_profile_confirm) { _, _ ->

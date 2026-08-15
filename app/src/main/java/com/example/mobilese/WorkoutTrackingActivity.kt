@@ -20,8 +20,8 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.widget.ImageViewCompat
@@ -205,9 +205,11 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         tilDistance: TextInputLayout,
         etDistance: EditText
     ) {
-        AlertDialog.Builder(this)
+        val choices = Sports.ALL.map { ChoiceAdapter.Entry(it, Sports.iconFor(it)) }
+
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.train_question)
-            .setItems(Sports.ALL) { _, index ->
+            .setAdapter(ChoiceAdapter(this, choices)) { _, index ->
                 val sport = Sports.ALL[index]
                 etSport.setText(sport)
                 selectedSport = sport
@@ -506,7 +508,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             toast(R.string.location_lookup_failed)
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.location_pick_title)
             .setItems(entries.toTypedArray()) { _, index ->
                 when (index) {
@@ -534,7 +536,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             setSelection(text.length)
         }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.location_name_title)
             .setView(input)
             .setPositiveButton(android.R.string.ok) { _, _ ->

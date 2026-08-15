@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Eine Zeile in einem Auswahlfenster: Symbol links, Beschriftung daneben.
+
+    Die reine Textliste, die AlertDialog von sich aus zeichnet, war schwer zu
+    ueberfliegen - sechs Sportarten sehen als Symbol unterschiedlicher aus als
+    als sechs gleich lange Woerter.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:minHeight="60dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:background="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/ivChoiceIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null"
+        app:tint="?attr/colorPrimary" />
+
+    <TextView
+        android:id="@+id/tvChoiceLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="20dp"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurface" />
+
+</LinearLayout>

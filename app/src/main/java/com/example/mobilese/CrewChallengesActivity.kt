@@ -12,8 +12,8 @@ import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
@@ -161,7 +161,7 @@ class CrewChallengesActivity : AppCompatActivity() {
         val rgType = dialogView.findViewById<RadioGroup>(R.id.rgChallengeType)
         val etGoal = dialogView.findViewById<EditText>(R.id.etChallengeGoal)
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.create_challenge_title)
             .setView(dialogView)
             .setPositiveButton(R.string.add_btn) { _, _ ->

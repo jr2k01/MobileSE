@@ -6,8 +6,8 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
@@ -62,7 +62,7 @@ class CrewLandingActivity : AppCompatActivity() {
     private fun showJoinDialog() {
         val input = EditText(this).apply { setHint(R.string.crew_code_hint) }
 
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.join_crew_title)
             .setView(input)
             .setPositiveButton(R.string.join_btn) { _, _ ->

@@ -69,6 +69,14 @@
         <item name="materialButtonStyle">@style/Widget.CrewFit.Button</item>
         <item name="textInputStyle">@style/Widget.CrewFit.TextField</item>
         <item name="bottomNavigationStyle">@style/Widget.CrewFit.BottomNav</item>
+
+        <!--
+            Auswahlfenster. Ohne diesen Eintrag zeichnet AppCompat seine
+            eigenen, eckigen Dialoge in Grau - unabhaengig davon, wie der Rest
+            der App aussieht.
+        -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.CrewFit.Dialog</item>
+        <item name="android:datePickerDialogTheme">@style/ThemeOverlay.CrewFit.DatePicker</item>
     </style>
 
     <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
@@ -85,6 +93,56 @@
 
     <style name="ShapeAppearance.CrewFit.Large" parent="ShapeAppearance.Material3.Corner.Large">
         <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- === Auswahlfenster === -->
+
+    <!--
+        Dialoge in Material 3: kraeftig abgerundet, auf einer abgesetzten
+        Flaeche statt auf Grau, mit der Typo-Skala der App. Die Schaltflaechen
+        unten sind Textschaltflaechen, wie M3 es vorsieht.
+    -->
+    <style name="ThemeOverlay.CrewFit.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="alertDialogStyle">@style/MaterialAlertDialog.CrewFit</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/MaterialAlertDialog.CrewFit.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/MaterialAlertDialog.CrewFit.Body</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.CrewFit.Dialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.CrewFit.Dialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.CrewFit.Dialog.Button</item>
+        <item name="colorSurface">@color/md_surface_container_high</item>
+        <item name="android:windowMinWidthMajor">70%</item>
+        <item name="android:windowMinWidthMinor">88%</item>
+    </style>
+
+    <style name="MaterialAlertDialog.CrewFit" parent="MaterialAlertDialog.Material3">
+        <item name="shapeAppearance">@style/ShapeAppearance.CrewFit.Large</item>
+        <item name="backgroundTint">@color/md_surface_container_high</item>
+    </style>
+
+    <style name="MaterialAlertDialog.CrewFit.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textAppearance">?attr/textAppearanceHeadlineSmall</item>
+        <item name="android:textColor">@color/md_on_surface</item>
+    </style>
+
+    <style name="MaterialAlertDialog.CrewFit.Body" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textColor">@color/md_on_surface_variant</item>
+    </style>
+
+    <style name="Widget.CrewFit.Dialog.Button" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/md_primary</item>
+        <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
+    </style>
+
+    <!-- Kalender zur Auswahl des Geburtsdatums -->
+    <style name="ThemeOverlay.CrewFit.DatePicker" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">@color/md_surface_container_high</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+    <!-- Eine Zeile im Sportart-Auswahlfenster -->
+    <style name="TextAppearance.CrewFit.DialogItem" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/md_on_surface</item>
     </style>
 
     <!-- === Komponenten === -->

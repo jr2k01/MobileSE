@@ -9,8 +9,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -132,7 +132,7 @@ class RegistrationActivity : AppCompatActivity() {
      * war falsch ausgewertet worden.
      */
     private fun showConfirmationDialog(email: String) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.confirm_email_title)
             .setMessage(getString(R.string.confirm_email_message, email))
             .setCancelable(false)
@@ -150,7 +150,7 @@ class RegistrationActivity : AppCompatActivity() {
     }
 
     private fun showError(error: AuthError) {
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
             .setTitle(R.string.error_title)
             .setMessage(error.messageRes())
             .setPositiveButton(R.string.got_it, null)

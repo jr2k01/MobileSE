@@ -18,6 +18,16 @@ object Sports {
 
     val ALL = arrayOf(RUNNING, CYCLING, SWIMMING, YOGA, FOOTBALL, GYM)
 
+    /** Das Symbol, mit dem eine Sportart in der Auswahl gezeigt wird. */
+    fun iconFor(sport: String): Int = when (sport) {
+        RUNNING -> R.drawable.ic_sport_running
+        CYCLING -> R.drawable.ic_sport_cycling
+        SWIMMING -> R.drawable.ic_sport_swimming
+        YOGA -> R.drawable.ic_sport_yoga
+        FOOTBALL -> R.drawable.ic_sport_football
+        else -> R.drawable.ic_sport_gym
+    }
+
     /** Sportarten, bei denen nach einer Distanz gefragt wird. */
     fun tracksDistance(sport: String): Boolean = sport == RUNNING
 

@@ -12,6 +12,32 @@ data class UserProfile(
     val height: String? = null,
     val weight: String? = null,
     val birthdate: String? = null,
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    // Das selbst gewaehlte Kuerzel fuer Rangliste und Crew-Uebersicht. Der
+    // Standardwert laesst aeltere Zeilen ohne diese Spalte weiterhin lesen.
+    @SerialName("display_name") val displayName: String? = null
+)
+
+/**
+ * Dasselbe Profil ohne das Kuerzel.
+ *
+ * Aus demselben Grund wie [ActivityWithoutCoordinates]: fehlt die Spalte
+ * display_name in der Datenbank, weist Postgrest ein Upsert ab, das sie nennt -
+ * auch mit null als Wert. Ohne diesen Rueckfall liesse sich in einem solchen
+ * Projekt das Profil ueberhaupt nicht mehr speichern, also auch kein Name und
+ * kein Geburtsdatum.
+ *
+ * Sobald die Spalte ueberall angelegt ist, kann diese Klasse entfallen.
+ */
+@Serializable
+data class UserProfileWithoutDisplayName(
+    val id: String,
+    val email: String? = null,
+    val name: String? = null,
+    val age: String? = null,
+    val height: String? = null,
+    val weight: String? = null,
+    val birthdate: String? = null,
     @SerialName("avatar_url") val avatarUrl: String? = null
 )
 

@@ -47,7 +47,7 @@ class CrewDetailsActivity : AppCompatActivity() {
             crewName = name
             findViewById<TextView>(R.id.tvCrewNameDisplay).text = name
             findViewById<TextView>(R.id.tvMembersList).text = members.joinToString("\n") { member ->
-                "- " + (member.name?.takeIf { it.isNotBlank() } ?: member.email.orEmpty())
+                "- " + DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
             }
 
             if (qr == null) {

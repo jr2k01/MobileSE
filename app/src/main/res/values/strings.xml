@@ -13,6 +13,8 @@
     <string name="create_account">Create account</string>
     <string name="register_sub">Become part of the crew and start your training.</string>
     <string name="full_name_hint">Full Name</string>
+    <string name="display_name_hint">Short Name</string>
+    <string name="display_name_helper">Shown in the crew, the ranking and the top three</string>
     <string name="birth_date_hint">Date of Birth (DD.MM.YYYY)</string>
     <string name="birth_date_title">Select your date of birth</string>
     <string name="register_btn">Register Now</string>
@@ -144,6 +146,7 @@
 
     <!-- Plausibilitaetsgrenzen der uebrigen Felder -->
     <string name="error_name_invalid">Please enter your name (at least 2 characters).</string>
+    <string name="error_display_name_invalid">A short name needs %1$d to %2$d characters. Leave it empty to use your full name.</string>
     <string name="error_min_age">You need to be at least %d years old to use CrewFit.</string>
     <string name="error_height_range">Please enter a height between %1$d and %2$d cm.</string>
     <string name="error_weight_range">Please enter a weight between %1$d and %2$d kg.</string>

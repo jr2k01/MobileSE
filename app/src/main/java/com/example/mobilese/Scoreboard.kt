@@ -45,7 +45,8 @@ object Scoreboard {
             Entry(
                 userId = profile.id,
                 email = profile.email.orEmpty(),
-                name = profile.name?.takeIf { it.isNotBlank() } ?: "Unknown",
+                // In der Rangliste steht das im Profil gewaehlte Kuerzel.
+                name = DisplayName.of(profile).ifEmpty { "Unknown" },
                 avatarUrl = profile.avatarUrl,
                 points = workoutPoints + (rewardsByUser[profile.id] ?: 0)
             )

@@ -144,7 +144,7 @@ class MainHubActivity : AppCompatActivity() {
         for (member in snapshot.members) {
             val view = inflater.inflate(R.layout.item_member_profile_mini, llMembers, false)
             view.findViewById<TextView>(R.id.tvMemberName).text =
-                member.name?.takeIf { it.isNotBlank() } ?: getString(R.string.unknown_member)
+                DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
             ImageLoader.into(
                 view.findViewById(R.id.ivMemberPhoto),
                 member.avatarUrl,
@@ -178,7 +178,7 @@ class MainHubActivity : AppCompatActivity() {
     private fun showLatestActivities(snapshot: CrewSnapshot) {
         llLatestActivities.removeAllViews()
         val inflater = LayoutInflater.from(this)
-        val nameById = snapshot.members.associate { it.id to (it.name ?: "") }
+        val nameById = snapshot.members.associate { it.id to DisplayName.of(it) }
 
         // Nach dem normalisierten ISO-Schluessel sortieren: ein Vergleich der
         // Anzeigetexte wuerde zuerst nach Tag und erst danach nach Monat und

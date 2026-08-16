@@ -136,7 +136,7 @@ class CrewChallengesActivity : AppCompatActivity() {
             if (value <= 0) continue
             val row = inflater.inflate(R.layout.item_challenge_contributor_row, container, false)
             row.findViewById<TextView>(R.id.tvContributorName).text =
-                member.name?.takeIf { it.isNotBlank() } ?: getString(R.string.unknown_member)
+                DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
             row.findViewById<TextView>(R.id.tvContributorValue).text = getString(
                 if (isDistance) R.string.contribution_km else R.string.contribution_sessions,
                 value

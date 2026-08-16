@@ -74,7 +74,7 @@ class WorkoutHistoryActivity : AppCompatActivity() {
                 Scope.CREW -> {
                     val crewCode = repository.getJoinedCrewCode() ?: return@launch
                     val snapshot = repository.loadCrewSnapshot(crewCode)
-                    val nameById = snapshot.members.associate { it.id to it.name.orEmpty() }
+                    val nameById = snapshot.members.associate { it.id to DisplayName.of(it) }
 
                     val entries = snapshot.activities
                         // Eintraege ehemaliger Mitglieder bleiben in der

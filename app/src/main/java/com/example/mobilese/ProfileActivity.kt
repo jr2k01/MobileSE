@@ -42,6 +42,7 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         val etName = findViewById<EditText>(R.id.etName)
+        val etDisplayName = findViewById<EditText>(R.id.etDisplayName)
         val etBirthDate = findViewById<EditText>(R.id.etBirthDate)
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etAge = findViewById<EditText>(R.id.etAge)
@@ -88,6 +89,7 @@ class ProfileActivity : AppCompatActivity() {
             val profile = repository.getProfile(currentUserEmail) ?: return@launch
             if (isFirstStart) {
                 etName.setText(profile.name.orEmpty())
+                etDisplayName.setText(profile.displayName.orEmpty())
                 etBirthDate.setText(profile.birthdate.orEmpty())
                 // Nicht das gespeicherte Alter anzeigen, sondern das aus dem
                 // Geburtsdatum berechnete - nur das ist heute noch richtig.
@@ -106,6 +108,7 @@ class ProfileActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val birthDate = etBirthDate.text.toString().trim()
             val name = etName.text.toString().trim()
+            val displayName = etDisplayName.text.toString().trim()
             val height = etHeight.text.toString().trim()
             val weight = etWeight.text.toString().trim()
 
@@ -113,6 +116,15 @@ class ProfileActivity : AppCompatActivity() {
             // muss es ein plausibler Wert sein.
             if (!InputRules.isValidName(name)) {
                 toast(R.string.error_name_invalid)
+                return@setOnClickListener
+            }
+            // Das Kuerzel ist freiwillig; ohne eines wird der volle Name gekuerzt.
+            if (displayName.isNotEmpty() && !DisplayName.isValid(displayName)) {
+                toastFormatted(
+                    R.string.error_display_name_invalid,
+                    DisplayName.MIN_LENGTH,
+                    DisplayName.MAX_LENGTH
+                )
                 return@setOnClickListener
             }
             if (height.isNotEmpty() && InputRules.heightOrNull(height) == null) {
@@ -143,7 +155,8 @@ class ProfileActivity : AppCompatActivity() {
                     BirthDate.ageTextFrom(birthDate),
                     height,
                     weight,
-                    birthDate
+                    birthDate,
+                    displayName
                 )
                 setBusy(false, btnSave, btnLogout)
 

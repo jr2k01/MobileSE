@@ -367,7 +367,8 @@ class AppRepository private constructor(context: Context) {
         age: String,
         height: String,
         weight: String,
-        birthDate: String
+        birthDate: String,
+        displayName: String
     ): Boolean {
         val userId = currentUserId() ?: return false
         return withContext(Dispatchers.IO) {
@@ -376,18 +377,32 @@ class AppRepository private constructor(context: Context) {
                 // gesetztes Avatar-Bild beim Speichern nicht verloren geht -
                 // upsert ersetzt die komplette Zeile.
                 val existing = getProfileById(userId)
-                client.postgrest["profiles"].upsert(
-                    UserProfile(
-                        id = userId,
-                        email = email,
-                        name = name,
-                        age = age,
-                        height = height,
-                        weight = weight,
-                        birthdate = birthDate,
-                        avatarUrl = existing?.avatarUrl
-                    )
+                val profile = UserProfile(
+                    id = userId,
+                    email = email,
+                    name = name,
+                    age = age,
+                    height = height,
+                    weight = weight,
+                    birthdate = birthDate,
+                    avatarUrl = existing?.avatarUrl,
+                    displayName = displayName.trim().takeIf { it.isNotEmpty() }
                 )
+
+                try {
+                    client.postgrest["profiles"].upsert(profile)
+                } catch (e: Exception) {
+                    if (!isMissingColumn(e, "display_name")) throw e
+                    // Die Spalte fehlt in dieser Datenbank. Das restliche Profil
+                    // muss sich trotzdem speichern lassen; in der Crew erscheint
+                    // dann eben der gekuerzte volle Name.
+                    Log.w(
+                        "SupabaseDB",
+                        "Saving without the chosen short name, the display_name column is missing. " +
+                                "See the documentation for the required ALTER TABLE."
+                    )
+                    client.postgrest["profiles"].upsert(profile.withoutDisplayName())
+                }
                 true
             } catch (e: Exception) {
                 Log.e("SupabaseDB", "Saving the profile failed: ${e.message}")
@@ -646,7 +661,7 @@ class AppRepository private constructor(context: Context) {
                 try {
                     client.postgrest["activities"].insert(activity)
                 } catch (e: Exception) {
-                    if (!isMissingColumn(e)) throw e
+                    if (!isMissingColumn(e, "latitude", "longitude")) throw e
                     // Die Koordinatenspalten fehlen in dieser Datenbank. Das
                     // Workout selbst darf daran nicht scheitern - es wird ohne
                     // sie gespeichert und bekommt in der Historie eben keine
@@ -666,13 +681,23 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
-    /** Erkennt die Meldung von Postgrest ueber eine unbekannte Spalte. */
-    private fun isMissingColumn(e: Exception): Boolean {
+    /** Erkennt die Meldung von Postgrest ueber eine der genannten unbekannten Spalten. */
+    private fun isMissingColumn(e: Exception, vararg columns: String): Boolean {
         val message = e.message.orEmpty()
         return message.contains("column", ignoreCase = true) &&
-                (message.contains("latitude", ignoreCase = true) ||
-                        message.contains("longitude", ignoreCase = true))
+                columns.any { message.contains(it, ignoreCase = true) }
     }
+
+    private fun UserProfile.withoutDisplayName() = UserProfileWithoutDisplayName(
+        id = id,
+        email = email,
+        name = name,
+        age = age,
+        height = height,
+        weight = weight,
+        birthdate = birthdate,
+        avatarUrl = avatarUrl
+    )
 
     private fun Activity.withoutCoordinates() = ActivityWithoutCoordinates(
         userId = userId,

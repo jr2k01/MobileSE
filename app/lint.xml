@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Einstellungen fuer Android Lint.
+
+    Bewusst so eng wie moeglich gefasst: abgeschaltet wird eine Pruefung nur
+    fuer die Dateien, in denen sie nachweislich danebenliegt, damit sie ueberall
+    sonst weiter greift.
+-->
+<lint>
+
+    <!--
+        Die Inhaltsspalte dieser Bildschirme holt ihre Verankerungen aus dem
+        Stil ContentColumn (siehe themes.xml): dort stehen
+        layout_constraintStart/End/Top_toTopOf und die Hoechstbreite fuers
+        Tablet. Lint wertet nur die Attribute am Element selbst aus und sieht
+        die Angaben im Stil nicht - es meldet deshalb fehlende Verankerungen,
+        die es gibt.
+
+        Dieselben Angaben zusaetzlich in jedes Layout zu schreiben, waere die
+        schlechtere Antwort: dann stuenden sie doppelt und koennten
+        auseinanderlaufen.
+    -->
+    <issue id="MissingConstraints">
+        <ignore path="src/main/res/layout/screen_crew_challenges.xml" />
+        <ignore path="src/main/res/layout/screen_crew_details.xml" />
+        <ignore path="src/main/res/layout/screen_leaderboard.xml" />
+        <ignore path="src/main/res/layout/screen_main_hub.xml" />
+        <ignore path="src/main/res/layout/screen_profile.xml" />
+        <ignore path="src/main/res/layout/screen_workout_history.xml" />
+    </issue>
+
+</lint>

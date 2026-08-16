@@ -63,12 +63,15 @@ class ProfileActivity : AppCompatActivity() {
          * Textfelder: das Alter konnte dem Geburtsdatum widersprechen und war
          * spaetestens nach dem naechsten Geburtstag veraltet.
          */
-        etBirthDate.setOnClickListener {
-            BirthDatePicker.show(this, etBirthDate.text.toString()) { picked ->
-                etBirthDate.setText(picked)
-                etAge.setText(BirthDate.ageTextFrom(picked))
-            }
+        val applyPickedDate: (String) -> Unit = { picked ->
+            etBirthDate.setText(picked)
+            etAge.setText(BirthDate.ageTextFrom(picked))
         }
+        etBirthDate.setOnClickListener {
+            BirthDatePicker.show(this, etBirthDate.text.toString(), applyPickedDate)
+        }
+        // Falls der Kalender offen war, als das Geraet gedreht wurde.
+        BirthDatePicker.reattach(this, applyPickedDate)
 
         // Ein einziger Abruf fuer das ganze Formular. Vorher wurde fuer jedes
         // Feld einzeln dieselbe Zeile aus der Datenbank geholt - sechs

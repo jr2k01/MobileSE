@@ -3,6 +3,7 @@ package com.example.mobilese
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Geburtsdatum und das daraus abgeleitete Alter.
@@ -89,7 +90,44 @@ object BirthDate {
             add(Calendar.YEAR, -DEFAULT_AGE_YEARS)
         }
 
+    // === Umrechnung fuer den Kalender ===
+    //
+    // Der Material-Kalender rechnet durchgehend in UTC: er gibt UTC-Millisekunden
+    // zurueck und vergleicht auch seine Grenzen damit. Wuerde man diesen Wert mit
+    // der Zeitzone des Geraets auslesen, verschoebe sich das Datum je nach
+    // Zeitzone um einen Tag - aus dem 01.01. wuerde oestlich von Greenwich der
+    // 31.12. Deshalb wird hier in beide Richtungen ausdruecklich in UTC
+    // gerechnet.
+
+    private fun utcCalendar(): Calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+
+    /** Der Tag als UTC-Mitternacht, wie der Kalender ihn erwartet. */
+    private fun utcMillisOf(calendar: Calendar): Long = utcCalendar().apply {
+        clear()
+        set(
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+    }.timeInMillis
+
+    /** Vorauswahl des Kalenders: das hinterlegte Datum, sonst der Startwert. */
+    fun toUtcMillis(value: String?): Long = utcMillisOf(calendarFor(value))
+
+    /** Das im Kalender gewaehlte Datum als Text im Format [PATTERN]. */
+    fun fromUtcMillis(millis: Long): String {
+        val picked = utcCalendar().apply { timeInMillis = millis }
+        return format(
+            picked.get(Calendar.YEAR),
+            picked.get(Calendar.MONTH),
+            picked.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
     /** Frueheste im Kalender waehlbare Zeit. */
-    fun earliestSelectableMillis(): Long =
-        Calendar.getInstance().apply { add(Calendar.YEAR, -MAX_AGE_YEARS) }.timeInMillis
+    fun earliestSelectableUtcMillis(): Long =
+        utcMillisOf(Calendar.getInstance().apply { add(Calendar.YEAR, -MAX_AGE_YEARS) })
+
+    /** Spaeteste im Kalender waehlbare Zeit - niemand ist in der Zukunft geboren. */
+    fun latestSelectableUtcMillis(): Long = utcMillisOf(Calendar.getInstance())
 }

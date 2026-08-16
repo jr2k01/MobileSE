@@ -58,11 +58,12 @@ class RegistrationActivity : AppCompatActivity() {
         })
 
         // Geburtsdatum wird im Kalender gewaehlt statt getippt.
+        val applyPickedDate: (String) -> Unit = { picked -> etBirthDate.setText(picked) }
         etBirthDate.setOnClickListener {
-            BirthDatePicker.show(this, etBirthDate.text.toString()) { picked ->
-                etBirthDate.setText(picked)
-            }
+            BirthDatePicker.show(this, etBirthDate.text.toString(), applyPickedDate)
         }
+        // Falls der Kalender offen war, als das Geraet gedreht wurde.
+        BirthDatePicker.reattach(this, applyPickedDate)
 
         btnRegister.setOnClickListener {
             val name = etName.text.toString().trim()

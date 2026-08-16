@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * Unit-Tests fuer Geburtsdatum und Altersberechnung.
@@ -86,5 +87,51 @@ class BirthDateTest {
         assertEquals(2000, start.get(Calendar.YEAR))
         assertEquals(Calendar.MARCH, start.get(Calendar.MONTH))
         assertEquals(15, start.get(Calendar.DAY_OF_MONTH))
+    }
+
+    /**
+     * Der Material-Kalender rechnet in UTC, das Geraet steht in einer anderen
+     * Zeitzone. Wird das ueberlesen, kommt ein anderes Datum zurueck als das
+     * angetippte - am deutlichsten am Monatsersten, der zum Letzten des
+     * Vormonats wird. Deshalb Hin- und Rueckweg fuer mehrere Zeitzonen.
+     */
+    @Test
+    fun `a date survives the trip through the calendar in every time zone`() {
+        val zones = listOf("UTC", "Europe/Berlin", "Pacific/Kiritimati", "Pacific/Midway")
+        val dates = listOf("01.01.2000", "31.12.1999", "29.02.2004", "15.03.2000")
+        val original = TimeZone.getDefault()
+
+        try {
+            zones.forEach { zone ->
+                TimeZone.setDefault(TimeZone.getTimeZone(zone))
+                dates.forEach { date ->
+                    assertEquals(
+                        "$date in $zone",
+                        date,
+                        BirthDate.fromUtcMillis(BirthDate.toUtcMillis(date))
+                    )
+                }
+            }
+        } finally {
+            TimeZone.setDefault(original)
+        }
+    }
+
+    @Test
+    fun `the selectable range covers a lifetime and stops today`() {
+        val earliest = BirthDate.earliestSelectableUtcMillis()
+        val latest = BirthDate.latestSelectableUtcMillis()
+
+        assertTrue(earliest < latest)
+        // Heute ist waehlbar, morgen nicht mehr.
+        assertEquals(
+            BirthDate.format(
+                Calendar.getInstance().get(Calendar.YEAR),
+                Calendar.getInstance().get(Calendar.MONTH),
+                Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+            ),
+            BirthDate.fromUtcMillis(latest)
+        )
+        assertEquals(120, BirthDate.ageFrom(BirthDate.fromUtcMillis(earliest)))
     }
 }

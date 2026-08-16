@@ -76,7 +76,6 @@
             der App aussieht.
         -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.CrewFit.Dialog</item>
-        <item name="android:datePickerDialogTheme">@style/ThemeOverlay.CrewFit.DatePicker</item>
     </style>
 
     <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
@@ -134,11 +133,15 @@
         <item name="android:textAppearance">?attr/textAppearanceLabelLarge</item>
     </style>
 
-    <!-- Kalender zur Auswahl des Geburtsdatums -->
-    <style name="ThemeOverlay.CrewFit.DatePicker" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">@color/md_surface_container_high</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-    </style>
+    <!--
+        Der Kalender fuer das Geburtsdatum bekommt hier bewusst kein Theme
+        mehr. Er lief kurzzeitig ueber android:datePickerDialogTheme mit einem
+        ThemeOverlay fuer MaterialAlertDialog - das ist fuer den System-Dialog
+        das falsche Theme, und der darin gesetzte durchsichtige
+        windowBackground machte den Kalender auf echten Geraeten unsichtbar und
+        unbedienbar. Verwendet wird jetzt MaterialDatePicker, der sich aus dem
+        App-Theme selbst bedient.
+    -->
 
     <!-- Eine Zeile im Sportart-Auswahlfenster -->
     <style name="TextAppearance.CrewFit.DialogItem" parent="TextAppearance.Material3.BodyLarge">

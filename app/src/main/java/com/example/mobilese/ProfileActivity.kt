@@ -73,18 +73,28 @@ class ProfileActivity : AppCompatActivity() {
         // Falls der Kalender offen war, als das Geraet gedreht wurde.
         BirthDatePicker.reattach(this, applyPickedDate)
 
+        // Beim Drehen des Geraets wird die Activity neu erzeugt. Die Textfelder
+        // stellt Android dabei selbst wieder her - sie danach erneut aus der
+        // Datenbank zu fuellen wuerde alles ueberschreiben, was seit dem
+        // Oeffnen eingetippt und noch nicht gespeichert wurde. Deshalb nur beim
+        // ersten Aufbau. Das Profilbild haelt sich nicht von selbst und wird
+        // jedes Mal geladen.
+        val isFirstStart = savedInstanceState == null
+
         // Ein einziger Abruf fuer das ganze Formular. Vorher wurde fuer jedes
         // Feld einzeln dieselbe Zeile aus der Datenbank geholt - sechs
         // Abfragen fuer sechs Felder.
         lifecycleScope.launch {
             val profile = repository.getProfile(currentUserEmail) ?: return@launch
-            etName.setText(profile.name.orEmpty())
-            etBirthDate.setText(profile.birthdate.orEmpty())
-            // Nicht das gespeicherte Alter anzeigen, sondern das aus dem
-            // Geburtsdatum berechnete - nur das ist heute noch richtig.
-            etAge.setText(BirthDate.ageTextFrom(profile.birthdate))
-            etHeight.setText(profile.height.orEmpty())
-            etWeight.setText(profile.weight.orEmpty())
+            if (isFirstStart) {
+                etName.setText(profile.name.orEmpty())
+                etBirthDate.setText(profile.birthdate.orEmpty())
+                // Nicht das gespeicherte Alter anzeigen, sondern das aus dem
+                // Geburtsdatum berechnete - nur das ist heute noch richtig.
+                etAge.setText(BirthDate.ageTextFrom(profile.birthdate))
+                etHeight.setText(profile.height.orEmpty())
+                etWeight.setText(profile.weight.orEmpty())
+            }
             ImageLoader.into(
                 ivProfilePicture,
                 profile.avatarUrl,

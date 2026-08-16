@@ -33,8 +33,13 @@ class MainHubActivity : AppCompatActivity() {
 
     private lateinit var tvCrewName: TextView
     private lateinit var llMembers: LinearLayout
-    private lateinit var llRanking: LinearLayout
     private lateinit var llLatestActivities: LinearLayout
+
+    /** Die drei Podestplaetze, von Platz eins an. */
+    private lateinit var podium: List<PodiumPlace>
+
+    /** Eine Saeule des Podests: das Bild darauf und die Spalte zum Abblenden. */
+    private class PodiumPlace(val avatar: ImageView, val column: View)
 
     private var mediaPlayer: MediaPlayer? = null
 
@@ -49,8 +54,13 @@ class MainHubActivity : AppCompatActivity() {
 
         tvCrewName = findViewById(R.id.tvHomeCrewName)
         llMembers = findViewById(R.id.llMembersContainer)
-        llRanking = findViewById(R.id.llRankingContainer)
         llLatestActivities = findViewById(R.id.llLatestActivitiesContainer)
+
+        podium = listOf(
+            PodiumPlace(findViewById(R.id.ivPodiumFirst), findViewById(R.id.llPodiumFirst)),
+            PodiumPlace(findViewById(R.id.ivPodiumSecond), findViewById(R.id.llPodiumSecond)),
+            PodiumPlace(findViewById(R.id.ivPodiumThird), findViewById(R.id.llPodiumThird))
+        )
 
         // Steht unter der Liste der letzten Aktivitaeten statt in der
         // Navigationsleiste.
@@ -111,7 +121,7 @@ class MainHubActivity : AppCompatActivity() {
         if (crewCode == null) {
             tvCrewName.text = getString(R.string.no_crew_joined)
             llMembers.removeAllViews()
-            llRanking.removeAllViews()
+            clearPodium()
             llLatestActivities.removeAllViews()
             return
         }
@@ -155,24 +165,52 @@ class MainHubActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Besetzt das Podest mit den ersten drei der Rangliste.
+     *
+     * Auf dem Podest steht nur das Profilbild - welcher Platz das ist, sagen
+     * die Hoehe der Saeule und die Ziffer darauf. Name und Punktzahl stehen
+     * weiterhin auf dem Ranglisten-Bildschirm.
+     *
+     * Hat die Crew weniger als drei Mitglieder, bleiben die hinteren Plaetze
+     * abgeblendet stehen, statt zu verschwinden. Ein Podest, das je nach
+     * Crew-Groesse ein oder zwei Saeulen hat, wuerde bei jedem Beitritt anders
+     * aussehen.
+     */
     private fun showTopThree(snapshot: CrewSnapshot) {
-        llRanking.removeAllViews()
-        val inflater = LayoutInflater.from(this)
+        val ranking = Scoreboard.build(snapshot)
 
-        Scoreboard.build(snapshot).take(3).forEachIndexed { index, entry ->
-            val view = inflater.inflate(R.layout.item_leaderboard_entry, llRanking, false)
-            view.findViewById<TextView>(R.id.tvRank).text = (index + 1).toString()
-            view.findViewById<TextView>(R.id.tvLeaderboardName).text = entry.name
-            view.findViewById<TextView>(R.id.tvPoints).text =
-                getString(R.string.points_unit, entry.points)
+        podium.forEachIndexed { index, place ->
+            val entry = ranking.getOrNull(index)
+            val rank = index + 1
+
+            if (entry == null) {
+                showEmptyPlace(place, rank)
+                return@forEachIndexed
+            }
+
+            place.column.alpha = 1f
+            // Der Name ist auf dem Podest nicht zu sehen; fuer die
+            // Sprachausgabe gehoert er trotzdem dazu.
+            place.avatar.contentDescription =
+                getString(R.string.podium_place_desc, rank, entry.name)
             ImageLoader.into(
-                view.findViewById<ImageView>(R.id.ivLeaderboardPhoto),
+                place.avatar,
                 entry.avatarUrl,
                 circular = true,
                 placeholder = android.R.drawable.ic_menu_gallery
             )
-            llRanking.addView(view)
         }
+    }
+
+    private fun clearPodium() =
+        podium.forEachIndexed { index, place -> showEmptyPlace(place, index + 1) }
+
+    /** Ein unbesetzter Platz: abgeblendet, mit Platzhalter statt Bild. */
+    private fun showEmptyPlace(place: PodiumPlace, rank: Int) {
+        place.column.alpha = EMPTY_PLACE_ALPHA
+        place.avatar.setImageResource(R.drawable.ic_image)
+        place.avatar.contentDescription = getString(R.string.podium_place_empty_desc, rank)
     }
 
     private fun showLatestActivities(snapshot: CrewSnapshot) {
@@ -238,4 +276,9 @@ class MainHubActivity : AppCompatActivity() {
 
     private fun toast(resId: Int) =
         Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
+
+    private companion object {
+        /** Deckkraft eines noch unbesetzten Podestplatzes. */
+        const val EMPTY_PLACE_ALPHA = 0.35f
+    }
 }

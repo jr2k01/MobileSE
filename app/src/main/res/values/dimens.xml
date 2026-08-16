@@ -59,4 +59,17 @@
 
     <!-- Kartenausschnitt in der Aktivitaetenliste -->
     <dimen name="map_preview_height">140dp</dimen>
+
+    <!--
+        Podest der Crew Top 3. Der erste Platz ist bewusst groesser als die
+        beiden anderen - so ist auf einen Blick klar, wer vorne liegt, auch
+        ohne die Ziffern zu lesen.
+    -->
+    <dimen name="podium_avatar_size">56dp</dimen>
+    <dimen name="podium_avatar_radius">28dp</dimen>
+    <dimen name="podium_avatar_size_first">68dp</dimen>
+    <dimen name="podium_avatar_radius_first">34dp</dimen>
+    <dimen name="podium_block_first_height">76dp</dimen>
+    <dimen name="podium_block_second_height">56dp</dimen>
+    <dimen name="podium_block_third_height">42dp</dimen>
 </resources>

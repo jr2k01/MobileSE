@@ -75,6 +75,16 @@
     <color name="error">@color/md_error</color>
     <color name="divider">@color/md_outline_variant</color>
 
+    <!--
+        Podest der Crew Top 3. Gold, Silber und Bronze sind hier bewusst keine
+        Rollen des Farbsystems: sie bedeuten ueberall dasselbe und sollen sich
+        gerade nicht mitverschieben, wenn die Markenfarben angepasst werden.
+        Aufgehellte Toene, damit die dunkle Ziffer darauf lesbar bleibt.
+    -->
+    <color name="podium_first">#F5C851</color>
+    <color name="podium_second">#C3C8D2</color>
+    <color name="podium_third">#D9955C</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

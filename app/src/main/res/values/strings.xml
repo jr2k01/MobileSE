@@ -14,6 +14,13 @@
     <string name="register_sub">Become part of the crew and start your training.</string>
     <string name="full_name_hint">Full Name</string>
     <string name="display_name_hint">Short Name</string>
+    <!-- Ziffern auf den drei Podestbloecken -->
+    <string name="podium_rank_1">1</string>
+    <string name="podium_rank_2">2</string>
+    <string name="podium_rank_3">3</string>
+    <!-- Nur fuer die Sprachausgabe: auf dem Podest steht bloss das Bild. -->
+    <string name="podium_place_desc">Place %1$d: %2$s</string>
+    <string name="podium_place_empty_desc">Place %1$d is still open</string>
     <string name="display_name_helper">Shown in the crew, the ranking and the top three</string>
     <string name="birth_date_hint">Date of Birth (DD.MM.YYYY)</string>
     <string name="birth_date_title">Select your date of birth</string>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ein Block des Podests. Nur oben abgerundet, damit die drei Bloecke unten
+    buendig auf einer Linie stehen und nebeneinander wie ein Stueck wirken.
+    Die Farbe kommt ueber backgroundTint von aussen - so reicht eine Form fuer
+    Gold, Silber und Bronze.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@android:color/white" />
+    <corners
+        android:topLeftRadius="10dp"
+        android:topRightRadius="10dp" />
+</shape>

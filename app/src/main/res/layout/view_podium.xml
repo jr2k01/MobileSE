@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Das Podest der Crew Top 3.
+
+    Anordnung wie bei einer Siegerehrung: der Zweite links, der Erste in der
+    Mitte auf dem hoechsten Block, der Dritte rechts. Angezeigt wird nur das
+    Profilbild - der Platz geht aus der Hoehe und der Ziffer hervor, Name und
+    Punkte stehen auf dem Ranglisten-Bildschirm.
+
+    Die drei Spalten teilen sich die Breite zu gleichen Teilen und sind unten
+    ausgerichtet, damit die Bloecke trotz unterschiedlicher Hoehe auf einer
+    Linie stehen.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:baselineAligned="false"
+    android:gravity="bottom">
+
+    <!-- === Platz 2 === -->
+    <LinearLayout
+        android:id="@+id/llPodiumSecond"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_horizontal|bottom">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="@dimen/podium_avatar_size"
+            android:layout_height="@dimen/podium_avatar_size"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="@dimen/podium_avatar_radius"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/podium_second"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+            <ImageView
+                android:id="@+id/ivPodiumSecond"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/podium_block_second_height"
+            android:background="@drawable/bg_podium_block"
+            android:backgroundTint="@color/podium_second">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/podium_rank_2"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/md_surface"
+                tools:ignore="RelativeOverlap" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- === Platz 1 === -->
+    <LinearLayout
+        android:id="@+id/llPodiumFirst"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_horizontal|bottom">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="@dimen/podium_avatar_size_first"
+            android:layout_height="@dimen/podium_avatar_size_first"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="@dimen/podium_avatar_radius_first"
+            app:cardElevation="0dp"
+            app:strokeWidth="3dp"
+            app:strokeColor="@color/podium_first"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+            <ImageView
+                android:id="@+id/ivPodiumFirst"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/podium_block_first_height"
+            android:background="@drawable/bg_podium_block"
+            android:backgroundTint="@color/podium_first">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/podium_rank_1"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="@color/md_surface" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- === Platz 3 === -->
+    <LinearLayout
+        android:id="@+id/llPodiumThird"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_horizontal|bottom">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="@dimen/podium_avatar_size"
+            android:layout_height="@dimen/podium_avatar_size"
+            android:layout_marginBottom="8dp"
+            app:cardCornerRadius="@dimen/podium_avatar_radius"
+            app:cardElevation="0dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="@color/podium_third"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+            <ImageView
+                android:id="@+id/ivPodiumThird"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/podium_block_third_height"
+            android:background="@drawable/bg_podium_block"
+            android:backgroundTint="@color/podium_third">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/podium_rank_3"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textColor="@color/md_surface" />
+        </FrameLayout>
+    </LinearLayout>
+
+</LinearLayout>

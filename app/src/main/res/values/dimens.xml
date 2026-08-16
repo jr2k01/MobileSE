@@ -69,7 +69,10 @@
     <dimen name="podium_avatar_radius">28dp</dimen>
     <dimen name="podium_avatar_size_first">68dp</dimen>
     <dimen name="podium_avatar_radius_first">34dp</dimen>
-    <dimen name="podium_block_first_height">76dp</dimen>
-    <dimen name="podium_block_second_height">56dp</dimen>
-    <dimen name="podium_block_third_height">42dp</dimen>
+    <dimen name="podium_block_first_height">86dp</dimen>
+    <dimen name="podium_block_second_height">62dp</dimen>
+    <dimen name="podium_block_third_height">46dp</dimen>
+    <!-- Der Schein liegt hinter dem Bild und muss deutlich groesser sein. -->
+    <dimen name="podium_glow_size">104dp</dimen>
+    <dimen name="podium_crown_size">26dp</dimen>
 </resources>

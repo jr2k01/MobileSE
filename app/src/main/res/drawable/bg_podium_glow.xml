@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Weicher Schein hinter dem Bild auf Platz eins. Nach aussen vollstaendig
+    durchsichtig, damit kein Rand entsteht - er soll den Sieger hervorheben,
+    nicht als Kreis auffallen.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%"
+        android:startColor="#59F5C851"
+        android:centerColor="#26F5C851"
+        android:endColor="#00F5C851" />
+</shape>

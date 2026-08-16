@@ -39,7 +39,9 @@
     <dimen name="podium_avatar_radius">40dp</dimen>
     <dimen name="podium_avatar_size_first">96dp</dimen>
     <dimen name="podium_avatar_radius_first">48dp</dimen>
-    <dimen name="podium_block_first_height">108dp</dimen>
-    <dimen name="podium_block_second_height">80dp</dimen>
-    <dimen name="podium_block_third_height">60dp</dimen>
+    <dimen name="podium_block_first_height">122dp</dimen>
+    <dimen name="podium_block_second_height">88dp</dimen>
+    <dimen name="podium_block_third_height">66dp</dimen>
+    <dimen name="podium_glow_size">144dp</dimen>
+    <dimen name="podium_crown_size">36dp</dimen>
 </resources>

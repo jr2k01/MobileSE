@@ -85,6 +85,22 @@
     <color name="podium_second">#C3C8D2</color>
     <color name="podium_third">#D9955C</color>
 
+    <!--
+        Zu jedem Metall ein hellerer und ein dunklerer Ton. Der Block laeuft von
+        oben hell nach unten dunkel - dadurch bekommt er Tiefe, statt als
+        flaches Rechteck dazustehen. Die helle Kante oben liest sich als
+        Trittflaeche.
+    -->
+    <color name="podium_first_light">#FFE4A0</color>
+    <color name="podium_first_deep">#C79420</color>
+    <color name="podium_second_light">#E4E8EF</color>
+    <color name="podium_second_deep">#8F97A5</color>
+    <color name="podium_third_light">#F0BA92</color>
+    <color name="podium_third_deep">#A66535</color>
+
+    <!-- Die Ziffer steht auf dem Block, nicht davor: dunkel und leicht durchscheinend. -->
+    <color name="podium_rank_label">#A6101319</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

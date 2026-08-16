@@ -38,8 +38,15 @@ class MainHubActivity : AppCompatActivity() {
     /** Die drei Podestplaetze, von Platz eins an. */
     private lateinit var podium: List<PodiumPlace>
 
-    /** Eine Saeule des Podests: das Bild darauf und die Spalte zum Abblenden. */
-    private class PodiumPlace(val avatar: ImageView, val column: View)
+    /**
+     * Eine Saeule des Podests.
+     *
+     * Abgeblendet wird nur [avatarHolder], also das Bild samt Rahmen - und bei
+     * Platz eins zusaetzlich Krone und Schein. Die Saeule selbst bleibt in
+     * voller Farbe stehen: sie gehoert zum Podest, nicht zur Person, und ein
+     * halb ausgegrautes Podest sah aus, als fehle etwas an der Anzeige.
+     */
+    private class PodiumPlace(val avatar: ImageView, val avatarHolder: View)
 
     private var mediaPlayer: MediaPlayer? = null
 
@@ -57,9 +64,9 @@ class MainHubActivity : AppCompatActivity() {
         llLatestActivities = findViewById(R.id.llLatestActivitiesContainer)
 
         podium = listOf(
-            PodiumPlace(findViewById(R.id.ivPodiumFirst), findViewById(R.id.llPodiumFirst)),
-            PodiumPlace(findViewById(R.id.ivPodiumSecond), findViewById(R.id.llPodiumSecond)),
-            PodiumPlace(findViewById(R.id.ivPodiumThird), findViewById(R.id.llPodiumThird))
+            PodiumPlace(findViewById(R.id.ivPodiumFirst), findViewById(R.id.llPodiumFirstAvatar)),
+            PodiumPlace(findViewById(R.id.ivPodiumSecond), findViewById(R.id.cvPodiumSecond)),
+            PodiumPlace(findViewById(R.id.ivPodiumThird), findViewById(R.id.cvPodiumThird))
         )
 
         // Steht unter der Liste der letzten Aktivitaeten statt in der
@@ -189,7 +196,7 @@ class MainHubActivity : AppCompatActivity() {
                 return@forEachIndexed
             }
 
-            place.column.alpha = 1f
+            place.avatarHolder.alpha = 1f
             // Der Name ist auf dem Podest nicht zu sehen; fuer die
             // Sprachausgabe gehoert er trotzdem dazu.
             place.avatar.contentDescription =
@@ -208,7 +215,7 @@ class MainHubActivity : AppCompatActivity() {
 
     /** Ein unbesetzter Platz: abgeblendet, mit Platzhalter statt Bild. */
     private fun showEmptyPlace(place: PodiumPlace, rank: Int) {
-        place.column.alpha = EMPTY_PLACE_ALPHA
+        place.avatarHolder.alpha = EMPTY_PLACE_ALPHA
         place.avatar.setImageResource(R.drawable.ic_image)
         place.avatar.contentDescription = getString(R.string.podium_place_empty_desc, rank)
     }

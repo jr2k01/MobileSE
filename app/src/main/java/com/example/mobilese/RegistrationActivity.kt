@@ -144,9 +144,16 @@ class RegistrationActivity : AppCompatActivity() {
 
     private fun resend(email: String) {
         lifecycleScope.launch {
-            val sent = repository.resendConfirmationEmail(email)
-            toast(if (sent) R.string.resend_email_sent else R.string.resend_email_failed)
-            if (sent) finish()
+            val error = repository.resendConfirmationEmail(email)
+            if (error == null) {
+                toast(R.string.resend_email_sent)
+                finish()
+                return@launch
+            }
+            // Den Grund nennen statt nur "hat nicht geklappt" - beim
+            // Stundenlimit des Maildienstes weiss der Nutzer sonst nicht, dass
+            // Warten hilft.
+            toast(error.messageRes())
         }
     }
 

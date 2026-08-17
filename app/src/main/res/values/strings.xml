@@ -232,7 +232,6 @@
     <string name="not_confirmed_message">Your account exists, but the email address still needs to be confirmed. Open the link we sent you, then log in again.</string>
     <string name="resend_email">Send again</string>
     <string name="resend_email_sent">Confirmation email sent again</string>
-    <string name="resend_email_failed">Could not send the email. Please try again later.</string>
 
     <!-- Gruende, warum Anmeldung oder Registrierung scheitern -->
     <string name="error_title">That did not work</string>

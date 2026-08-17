@@ -107,8 +107,10 @@ class LoginActivity : AppCompatActivity() {
             .setPositiveButton(R.string.got_it, null)
             .setNeutralButton(R.string.resend_email) { _, _ ->
                 lifecycleScope.launch {
-                    val sent = repository.resendConfirmationEmail(email)
-                    toast(if (sent) R.string.resend_email_sent else R.string.resend_email_failed)
+                    val error = repository.resendConfirmationEmail(email)
+                    // Den Grund nennen, nicht nur den Fehlschlag - siehe
+                    // AppRepository.resendConfirmationEmail.
+                    toast(error?.messageRes() ?: R.string.resend_email_sent)
                 }
             }
             .show()

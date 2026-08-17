@@ -174,6 +174,21 @@ class AppRepository private constructor(context: Context) {
             }
 
             if (userInfo != null) {
+                // Ist die Adresse schon vergeben, antwortet Supabase trotzdem
+                // mit Erfolg - damit sich ueber das Registrierungsformular
+                // nicht herausfinden laesst, wer ein Konto hat. Erkennbar ist
+                // es nur an der leeren Liste der Identitaeten. Verschickt wird
+                // in diesem Fall keine Bestaetigungsmail.
+                //
+                // Ohne diese Pruefung meldet die App "Bestaetigungsmail
+                // unterwegs" und es kommt nie eine an.
+                if (userInfo.identities.isNullOrEmpty()) {
+                    Log.w("SupabaseAuth", "Sign-up for an address that already exists: $email")
+                    return@withContext RegistrationResult.Failed(
+                        AuthError.EMAIL_ALREADY_REGISTERED
+                    )
+                }
+
                 Log.d("SupabaseAuth", "Sign-up accepted, confirmation email sent to $email")
                 return@withContext RegistrationResult.ConfirmationRequired
             }
@@ -214,13 +229,21 @@ class AppRepository private constructor(context: Context) {
         }
 
     /** Verschickt die Bestaetigungsmail erneut. */
-    suspend fun resendConfirmationEmail(email: String): Boolean = withContext(Dispatchers.IO) {
+    /**
+     * Schickt die Bestaetigungsmail erneut.
+     *
+     * Gibt null zurueck, wenn sie unterwegs ist, sonst den Grund. Vorher war es
+     * ein einfaches Ja/Nein, und der Nutzer las bloss "hat nicht geklappt" -
+     * gerade beim haeufigsten Fall, dem Stundenlimit des Maildienstes, ist aber
+     * genau der Grund die Auskunft, die weiterhilft.
+     */
+    suspend fun resendConfirmationEmail(email: String): AuthError? = withContext(Dispatchers.IO) {
         try {
             client.auth.resendEmail(OtpType.Email.SIGNUP, email)
-            true
+            null
         } catch (e: Exception) {
             Log.e("SupabaseAuth", "Could not resend the confirmation email: ${e.message}")
-            false
+            errorFor(e)
         }
     }
 

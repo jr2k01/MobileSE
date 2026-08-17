@@ -76,17 +76,42 @@ intent-filter der `ResetPasswordActivity`. Alle drei muessen uebereinstimmen.
 
 Der Link allein genuegt nicht. Oeffnet das Mailprogramm ihn in seiner
 eingebauten Ansicht, kennt die das Schema `crewfit://` nicht - es bleibt bei
-einer leeren Seite und die App wird nie geoeffnet. Deshalb enthaelt die Mail
-zusaetzlich einen Code zum Abtippen.
+einer leeren Seite und die App wird nie geoeffnet. Angetippt auf einem Rechner
+passiert dasselbe, weil es dort kein Programm fuer diese Adresse gibt. Deshalb
+soll die Mail zusaetzlich einen Code zum Abtippen enthalten; das Feld dafuer
+gibt es im Bildschirm fuer das neue Passwort bereits.
 
-Supabase → **Authentication** → **Email Templates** → **Reset Password**, in die
-Vorlage aufnehmen:
+**Das setzt einen eigenen SMTP-Server voraus.** Ohne ihn verschickt Supabase
+seine Standardvorlagen, und die lassen sich nicht bearbeiten - im Dashboard
+steht dann "Set up custom SMTP to edit templates" und die Felder sind gesperrt.
+In der Standardvorlage steht nur der Link, kein Code.
+
+Ist ein eigener SMTP eingerichtet, wird die Vorlage bearbeitbar:
+Supabase → **Authentication** → **Emails** → **Reset password**, in den Body
+aufnehmen:
 
 ```html
 <p>Oder gib diesen Code in der App ein: <strong>{{ .Token }}</strong></p>
 ```
 
-Ohne `{{ .Token }}` steht in der Mail kein Code und es bleibt beim Link.
+### Eigener SMTP-Server
+
+Loest zwei Dinge auf einmal: die Vorlagen werden bearbeitbar, und das enge
+Stundenlimit des eingebauten Maildienstes faellt weg. Letzteres ist der Grund,
+warum Bestaetigungsmails bei mehreren Registrierungen hintereinander ausbleiben.
+
+Der eingebaute Dienst ist von Supabase ausdruecklich nur zum Ausprobieren
+gedacht. Fuer ein Projekt, das zu mehreren benutzt wird, fuehrt kein Weg daran
+vorbei.
+
+Anbieter mit kostenlosem Kontingent, bei denen eine einzelne Absenderadresse
+bestaetigt wird und keine eigene Domain noetig ist - etwa Brevo oder Mailjet.
+Dort SMTP-Zugangsdaten erzeugen und in Supabase unter **Authentication** →
+**Emails** → **Set up SMTP** eintragen: Absenderadresse, Absendername, Host,
+Port 587, Benutzername und Schluessel.
+
+Danach unter **Authentication** → **Rate Limits** das Limit fuer Mails
+hochsetzen; die Voreinstellung stammt noch vom eingebauten Dienst.
 
 ## Wenn eine dieser Spalten fehlt
 

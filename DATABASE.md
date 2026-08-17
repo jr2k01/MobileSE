@@ -104,14 +104,29 @@ Der eingebaute Dienst ist von Supabase ausdruecklich nur zum Ausprobieren
 gedacht. Fuer ein Projekt, das zu mehreren benutzt wird, fuehrt kein Weg daran
 vorbei.
 
-Anbieter mit kostenlosem Kontingent, bei denen eine einzelne Absenderadresse
-bestaetigt wird und keine eigene Domain noetig ist - etwa Brevo oder Mailjet.
-Dort SMTP-Zugangsdaten erzeugen und in Supabase unter **Authentication** →
-**Emails** → **Set up SMTP** eintragen: Absenderadresse, Absendername, Host,
-Port 587, Benutzername und Schluessel.
+Das Projekt benutzt **Mailjet**. Die Werte fuer Supabase unter
+**Authentication** → **Emails** → **Set up SMTP**:
+
+| Feld | Wert |
+| --- | --- |
+| Host | `in-v3.mailjet.com` |
+| Port | `587` |
+| Username | der **API Key** aus Mailjet |
+| Password | der **Secret Key** aus Mailjet |
+| Sender email | die in Mailjet bestaetigte Absenderadresse |
+| Sender name | CrewFit |
+
+Zu finden sind die beiden Schluessel in Mailjet unter **Account settings** →
+**SMTP and SEND API settings**. Es sind ausdruecklich nicht Login und Passwort
+des Mailjet-Kontos - damit schlaegt die Anmeldung am SMTP fehl.
+
+Die Absenderadresse muss in Mailjet vorher bestaetigt werden, sonst nimmt der
+Server nichts an.
 
 Danach unter **Authentication** → **Rate Limits** das Limit fuer Mails
-hochsetzen; die Voreinstellung stammt noch vom eingebauten Dienst.
+hochsetzen: Supabase setzt beim Einschalten von eigenem SMTP zunaechst 30 Mails
+pro Stunde an. Das ist zwar mehr als beim eingebauten Dienst, aber immer noch
+eine Grenze, in die man beim Testen laeuft.
 
 ## Wenn eine dieser Spalten fehlt
 

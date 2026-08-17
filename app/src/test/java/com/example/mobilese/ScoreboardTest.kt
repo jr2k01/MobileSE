@@ -89,4 +89,66 @@ class ScoreboardTest {
 
         assertEquals(0, Scoreboard.build(snapshot).single().points)
     }
+
+    // === Schritte ===
+
+    @Test
+    fun `each day with the step goal reached adds bonus points`() {
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada")),
+            stepDays = listOf(
+                TestData.stepDay("u1", "2026-08-15", 12_000),
+                TestData.stepDay("u1", "2026-08-16", 4_000),
+                TestData.stepDay("u1", "2026-08-17", 10_000)
+            )
+        )
+
+        // Zwei erreichte Tage, keine Aktivitaeten.
+        assertEquals(
+            2 * StepGoal.BONUS_POINTS,
+            Scoreboard.build(snapshot, today = "2026-08-17").single().points
+        )
+    }
+
+    /** Der Ring zeigt den heutigen Tag, nicht die Summe aller Tage. */
+    @Test
+    fun `the ring shows only today's steps`() {
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada")),
+            stepDays = listOf(
+                TestData.stepDay("u1", "2026-08-16", 9_000),
+                TestData.stepDay("u1", "2026-08-17", 3_500)
+            )
+        )
+
+        assertEquals(3_500, Scoreboard.build(snapshot, today = "2026-08-17").single().todaySteps)
+    }
+
+    @Test
+    fun `a member without a row for today shows an empty ring`() {
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada"), TestData.profile("u2", "Bo")),
+            stepDays = listOf(TestData.stepDay("u1", "2026-08-17", 8_000))
+        )
+
+        val board = Scoreboard.build(snapshot, today = "2026-08-17").associateBy { it.userId }
+        assertEquals(8_000, board.getValue("u1").todaySteps)
+        assertEquals(0, board.getValue("u2").todaySteps)
+    }
+
+    /** Schritte anderer Mitglieder duerfen nicht auf das eigene Konto gehen. */
+    @Test
+    fun `step days are kept apart by member`() {
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada"), TestData.profile("u2", "Bo")),
+            stepDays = listOf(
+                TestData.stepDay("u1", "2026-08-17", 11_000),
+                TestData.stepDay("u2", "2026-08-17", 500)
+            )
+        )
+
+        val board = Scoreboard.build(snapshot, today = "2026-08-17").associateBy { it.userId }
+        assertEquals(StepGoal.BONUS_POINTS, board.getValue("u1").points)
+        assertEquals(0, board.getValue("u2").points)
+    }
 }

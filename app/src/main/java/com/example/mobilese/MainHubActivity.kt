@@ -61,6 +61,9 @@ class MainHubActivity : AppCompatActivity() {
     private lateinit var tvStepsCount: TextView
     private lateinit var tvStepsHint: TextView
     private lateinit var btnConnectHealth: Button
+    /** Zuletzt an den Server gemeldeter Stand, um gleiche Werte nicht erneut zu schicken. */
+    private var lastPublishedSteps: Long = -1
+
     private lateinit var flStepsGoal: View
     private lateinit var piStepsGoal: CircularProgressIndicator
     private lateinit var ivStepsGoalReached: ImageView
@@ -174,6 +177,7 @@ class MainHubActivity : AppCompatActivity() {
                     tvStepsCount.visibility = View.VISIBLE
                     btnConnectHealth.visibility = View.GONE
                     showGoalRing(reading.count)
+                    publishSteps(reading.count)
                 }
 
                 HealthSteps.Reading.NotAllowed -> {
@@ -210,10 +214,24 @@ class MainHubActivity : AppCompatActivity() {
         ivStepsGoalReached.visibility = if (reached) View.VISIBLE else View.GONE
 
         tvStepsHint.text = when {
-            reached -> getString(R.string.steps_hint_goal_reached)
+            // Bei erreichtem Ziel steht dort, was es gebracht hat, statt nur,
+            // dass es erreicht ist.
+            reached -> getString(R.string.steps_bonus_hint, StepGoal.BONUS_POINTS)
             steps == 0L -> getString(R.string.steps_hint_none_yet)
             else -> getString(R.string.steps_hint_goal, formatSteps(StepGoal.DAILY_STEPS.toLong()))
         }
+    }
+
+    /**
+     * Hinterlegt den eigenen Tagesstand, damit die Crew den Ring sieht.
+     *
+     * Uebertragen wird nur die Tageszahl, keine einzelnen Messwerte. Der
+     * Bildschirm wird oft betreten und verlassen; unveraenderte Werte noch
+     * einmal zu schicken waere eine Netzanfrage ohne Wirkung.
+     */
+    private suspend fun publishSteps(steps: Long) {
+        if (steps == lastPublishedSteps) return
+        if (repository.saveTodaySteps(steps.toInt())) lastPublishedSteps = steps
     }
 
     /** Zahl und Ring verbergen - in allen Faellen ohne gueltigen Messwert. */

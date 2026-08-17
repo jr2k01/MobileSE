@@ -35,10 +35,14 @@ object TestData {
         crewId: String = "CRW100"
     ) = Challenge(id = id, crewId = crewId, type = type.name, goal = goal, reward = reward)
 
+    fun stepDay(userId: String, day: String, steps: Int) =
+        StepDay(userId = userId, day = day, steps = steps)
+
     fun snapshot(
         members: List<UserProfile> = emptyList(),
         activities: List<Activity> = emptyList(),
         challenges: List<Challenge> = emptyList(),
-        rewards: List<ChallengeReward> = emptyList()
-    ) = CrewSnapshot(members, activities, challenges, rewards)
+        rewards: List<ChallengeReward> = emptyList(),
+        stepDays: List<StepDay> = emptyList()
+    ) = CrewSnapshot(members, activities, challenges, rewards, stepDays)
 }

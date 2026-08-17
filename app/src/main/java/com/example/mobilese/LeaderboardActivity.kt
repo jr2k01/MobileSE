@@ -2,12 +2,14 @@ package com.example.mobilese
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -72,7 +74,28 @@ class LeaderboardActivity : AppCompatActivity() {
                 circular = true,
                 placeholder = android.R.drawable.ic_menu_gallery
             )
+            showStepRing(view, entry.todaySteps)
             llLeaderboard.addView(view)
         }
+    }
+
+    /**
+     * Der Ring zum heutigen Schrittziel in einer Ranglistenzeile.
+     *
+     * Der Ring steht auch bei null Schritten da, nur leer. Ihn wegzulassen
+     * waere zweideutig: dann saehe ein Mitglied ohne Health Connect genauso aus
+     * wie eines, das den Bildschirm gerade nicht geoeffnet hat - und die Zeilen
+     * waeren unterschiedlich breit.
+     */
+    private fun showStepRing(row: View, steps: Int) {
+        row.findViewById<CircularProgressIndicator>(R.id.piStepsGoal)
+            .setProgressCompat(StepGoal.progressPercent(steps.toLong()), false)
+
+        row.findViewById<ImageView>(R.id.ivStepsGoalReached).visibility =
+            if (StepGoal.isReached(steps.toLong())) View.VISIBLE else View.GONE
+
+        row.findViewById<View>(R.id.flStepsGoal).contentDescription =
+            if (StepGoal.isReached(steps.toLong())) getString(R.string.steps_hint_goal_reached)
+            else getString(R.string.steps_ring_desc, steps, StepGoal.DAILY_STEPS)
     }
 }

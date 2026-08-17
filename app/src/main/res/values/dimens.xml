@@ -80,4 +80,6 @@
 
     <!-- Ring zum Tagesziel neben der Schrittzahl -->
     <dimen name="steps_goal_ring_size">34dp</dimen>
+    <!-- Derselbe Ring in der Ranglistenzeile, wo weniger Platz ist -->
+    <dimen name="leaderboard_ring_size">28dp</dimen>
 </resources>

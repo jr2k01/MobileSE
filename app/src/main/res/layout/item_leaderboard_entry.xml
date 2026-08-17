@@ -52,6 +52,41 @@
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurface" />
 
+        <!--
+            Der Ring zum heutigen Schrittziel, damit die Crew sieht, wer seine
+            Schritte schon voll hat. Bei erreichtem Ziel steht in der Mitte ein
+            Haken - genau wie auf dem Startbildschirm.
+        -->
+        <FrameLayout
+            android:id="@+id/flStepsGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/piStepsGoal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="false"
+                android:progress="0"
+                app:indicatorColor="?attr/colorSecondary"
+                app:indicatorSize="@dimen/leaderboard_ring_size"
+                app:trackColor="?attr/colorSurfaceContainerHighest"
+                app:trackCornerRadius="2dp"
+                app:trackThickness="3dp" />
+
+            <ImageView
+                android:id="@+id/ivStepsGoalReached"
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="?attr/colorSecondary" />
+        </FrameLayout>
+
         <!-- Punktestand als Chip: hebt die Kennzahl ab, ohne eigene Farbe -->
         <com.google.android.material.chip.Chip
             android:id="@+id/tvPoints"

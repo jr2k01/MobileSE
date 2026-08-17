@@ -46,4 +46,5 @@
     <dimen name="podium_crown_size">28dp</dimen>
     <dimen name="podium_avatar_gap">8dp</dimen>
     <dimen name="steps_goal_ring_size">42dp</dimen>
+    <dimen name="leaderboard_ring_size">36dp</dimen>
 </resources>

@@ -25,13 +25,45 @@ alter table activities add column if not exists longitude double precision;
 alter table challenge_rewards add column if not exists points integer not null default 0;
 ```
 
+## Tabelle fuer die Schrittzahl
+
+Eine Zeile je Nutzer und Tag. Der zusammengesetzte Schluessel sorgt dafuer, dass
+derselbe Tag nicht zweimal zaehlen kann - die App schreibt im Laufe des Tages
+immer wieder in dieselbe Zeile.
+
+```sql
+create table if not exists step_days (
+    user_id uuid not null references profiles(id) on delete cascade,
+    day     date not null,
+    steps   integer not null default 0,
+    primary key (user_id, day)
+);
+
+alter table step_days enable row level security;
+
+-- Lesen darf jeder Angemeldete: die Crew soll die Ringe der anderen sehen.
+drop policy if exists "step_days_read" on step_days;
+create policy "step_days_read" on step_days
+    for select to authenticated using (true);
+
+-- Schreiben darf jeder nur die eigene Zeile.
+drop policy if exists "step_days_insert_own" on step_days;
+create policy "step_days_insert_own" on step_days
+    for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "step_days_update_own" on step_days;
+create policy "step_days_update_own" on step_days
+    for update to authenticated using (auth.uid() = user_id);
+```
+
 ## Wenn eine dieser Spalten fehlt
 
 Die App bricht dann nicht ab, sondern schreibt ohne die betroffene Spalte
 weiter und vermerkt es im Log unter `SupabaseDB`. Das Kuerzel laesst sich dann
 zwar eintippen, aber nicht speichern; angezeigt wird der gekuerzte volle Name
 ("Jannik R."). Ein Workout wird ohne Koordinaten gespeichert und bekommt im
-Verlauf keine Karte.
+Verlauf keine Karte. Fehlt `step_days`, bleiben die Ringe in der Rangliste leer
+und es gibt keine Bonuspunkte - die Rangliste selbst steht weiterhin.
 
 Postgrest meldet eine fehlende Spalte als `PGRST204`:
 

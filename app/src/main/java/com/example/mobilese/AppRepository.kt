@@ -530,12 +530,14 @@ class AppRepository private constructor(context: Context) {
 
             val profilesAsync = async { selectProfiles(memberIds) }
             val rewardsAsync = async { selectRewards(challenges.map { it.id }) }
+            val stepDaysAsync = async { selectStepDays(memberIds) }
 
             CrewSnapshot(
                 members = profilesAsync.await(),
                 activities = activitiesAsync.await(),
                 challenges = challenges,
-                rewards = rewardsAsync.await()
+                rewards = rewardsAsync.await(),
+                stepDays = stepDaysAsync.await()
             )
         }
     }
@@ -556,6 +558,51 @@ class AppRepository private constructor(context: Context) {
     } catch (e: Exception) {
         Log.e("SupabaseDB", "Could not load crew members: ${e.message}")
         emptyList()
+    }
+
+    /**
+     * Die Schritt-Tage aller Mitglieder.
+     *
+     * Ohne Einschraenkung auf heute, weil dieselben Zeilen zwei Zwecken dienen:
+     * der Ring in der Rangliste braucht den heutigen Tag, die Bonuspunkte alle
+     * erreichten. Eine Zeile je Nutzer und Tag - das bleibt auch nach einem Jahr
+     * eine kleine Menge.
+     *
+     * Fehlt die Tabelle noch, bleibt es bei einer leeren Liste: dann gibt es
+     * keine Ringe und keine Bonuspunkte, aber die Rangliste steht.
+     */
+    private suspend fun selectStepDays(userIds: List<String>): List<StepDay> {
+        if (userIds.isEmpty()) return emptyList()
+        return try {
+            client.postgrest["step_days"].select {
+                filter { isIn("user_id", userIds) }
+            }.decodeList<StepDay>()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load the step days: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Haelt die heutige Schrittzahl des angemeldeten Nutzers fest.
+     *
+     * Upsert auf den Schluessel aus Nutzer und Tag: im Laufe des Tages wird
+     * dieselbe Zeile immer weiter hochgezaehlt, statt dass fuer jeden Abruf eine
+     * neue entsteht. Geschrieben wird nur die eigene Zeile.
+     */
+    suspend fun saveTodaySteps(steps: Int): Boolean {
+        val userId = currentUserId() ?: return false
+        return withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["step_days"].upsert(
+                    StepDay(userId = userId, day = HealthSteps.todayKey(), steps = steps)
+                )
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not save today's steps: ${e.message}")
+                false
+            }
+        }
     }
 
     private suspend fun selectProfiles(userIds: List<String>): List<UserProfile> {
@@ -889,5 +936,7 @@ data class CrewSnapshot(
     val members: List<UserProfile>,
     val activities: List<Activity>,
     val challenges: List<Challenge>,
-    val rewards: List<ChallengeReward>
+    val rewards: List<ChallengeReward>,
+    /** Schritte je Mitglied und Tag; leer, solange die Tabelle fehlt. */
+    val stepDays: List<StepDay> = emptyList()
 )

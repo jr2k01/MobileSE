@@ -99,6 +99,21 @@ data class ActivityWithoutCoordinates(
     val timestamp: String
 )
 
+/**
+ * Die Schrittzahl eines Nutzers an einem Tag.
+ *
+ * Eine Zeile je Nutzer und Tag, deshalb kann derselbe Tag nicht zweimal
+ * zaehlen. Aus diesen Zeilen ergeben sich beide Anzeigen: der Ring in der
+ * Rangliste (der Tag von heute) und die Bonuspunkte (alle erreichten Tage).
+ */
+@Serializable
+data class StepDay(
+    @SerialName("user_id") val userId: String,
+    /** Der Tag als ISO-Datum, etwa "2026-08-17". */
+    val day: String,
+    val steps: Int = 0
+)
+
 @Serializable
 data class Challenge(
     val id: String,

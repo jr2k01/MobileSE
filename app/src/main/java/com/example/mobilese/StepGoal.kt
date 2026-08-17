@@ -15,6 +15,29 @@ object StepGoal {
     const val DAILY_STEPS = 10_000
 
     /**
+     * Gutschrift fuer einen Tag, an dem das Ziel erreicht wurde.
+     *
+     * In derselben Groessenordnung wie ein Workout - ein 45-Minuten-Training
+     * mittlerer Intensitaet bringt 14 Punkte. Zehntausend Schritte sind ein
+     * ordentlicher Tag und sollen sich lohnen, aber die Rangliste nicht
+     * uebernehmen.
+     */
+    const val BONUS_POINTS = 15
+
+    /**
+     * Die Bonuspunkte aus einer Reihe von Tagen.
+     *
+     * Bewusst aus den Tagesdaten *berechnet* statt bei Erreichen einmalig
+     * gutgeschrieben. Eine Gutschrift muesste festhalten, dass sie schon
+     * erfolgt ist, und jeder Fehler dabei - zweimal angerechnet, beim Absturz
+     * verloren - bliebe dauerhaft in der Rangliste stehen. So kann derselbe Tag
+     * gar nicht doppelt zaehlen, und eine nachtraeglich korrigierte Schrittzahl
+     * korrigiert auch die Punkte.
+     */
+    fun bonusPoints(dailySteps: Collection<Int>): Int =
+        dailySteps.count { isReached(it.toLong()) } * BONUS_POINTS
+
+    /**
      * Der Fuellstand des Rings in Prozent.
      *
      * Bei mehr als dem Ziel bleibt es bei 100: der Ring kann nicht ueberlaufen,

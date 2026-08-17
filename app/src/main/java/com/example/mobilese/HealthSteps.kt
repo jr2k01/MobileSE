@@ -114,4 +114,13 @@ object HealthSteps {
      */
     private fun startOfToday(): Instant =
         LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
+
+    /**
+     * Der heutige Tag als ISO-Datum, etwa "2026-08-17".
+     *
+     * Schluessel der Zeile in step_days. Ortszeit, passend zu [startOfToday] -
+     * beides muss denselben Tag meinen, sonst landen die Schritte eines Abends
+     * unter dem naechsten Datum.
+     */
+    fun todayKey(): String = LocalDate.now().toString()
 }

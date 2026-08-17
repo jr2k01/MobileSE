@@ -64,6 +64,42 @@
             android:textColor="?attr/colorSecondary"
             android:visibility="gone" />
 
+        <!--
+            Der Ring zum Tagesziel. Voll bei StepGoal.DAILY_STEPS; dann tritt
+            an die Stelle der Mitte ein Haken, damit "geschafft" nicht nur aus
+            einem geschlossenen Kreis erraten werden muss.
+        -->
+        <FrameLayout
+            android:id="@+id/flStepsGoal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/piStepsGoal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="false"
+                android:progress="0"
+                app:indicatorColor="?attr/colorSecondary"
+                app:indicatorSize="@dimen/steps_goal_ring_size"
+                app:trackColor="?attr/colorSurfaceContainerHighest"
+                app:trackCornerRadius="2dp"
+                app:trackThickness="4dp" />
+
+            <ImageView
+                android:id="@+id/ivStepsGoalReached"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="?attr/colorSecondary" />
+        </FrameLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConnectHealth"
             style="@style/Widget.CrewFit.Button.Outlined"

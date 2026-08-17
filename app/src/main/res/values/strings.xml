@@ -22,6 +22,8 @@
     <string name="steps_hint_unavailable">Health Connect is not available on this device</string>
     <string name="steps_hint_failed">Could not be read right now</string>
     <string name="steps_hint_source">From Health Connect</string>
+    <string name="steps_hint_goal">Daily goal %1$s steps</string>
+    <string name="steps_hint_goal_reached">Daily goal reached</string>
     <string name="steps_hint_none_yet">Nothing recorded yet today</string>
     <string name="steps_permission_denied">Without access to Health Connect CrewFit cannot show your steps</string>
     <string name="health_privacy_title">Health data</string>

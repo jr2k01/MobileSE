@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -60,6 +61,9 @@ class MainHubActivity : AppCompatActivity() {
     private lateinit var tvStepsCount: TextView
     private lateinit var tvStepsHint: TextView
     private lateinit var btnConnectHealth: Button
+    private lateinit var flStepsGoal: View
+    private lateinit var piStepsGoal: CircularProgressIndicator
+    private lateinit var ivStepsGoalReached: ImageView
 
     /**
      * Fragt die Erlaubnis zum Lesen der Schritte an.
@@ -98,6 +102,9 @@ class MainHubActivity : AppCompatActivity() {
         tvStepsCount = findViewById(R.id.tvStepsCount)
         tvStepsHint = findViewById(R.id.tvStepsHint)
         btnConnectHealth = findViewById(R.id.btnConnectHealth)
+        flStepsGoal = findViewById(R.id.flStepsGoal)
+        piStepsGoal = findViewById(R.id.piStepsGoal)
+        ivStepsGoalReached = findViewById(R.id.ivStepsGoalReached)
         btnConnectHealth.setOnClickListener {
             requestHealthPermissions.launch(HealthSteps.PERMISSIONS)
         }
@@ -166,31 +173,54 @@ class MainHubActivity : AppCompatActivity() {
                     tvStepsCount.text = formatSteps(reading.count)
                     tvStepsCount.visibility = View.VISIBLE
                     btnConnectHealth.visibility = View.GONE
-                    tvStepsHint.setText(
-                        if (reading.count == 0L) R.string.steps_hint_none_yet
-                        else R.string.steps_hint_source
-                    )
+                    showGoalRing(reading.count)
                 }
 
                 HealthSteps.Reading.NotAllowed -> {
-                    tvStepsCount.visibility = View.GONE
+                    hideSteps()
                     btnConnectHealth.visibility = View.VISIBLE
                     tvStepsHint.setText(R.string.steps_hint_not_allowed)
                 }
 
                 HealthSteps.Reading.Unavailable -> {
-                    tvStepsCount.visibility = View.GONE
-                    btnConnectHealth.visibility = View.GONE
+                    hideSteps()
                     tvStepsHint.setText(R.string.steps_hint_unavailable)
                 }
 
                 HealthSteps.Reading.Failed -> {
-                    tvStepsCount.visibility = View.GONE
-                    btnConnectHealth.visibility = View.GONE
+                    hideSteps()
                     tvStepsHint.setText(R.string.steps_hint_failed)
                 }
             }
         }
+    }
+
+    /**
+     * Fuellt den Ring nach dem Tagesziel.
+     *
+     * Ist es erreicht, tritt in der Mitte ein Haken an die Stelle der leeren
+     * Flaeche - ein voller Kreis allein liesse sich zu leicht mit "fast
+     * geschafft" verwechseln.
+     */
+    private fun showGoalRing(steps: Long) {
+        val reached = StepGoal.isReached(steps)
+
+        flStepsGoal.visibility = View.VISIBLE
+        piStepsGoal.setProgressCompat(StepGoal.progressPercent(steps), true)
+        ivStepsGoalReached.visibility = if (reached) View.VISIBLE else View.GONE
+
+        tvStepsHint.text = when {
+            reached -> getString(R.string.steps_hint_goal_reached)
+            steps == 0L -> getString(R.string.steps_hint_none_yet)
+            else -> getString(R.string.steps_hint_goal, formatSteps(StepGoal.DAILY_STEPS.toLong()))
+        }
+    }
+
+    /** Zahl und Ring verbergen - in allen Faellen ohne gueltigen Messwert. */
+    private fun hideSteps() {
+        tvStepsCount.visibility = View.GONE
+        flStepsGoal.visibility = View.GONE
+        btnConnectHealth.visibility = View.GONE
     }
 
     /** Tausendertrennung nach den Regeln der eingestellten Sprache. */

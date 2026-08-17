@@ -65,14 +65,19 @@
         beiden anderen - so ist auf einen Blick klar, wer vorne liegt, auch
         ohne die Ziffern zu lesen.
     -->
-    <dimen name="podium_avatar_size">56dp</dimen>
-    <dimen name="podium_avatar_radius">28dp</dimen>
-    <dimen name="podium_avatar_size_first">68dp</dimen>
-    <dimen name="podium_avatar_radius_first">34dp</dimen>
-    <dimen name="podium_block_first_height">86dp</dimen>
-    <dimen name="podium_block_second_height">62dp</dimen>
-    <dimen name="podium_block_third_height">46dp</dimen>
+    <dimen name="podium_avatar_size">44dp</dimen>
+    <dimen name="podium_avatar_radius">22dp</dimen>
+    <dimen name="podium_avatar_size_first">54dp</dimen>
+    <dimen name="podium_avatar_radius_first">27dp</dimen>
+    <dimen name="podium_block_first_height">58dp</dimen>
+    <dimen name="podium_block_second_height">42dp</dimen>
+    <dimen name="podium_block_third_height">32dp</dimen>
     <!-- Der Schein liegt hinter dem Bild und muss deutlich groesser sein. -->
-    <dimen name="podium_glow_size">104dp</dimen>
-    <dimen name="podium_crown_size">26dp</dimen>
+    <dimen name="podium_glow_size">82dp</dimen>
+    <dimen name="podium_crown_size">20dp</dimen>
+    <!-- Abstand zwischen Bild und Block; klein, damit die Saeule nicht wandert. -->
+    <dimen name="podium_avatar_gap">6dp</dimen>
+
+    <!-- Ring zum Tagesziel neben der Schrittzahl -->
+    <dimen name="steps_goal_ring_size">34dp</dimen>
 </resources>

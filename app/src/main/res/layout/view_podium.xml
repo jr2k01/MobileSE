@@ -37,7 +37,7 @@
                 android:id="@+id/cvPodiumSecond"
                 android:layout_width="@dimen/podium_avatar_size"
                 android:layout_height="@dimen/podium_avatar_size"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="@dimen/podium_avatar_gap"
                 app:cardCornerRadius="@dimen/podium_avatar_radius"
                 app:cardElevation="0dp"
                 app:strokeWidth="2dp"
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@string/podium_rank_2"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textStyle="bold"
                     android:textColor="@color/podium_rank_label" />
             </FrameLayout>
@@ -102,7 +102,7 @@
             <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp">
+                android:layout_marginBottom="@dimen/podium_avatar_gap">
 
                 <View
                     android:layout_width="@dimen/podium_glow_size"
@@ -141,7 +141,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@string/podium_rank_1"
-                    android:textAppearance="?attr/textAppearanceHeadlineLarge"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textStyle="bold"
                     android:textColor="@color/podium_rank_label" />
             </FrameLayout>
@@ -160,7 +160,7 @@
                 android:id="@+id/cvPodiumThird"
                 android:layout_width="@dimen/podium_avatar_size"
                 android:layout_height="@dimen/podium_avatar_size"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="@dimen/podium_avatar_gap"
                 app:cardCornerRadius="@dimen/podium_avatar_radius"
                 app:cardElevation="0dp"
                 app:strokeWidth="2dp"
@@ -187,7 +187,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="@string/podium_rank_3"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textStyle="bold"
                     android:textColor="@color/podium_rank_label" />
             </FrameLayout>

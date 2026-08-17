@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die Auswertung ueber der Rangliste: was die Crew zusammen geschafft hat,
+    wie die Woche lief und welche Sportarten dabei herauskamen.
+
+    Steht ueber der Tabelle, weil es den Ueberblick gibt; wer es genau wissen
+    will, liest darunter weiter.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- === Summen der Crew === -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <include
+            android:id="@+id/statWorkouts"
+            layout="@layout/part_member_stat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <include
+            android:id="@+id/statHours"
+            layout="@layout/part_member_stat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp" />
+
+        <include
+            android:id="@+id/statKilometres"
+            layout="@layout/part_member_stat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp" />
+    </LinearLayout>
+
+    <!-- === Die letzten sieben Tage === -->
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.CrewFit.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/chart_week_label" />
+
+                <TextView
+                    android:id="@+id/tvWeekTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <!--
+                Die Balken werden im Code eingehaengt: ihre Hoehe haengt vom
+                groessten Tag ab, und den kennt erst der Datensatz.
+            -->
+            <LinearLayout
+                android:id="@+id/llWeekBars"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chart_week_height"
+                android:layout_marginTop="14dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="bottom" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- === Sportarten === -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cvSports"
+        style="@style/Widget.CrewFit.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chart_sports_label" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <FrameLayout
+                    android:layout_width="@dimen/donut_size"
+                    android:layout_height="@dimen/donut_size">
+
+                    <com.example.mobilese.DonutChartView
+                        android:id="@+id/donutSports"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <!-- In der Mitte die Gesamtzeit: der Ring bleibt sonst leer. -->
+                    <TextView
+                        android:id="@+id/tvDonutCenter"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/llSportLegend"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="18dp"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

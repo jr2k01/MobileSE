@@ -124,6 +124,22 @@
     <color name="medal_symbol">#1A1214</color>
     <color name="medal_ribbon">#7A8090</color>
 
+    <!--
+        Herkunft der Punkte in der Rangliste und im Ring der Sportarten.
+        Deutlich voneinander unterscheidbar, auch fuer Rot-Gruen-Schwaeche:
+        die Reihenfolge geht ueber Helligkeit, nicht nur ueber den Farbton.
+    -->
+    <color name="split_workouts">#AEB6FF</color>
+    <color name="split_challenges">#FFB77C</color>
+    <color name="split_steps">#6FE7B7</color>
+
+    <color name="chart_sport_1">#AEB6FF</color>
+    <color name="chart_sport_2">#6FE7B7</color>
+    <color name="chart_sport_3">#FFB77C</color>
+    <color name="chart_sport_4">#8FC4FF</color>
+    <color name="chart_sport_5">#F5C851</color>
+    <color name="chart_sport_6">#E08FC4</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ein Tag der Wochenuebersicht: Balken und darunter der Wochentag. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal|bottom">
+
+    <View
+        android:id="@+id/vBar"
+        android:layout_width="@dimen/chart_bar_width"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_week_bar" />
+
+    <TextView
+        android:id="@+id/tvBarLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceLabelSmall"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

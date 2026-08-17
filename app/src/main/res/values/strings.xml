@@ -133,6 +133,17 @@
     <string name="score_header">SCORE</string>
     <string name="steps_header">STEPS</string>
 
+    <!-- === Auswertung auf dem Ranglisten-Bildschirm === -->
+    <string name="chart_week_label">THIS WEEK</string>
+    <string name="chart_week_total">%1$s min total</string>
+    <string name="chart_sports_label">SPORTS</string>
+    <string name="chart_stat_workouts">Workouts</string>
+    <string name="chart_stat_hours">Hours</string>
+    <string name="chart_stat_km">Kilometres</string>
+    <string name="chart_share_percent">%1$d%%</string>
+    <string name="chart_no_data">No workouts logged yet</string>
+    <string name="chart_donut_center">%1$s h</string>
+
     <!-- === Medaillen === -->
     <string name="medals_label">MEDALS</string>
     <string name="medals_progress">%1$d of %2$d earned</string>

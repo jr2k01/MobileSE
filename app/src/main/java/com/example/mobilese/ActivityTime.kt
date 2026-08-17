@@ -59,6 +59,15 @@ object ActivityTime {
         return ""
     }
 
+    /**
+     * Nur der Tag eines Zeitstempels, als ISO-Datum wie "2026-08-17".
+     *
+     * Grundlage fuer Auswertungen, die nach Tagen gruppieren. Leer, wenn sich
+     * der Wert nicht lesen laesst - dann faellt der Eintrag aus der Auswertung
+     * heraus, statt sie zum Absturz zu bringen.
+     */
+    fun dayOf(stored: String): String = sortKey(stored).take(10)
+
     private fun parseIso(value: String): Date? = try {
         isoFormat().apply { isLenient = false }.parse(value)
     } catch (e: Exception) {

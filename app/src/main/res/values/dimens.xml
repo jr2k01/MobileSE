@@ -98,6 +98,17 @@
     -->
     <dimen name="leaderboard_score_column">92dp</dimen>
 
+    <!-- Auswertung auf dem Ranglisten-Bildschirm -->
+    <dimen name="chart_week_height">96dp</dimen>
+    <dimen name="chart_bar_width">18dp</dimen>
+    <dimen name="donut_size">104dp</dimen>
+    <dimen name="donut_ring_width">18dp</dimen>
+    <dimen name="points_split_height">4dp</dimen>
+    <!-- Platz unter den Balken fuer den Wochentag -->
+    <dimen name="chart_bar_label_space">24dp</dimen>
+    <!-- Stummel fuer einen Tag ohne Training, damit die Reihe nicht abreisst -->
+    <dimen name="chart_bar_empty_height">3dp</dimen>
+
     <!-- Medaillen im Profil -->
     <dimen name="medal_size">56dp</dimen>
     <dimen name="medal_label_width">78dp</dimen>

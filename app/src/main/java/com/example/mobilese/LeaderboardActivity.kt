@@ -59,10 +59,16 @@ class LeaderboardActivity : AppCompatActivity() {
     }
 
     private fun showLeaderboard(snapshot: CrewSnapshot) {
+        CrewChartsView(findViewById(android.R.id.content)).show(snapshot)
+
         llLeaderboard.removeAllViews()
         val inflater = LayoutInflater.from(this)
 
-        Scoreboard.build(snapshot).forEachIndexed { index, entry ->
+        val ranking = Scoreboard.build(snapshot)
+        // Massstab fuer die Balkenlaenge: der Punktestand an der Spitze.
+        val leaderPoints = ranking.firstOrNull()?.points ?: 0
+
+        ranking.forEachIndexed { index, entry ->
             val view = inflater.inflate(R.layout.item_leaderboard_entry, llLeaderboard, false)
             view.findViewById<TextView>(R.id.tvRank).text = (index + 1).toString()
             view.findViewById<TextView>(R.id.tvLeaderboardName).text = entry.name
@@ -75,7 +81,37 @@ class LeaderboardActivity : AppCompatActivity() {
                 placeholder = android.R.drawable.ic_menu_gallery
             )
             showStepRing(view, entry.todaySteps)
+            showPointsSplit(view, CrewStats.pointsSplit(entry.userId, snapshot), leaderPoints)
             llLeaderboard.addView(view)
+        }
+    }
+
+    /**
+     * Der Balken unter dem Namen, der die Herkunft der Punkte zeigt.
+     *
+     * Die Breiten kommen aus den Gewichten, damit sie sich die Zeile teilen,
+     * ohne dass hier mit Pixeln gerechnet werden muss. Ein Anteil von null
+     * bekommt Gewicht null und verschwindet damit ganz - sonst bliebe ein
+     * Farbstrich stehen, den es nicht gibt.
+     */
+    private fun showPointsSplit(row: View, split: CrewStats.PointsSplit, leaderPoints: Int) {
+        val bar = row.findViewById<View>(R.id.llPointsSplit)
+        if (split.total <= 0) {
+            bar.visibility = View.INVISIBLE
+            return
+        }
+        bar.visibility = View.VISIBLE
+
+        setSplitWeight(row, R.id.vSplitWorkouts, split.workouts)
+        setSplitWeight(row, R.id.vSplitChallenges, split.challenges)
+        setSplitWeight(row, R.id.vSplitSteps, split.steps)
+        setSplitWeight(row, R.id.vSplitRest, (leaderPoints - split.total).coerceAtLeast(0))
+    }
+
+    private fun setSplitWeight(row: View, id: Int, value: Int) {
+        val part = row.findViewById<View>(id)
+        part.layoutParams = (part.layoutParams as LinearLayout.LayoutParams).apply {
+            weight = value.toFloat()
         }
     }
 

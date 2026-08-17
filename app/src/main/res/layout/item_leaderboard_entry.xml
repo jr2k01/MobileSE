@@ -42,15 +42,64 @@
                 android:src="@drawable/ic_image" />
         </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/tvLeaderboardName"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurface" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvLeaderboardName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:textColor="?attr/colorOnSurface" />
+
+            <!--
+                Woraus die Punkte stammen: Workouts, Challenges, Schritte. Die
+                Breiten setzt der Code ueber die Gewichte. Die Rangliste zeigte
+                bisher nur die Summe - zwei Mitglieder mit gleichem Stand
+                koennen aber voellig verschieden dorthin gekommen sein.
+            -->
+            <LinearLayout
+                android:id="@+id/llPointsSplit"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/points_split_height"
+                android:layout_marginTop="6dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:id="@+id/vSplitWorkouts"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/split_workouts" />
+
+                <View
+                    android:id="@+id/vSplitChallenges"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/split_challenges" />
+
+                <View
+                    android:id="@+id/vSplitSteps"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/split_steps" />
+
+                <!--
+                    Der Rest bis zum Fuehrenden, ohne Farbe. Dadurch ist der
+                    Balken nicht nur nach Herkunft geteilt, sondern auch so
+                    lang wie der Punktestand im Verhaeltnis zur Spitze - sonst
+                    saehen 20 und 1835 Punkte gleich breit aus.
+                -->
+                <View
+                    android:id="@+id/vSplitRest"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+        </LinearLayout>
 
         <!--
             Der Ring zum heutigen Schrittziel, damit die Crew sieht, wer seine

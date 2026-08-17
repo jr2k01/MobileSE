@@ -82,4 +82,16 @@
     <dimen name="steps_goal_ring_size">34dp</dimen>
     <!-- Derselbe Ring in der Ranglistenzeile, wo weniger Platz ist -->
     <dimen name="leaderboard_ring_size">28dp</dimen>
+    <!--
+        Breite der Ringspalte. Richtet sich nach der Ueberschrift "STEPS", nicht
+        nach dem Ring - der Ring wird darin mittig gesetzt. Kopfzeile und Zeile
+        benutzen denselben Wert, damit die Beschriftung ueber dem Kreis steht.
+    -->
+    <dimen name="leaderboard_steps_column">62dp</dimen>
+    <!--
+        Auch die Punktespalte steht fest. Sonst richtet sich die Ringspalte nach
+        der Breite des Chips - und die haengt an der Punktzahl, sodass die
+        Ueberschrift bei jedem Punktestand woanders staende als der Ring.
+    -->
+    <dimen name="leaderboard_score_column">92dp</dimen>
 </resources>

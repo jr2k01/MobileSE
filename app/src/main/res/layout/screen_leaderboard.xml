@@ -51,10 +51,27 @@
                     android:layout_marginStart="60dp"
                     android:text="@string/member_header" />
 
+                <!--
+                    Feste Breite, dieselbe wie die Ringspalte in
+                    item_leaderboard_entry - nur so steht das Wort ueber dem
+                    Kreis und nicht daneben.
+                -->
                 <TextView
                     style="@style/TextAppearance.CrewFit.SectionLabel"
-                    android:layout_width="wrap_content"
+                    android:layout_width="@dimen/leaderboard_steps_column"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="@string/steps_header" />
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="@dimen/leaderboard_score_column"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center"
+                    android:maxLines="1"
                     android:text="@string/score_header" />
             </LinearLayout>
 

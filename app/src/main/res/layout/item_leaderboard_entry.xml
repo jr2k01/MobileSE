@@ -59,7 +59,7 @@
         -->
         <FrameLayout
             android:id="@+id/flStepsGoal"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/leaderboard_steps_column"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp">
 
@@ -87,19 +87,31 @@
                 app:tint="?attr/colorSecondary" />
         </FrameLayout>
 
-        <!-- Punktestand als Chip: hebt die Kennzahl ab, ohne eigene Farbe -->
-        <com.google.android.material.chip.Chip
-            android:id="@+id/tvPoints"
-            style="@style/Widget.Material3.Chip.Assist"
-            android:layout_width="wrap_content"
+        <!--
+            Der Chip haelt seine natuerliche Breite - ein fest breiter Chip
+            klebte mit seinem Text am linken Rand, weil ein Chip seinen Text
+            selbst zeichnet und nicht zentriert. Stattdessen sitzt er mittig in
+            einer Spalte fester Breite, damit die Ueberschrift darueber passt.
+        -->
+        <FrameLayout
+            android:layout_width="@dimen/leaderboard_score_column"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:clickable="false"
-            android:checkable="false"
-            app:chipBackgroundColor="?attr/colorSecondaryContainer"
-            android:textColor="?attr/colorOnSecondaryContainer"
-            app:chipStrokeWidth="0dp"
-            app:chipMinHeight="32dp" />
+            android:layout_marginStart="8dp">
+
+            <!-- Punktestand als Chip: hebt die Kennzahl ab, ohne eigene Farbe -->
+            <com.google.android.material.chip.Chip
+                android:id="@+id/tvPoints"
+                style="@style/Widget.Material3.Chip.Assist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:clickable="false"
+                android:checkable="false"
+                app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                android:textColor="?attr/colorOnSecondaryContainer"
+                app:chipStrokeWidth="0dp"
+                app:chipMinHeight="32dp" />
+        </FrameLayout>
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

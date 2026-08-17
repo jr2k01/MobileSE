@@ -58,7 +58,7 @@
         android:fillViewport="true"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/clHeader"
-        app:layout_constraintBottom_toTopOf="@id/bottomNav">
+        app:layout_constraintBottom_toTopOf="@id/btnAllActivities">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -134,19 +134,33 @@
                 android:orientation="vertical"
                 android:layout_marginTop="12dp" />
 
-            <!-- Nachrangige Aktion: umrandet statt gefuellt, damit sie die
-                 Liste darueber nicht ueberstrahlt. -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAllActivities"
-                style="@style/Widget.CrewFit.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="@string/see_all_activities" />
-
         </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    <!--
+        Steht ausserhalb der ScrollView und ist an der Navigationsleiste
+        verankert, damit er immer sichtbar bleibt. Vorher stand er am Ende der
+        Liste - wer die letzten Aktivitaeten sah, musste erst an ihnen vorbei
+        scrollen, um zu allen zu gelangen.
+
+        Nachrangige Aktion: umrandet statt gefuellt, damit sie die Liste
+        darueber nicht ueberstrahlt.
+    -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAllActivities"
+        style="@style/Widget.CrewFit.Button.Outlined"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/screen_padding_horizontal"
+        android:layout_marginEnd="@dimen/screen_padding_horizontal"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/see_all_activities"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_max="@dimen/content_max_width"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"

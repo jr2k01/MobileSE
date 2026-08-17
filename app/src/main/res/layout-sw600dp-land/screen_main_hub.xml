@@ -94,7 +94,7 @@
         app:layout_constraintStart_toEndOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/clHeader"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/btnAllActivities">
 
         <!-- Zwei Spalten nebeneinander, oben ausgerichtet -->
         <LinearLayout
@@ -185,15 +185,27 @@
                     android:orientation="vertical"
                     android:layout_marginTop="12dp" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAllActivities"
-                    style="@style/Widget.CrewFit.Button.Outlined"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/see_all_activities" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+
+    <!--
+        Ausserhalb der ScrollView und am unteren Rand verankert, damit er
+        sichtbar bleibt, ohne dass gescrollt werden muss. Wie im Hochformat -
+        siehe layout/screen_main_hub.xml.
+    -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAllActivities"
+        style="@style/Widget.CrewFit.Button.Outlined"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/see_all_activities"
+        app:layout_constraintStart_toEndOf="@id/bottomNav"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

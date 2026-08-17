@@ -73,6 +73,23 @@ class AppRepository private constructor(context: Context) {
         const val DEEPLINK_SCHEME = "crewfit"
         const val DEEPLINK_HOST = "reset-password"
 
+        /**
+         * Ziel des Links aus der Bestaetigungsmail einer Registrierung.
+         *
+         * Muss ausdruecklich gesetzt werden. Sonst nimmt die Bibliothek auch
+         * hier den Deeplink - und der zeigt auf den Bildschirm zum Neusetzen
+         * des Passworts, der beim Bestaetigen einer Adresse nichts zu suchen
+         * hat. Zudem kann ein Mailprogramm ein crewfit://-Ziel nicht oeffnen;
+         * bei der Bestaetigung genuegt eine gewoehnliche Webseite, die sagt,
+         * dass es geklappt hat.
+         *
+         * Die Seite liegt als docs/confirmed.html im Projekt und wird ueber
+         * GitHub Pages ausgeliefert. Sie muss in Supabase unter den erlaubten
+         * Redirect-URLs stehen.
+         */
+        const val CONFIRM_REDIRECT_URL =
+            "https://jr2k01.github.io/MobileSE/confirmed.html"
+
         private const val PREFS_NAME = "CrewFitDatabase"
         private const val KEY_SESSION_USER = "current_session_user"
         private const val KEY_JOINED_CREW = "user_joined_crew_code"
@@ -182,7 +199,7 @@ class AppRepository private constructor(context: Context) {
         birthDate: String
     ): RegistrationResult = withContext(Dispatchers.IO) {
         try {
-            val userInfo = client.auth.signUpWith(Email) {
+            val userInfo = client.auth.signUpWith(Email, redirectUrl = CONFIRM_REDIRECT_URL) {
                 this.email = email
                 this.password = password
                 this.data = buildJsonObject {
@@ -260,7 +277,13 @@ class AppRepository private constructor(context: Context) {
      */
     suspend fun sendPasswordReset(email: String): AuthError? = withContext(Dispatchers.IO) {
         try {
-            client.auth.resetPasswordForEmail(email)
+            // Ausdruecklich der Deeplink, auch wenn es hier der Standardwert
+            // waere - damit an beiden Stellen sichtbar ist, wohin die jeweilige
+            // Mail fuehrt.
+            client.auth.resetPasswordForEmail(
+                email,
+                redirectUrl = "$DEEPLINK_SCHEME://$DEEPLINK_HOST"
+            )
             null
         } catch (e: Exception) {
             Log.e("SupabaseAuth", "Could not send the password reset mail: ${e.message}")

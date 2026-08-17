@@ -56,6 +56,38 @@ create policy "step_days_update_own" on step_days
     for update to authenticated using (auth.uid() = user_id);
 ```
 
+## Seite nach der Bestaetigung der Mailadresse
+
+Der Link aus der Bestaetigungsmail fuehrt nicht in die App, sondern auf eine
+gewoehnliche Webseite - ein Mailprogramm kann ein `crewfit://`-Ziel nicht
+oeffnen, und zum Bestaetigen muss die App auch gar nichts tun. Gebraucht wird
+nur eine Seite, die sagt, dass es geklappt hat.
+
+Die Seite liegt im Projekt: `docs/confirmed.html`. Sie kommt ohne Bilder,
+Schriften und fremde Skripte aus und zeigt auch den Fehlerfall an, wenn Supabase
+`#error=...` anhaengt.
+
+**1. Ausliefern.** GitHub → Repository → **Settings** → **Pages** → Source:
+Branch `master`, Ordner `/docs`. Nach ein paar Minuten liegt sie unter:
+
+```
+https://jr2k01.github.io/MobileSE/confirmed.html
+```
+
+**2. Erlauben.** Supabase → **Authentication** → **URL Configuration** →
+**Redirect URLs**, zusaetzlich eintragen:
+
+```
+https://jr2k01.github.io/MobileSE/confirmed.html
+```
+
+Dieselbe Adresse steht in `AppRepository.CONFIRM_REDIRECT_URL`. Aendert sich der
+Benutzername oder der Repository-Name auf GitHub, muss sie an beiden Stellen
+angepasst werden.
+
+Ohne Schritt 2 leitet Supabase auf die Site-URL weiter, und die ist leer - genau
+die weisse Seite, die es vorher gab.
+
 ## Einstellung fuer "Passwort vergessen"
 
 Der Link aus der Mail fuehrt zurueck in die App. Damit Supabase dorthin

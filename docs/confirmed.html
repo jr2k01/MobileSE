@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+    Landeseite nach dem Bestaetigen der Mailadresse.
+
+    Der Link aus der Bestaetigungsmail fuehrt hierher. Vorher landete er auf der
+    Site-URL des Supabase-Projekts, und die ist leer - der Nutzer sah eine weisse
+    Seite und wusste nicht, ob es geklappt hat.
+
+    Bewusst eine einzelne Datei ohne Bilder, Schriften oder Skripte von aussen:
+    sie wird ueber GitHub Pages ausgeliefert und soll auch bei schlechter
+    Verbindung sofort dastehen.
+
+    Supabase haengt bei einem Fehler #error=... an die Adresse. Das kleine
+    Skript am Ende liest das aus und schaltet auf die Fehlermeldung um - ohne
+    Skript bliebe es bei "geschafft", auch wenn der Link abgelaufen war.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CrewFit - Email confirmed</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --surface: #101319;
+            --card: #1c1f26;
+            --text: #e3e2e9;
+            --muted: #c6c6d0;
+            --accent: #6fe7b7;
+            --error: #ffb4ab;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: var(--surface);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 28px;
+            border-radius: 24px;
+            background: var(--card);
+            text-align: center;
+        }
+
+        .mark {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(111, 231, 183, 0.14);
+        }
+
+        .mark svg { width: 40px; height: 40px; }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .hint {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(198, 198, 208, 0.16);
+            font-size: 0.9rem;
+        }
+
+        .brand {
+            margin-top: 28px;
+            font-size: 0.8rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(198, 198, 208, 0.55);
+        }
+
+        /* Fehlerfall: dieselbe Karte, andere Farbe und anderer Text. */
+        body.failed .mark { background: rgba(255, 180, 171, 0.14); }
+        body.failed .mark svg { stroke: var(--error); }
+        body.failed .ok { display: none; }
+        .failed-only { display: none; }
+        body.failed .failed-only { display: block; }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <div class="mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#6fe7b7" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path class="ok" d="M20 6 9 17l-5-5" />
+                <path class="failed-only" d="M12 8v5M12 17h.01" />
+            </svg>
+        </div>
+
+        <div class="ok">
+            <h1>Email confirmed</h1>
+            <p>Your CrewFit account is ready. You can close this page and sign in with the app.</p>
+        </div>
+
+        <div class="failed-only">
+            <h1>Link no longer valid</h1>
+            <p>This link has expired or was already used. Open CrewFit and request a new confirmation mail.</p>
+        </div>
+
+        <p class="hint">Nothing happens automatically here - just switch back to the app.</p>
+        <p class="brand">CrewFit</p>
+    </main>
+
+    <script>
+        // Supabase meldet Fehler im Fragment, nicht in der Abfrage:
+        // .../confirmed.html#error=access_denied&error_code=otp_expired
+        if (window.location.hash.indexOf('error') !== -1) {
+            document.body.classList.add('failed');
+        }
+    </script>
+</body>
+</html>

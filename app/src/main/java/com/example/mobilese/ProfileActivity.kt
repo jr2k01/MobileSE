@@ -43,7 +43,8 @@ class ProfileActivity : AppCompatActivity() {
             return
         }
 
-        val etName = findViewById<EditText>(R.id.etName)
+        val etFirstName = findViewById<EditText>(R.id.etFirstName)
+        val etLastName = findViewById<EditText>(R.id.etLastName)
         val etDisplayName = findViewById<EditText>(R.id.etDisplayName)
         val etBirthDate = findViewById<EditText>(R.id.etBirthDate)
         val etEmail = findViewById<EditText>(R.id.etEmail)
@@ -92,7 +93,10 @@ class ProfileActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val profile = repository.getProfile(currentUserEmail) ?: return@launch
             if (isFirstStart) {
-                etName.setText(profile.name.orEmpty())
+                // In der Datenbank steht ein Feld; hier wird es auf die beiden
+                // Eingaben verteilt.
+                etFirstName.setText(PersonName.firstOf(profile.name))
+                etLastName.setText(PersonName.lastOf(profile.name))
                 etDisplayName.setText(profile.displayName.orEmpty())
                 etBirthDate.setText(profile.birthdate.orEmpty())
                 // Nicht das gespeicherte Alter anzeigen, sondern das aus dem
@@ -111,7 +115,10 @@ class ProfileActivity : AppCompatActivity() {
 
         btnSave.setOnClickListener {
             val birthDate = etBirthDate.text.toString().trim()
-            val name = etName.text.toString().trim()
+            val name = PersonName.join(
+                etFirstName.text.toString(),
+                etLastName.text.toString()
+            )
             val displayName = etDisplayName.text.toString().trim()
             val height = etHeight.text.toString().trim()
             val weight = etWeight.text.toString().trim()

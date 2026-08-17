@@ -64,19 +64,51 @@
                 android:layout_marginBottom="12dp"
                 android:text="@string/personal_info" />
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.CrewFit.TextField"
+            <!--
+                Vor- und Nachname nebeneinander statt eines langen Feldes. In
+                der Datenbank bleibt es ein Feld; zusammengesetzt wird beim
+                Speichern (siehe PersonName).
+
+                Nur das linke Feld traegt das Zeichen - zwei gleiche Zeichen
+                nebeneinander wuerden nur Platz kosten, den die schmalen Felder
+                fuer den Text brauchen.
+            -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/full_name_hint"
-                app:startIconDrawable="@drawable/ic_person">
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etName"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.CrewFit.TextField"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:inputType="textPersonName" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_weight="1"
+                    android:hint="@string/first_name_hint"
+                    app:startIconDrawable="@drawable/ic_person">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etFirstName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.CrewFit.TextField"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:hint="@string/last_name_hint">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etLastName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.CrewFit.TextField"

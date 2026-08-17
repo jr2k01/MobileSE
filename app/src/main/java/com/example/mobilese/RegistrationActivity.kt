@@ -19,8 +19,7 @@ class RegistrationActivity : AppCompatActivity() {
 
     private lateinit var repository: AppRepository
 
-    /** Zu jeder Regel die Zeile, die sie anzeigt, und ihr Text. */
-    private lateinit var ruleRows: Map<PasswordPolicy.Rule, Pair<TextView, Int>>
+    private lateinit var passwordRules: PasswordRulesView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,24 +35,14 @@ class RegistrationActivity : AppCompatActivity() {
         val btnRegister = findViewById<Button>(R.id.btnDoRegister)
         val btnBack = findViewById<Button>(R.id.btnBackToLogin)
 
-        ruleRows = mapOf(
-            PasswordPolicy.Rule.LENGTH to
-                    (findViewById<TextView>(R.id.tvRuleLength) to R.string.pw_rule_length),
-            PasswordPolicy.Rule.UPPERCASE to
-                    (findViewById<TextView>(R.id.tvRuleUppercase) to R.string.pw_rule_uppercase),
-            PasswordPolicy.Rule.LOWERCASE to
-                    (findViewById<TextView>(R.id.tvRuleLowercase) to R.string.pw_rule_lowercase),
-            PasswordPolicy.Rule.DIGIT to
-                    (findViewById<TextView>(R.id.tvRuleDigit) to R.string.pw_rule_digit),
-            PasswordPolicy.Rule.SPECIAL to
-                    (findViewById<TextView>(R.id.tvRuleSpecial) to R.string.pw_rule_special)
-        )
-        showPasswordRules("")
+        passwordRules = PasswordRulesView(findViewById(android.R.id.content))
+        passwordRules.show("")
 
         // Regeln bei jedem Tastendruck neu bewerten, damit der Nutzer sieht,
         // was noch fehlt, statt es nach dem Absenden zu erfahren.
         etPassword.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) = showPasswordRules(s?.toString() ?: "")
+            override fun afterTextChanged(s: Editable?) =
+                passwordRules.show(s?.toString() ?: "")
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
         })
@@ -168,22 +157,6 @@ class RegistrationActivity : AppCompatActivity() {
             .setMessage(error.messageRes())
             .setPositiveButton(R.string.got_it, null)
             .show()
-    }
-
-    /** Faerbt jede Regelzeile je nachdem, ob sie erfuellt ist. */
-    private fun showPasswordRules(password: String) {
-        ruleRows.forEach { (rule, row) ->
-            val (view, labelRes) = row
-            val met = PasswordPolicy.isMet(rule, password)
-
-            view.text = getString(
-                if (met) R.string.rule_met else R.string.rule_unmet,
-                getString(labelRes)
-            )
-            view.setTextColor(
-                ContextCompat.getColor(this, if (met) R.color.accent else R.color.text_secondary)
-            )
-        }
     }
 
     private fun setBusy(busy: Boolean, vararg buttons: View) {

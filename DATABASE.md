@@ -56,6 +56,22 @@ create policy "step_days_update_own" on step_days
     for update to authenticated using (auth.uid() = user_id);
 ```
 
+## Einstellung fuer "Passwort vergessen"
+
+Der Link aus der Mail fuehrt zurueck in die App. Damit Supabase dorthin
+weiterleitet, muss die Adresse in der erlaubten Liste stehen - sonst landet der
+Link auf der Site-URL und die App wird nie geoeffnet.
+
+Supabase → **Authentication** → **URL Configuration** → **Redirect URLs**, dort
+eintragen:
+
+```
+crewfit://reset-password
+```
+
+Dieselbe Adresse steht in `AppRepository.DEEPLINK_SCHEME`/`DEEPLINK_HOST` und im
+intent-filter der `ResetPasswordActivity`. Alle drei muessen uebereinstimmen.
+
 ## Wenn eine dieser Spalten fehlt
 
 Die App bricht dann nicht ab, sondern schreibt ohne die betroffene Spalte

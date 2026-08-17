@@ -2,9 +2,12 @@ package com.example.mobilese
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -62,6 +65,55 @@ class LoginActivity : AppCompatActivity() {
 
         btnRegister.setOnClickListener {
             startActivity(Intent(this, RegistrationActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.btnForgotPassword).setOnClickListener {
+            askForResetEmail(etEmail.text.toString().trim())
+        }
+    }
+
+    /**
+     * Fragt die Adresse ab, an die der Link gehen soll.
+     *
+     * Vorbelegt mit dem, was im Anmeldefeld steht - meistens hat der Nutzer sie
+     * dort schon eingetippt und merkt erst beim Passwort, dass er nicht
+     * weiterkommt.
+     */
+    private fun askForResetEmail(prefill: String) {
+        val input = EditText(this).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+            setText(prefill)
+            setSelection(text.length)
+            setHint(R.string.email_hint)
+        }
+        val container = FrameLayout(this).apply {
+            val padding = resources.getDimensionPixelSize(R.dimen.card_padding)
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.forgot_password_title)
+            .setMessage(R.string.forgot_password_message)
+            .setView(container)
+            .setNegativeButton(R.string.cancel_btn, null)
+            .setPositiveButton(R.string.forgot_password_send) { _, _ ->
+                sendReset(input.text.toString().trim())
+            }
+            .show()
+    }
+
+    private fun sendReset(email: String) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            toast(R.string.error_invalid_email)
+            return
+        }
+
+        lifecycleScope.launch {
+            val error = repository.sendPasswordReset(email)
+            // Auch bei Erfolg keine Auskunft darueber, ob es das Konto gibt -
+            // sonst liesse sich hier durchprobieren, wer angemeldet ist.
+            toast(error?.messageRes() ?: R.string.forgot_password_sent)
         }
     }
 

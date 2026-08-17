@@ -179,52 +179,13 @@
             vorher, was verlangt wird, statt erst nach dem Absenden eine
             Absage zu bekommen.
         -->
-        <com.google.android.material.card.MaterialCardView
+        <include
             android:id="@+id/cvPasswordRules"
-            style="@style/Widget.CrewFit.Card"
+            layout="@layout/part_password_rules"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
-            app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small"
-            app:layout_constraintTop_toBottomOf="@id/tilRegPass">
-
-            <LinearLayout
-                android:id="@+id/llPasswordRules"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <TextView
-                    android:id="@+id/tvPasswordRulesTitle"
-                    style="@style/TextAppearance.CrewFit.SectionLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/pw_requirements_title"
-                    android:layout_marginBottom="8dp" />
-
-                <TextView
-                    android:id="@+id/tvRuleLength"
-                    style="@style/PasswordRule" />
-
-                <TextView
-                    android:id="@+id/tvRuleUppercase"
-                    style="@style/PasswordRule" />
-
-                <TextView
-                    android:id="@+id/tvRuleLowercase"
-                    style="@style/PasswordRule" />
-
-                <TextView
-                    android:id="@+id/tvRuleDigit"
-                    style="@style/PasswordRule" />
-
-                <TextView
-                    android:id="@+id/tvRuleSpecial"
-                    style="@style/PasswordRule" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+            app:layout_constraintTop_toBottomOf="@id/tilRegPass" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDoRegister"

@@ -1,12 +1,14 @@
 package com.example.mobilese
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.exception.AuthErrorCode
 import io.github.jan.supabase.auth.exception.AuthRestException
 import io.github.jan.supabase.auth.exception.AuthWeakPasswordException
@@ -62,6 +64,15 @@ class AppRepository private constructor(context: Context) {
         private const val SUPABASE_ANON_KEY =
             "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoaHRhYW9lZGx2aGlwbW51eml1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzODQ3NjUsImV4cCI6MjEwMTk2MDc2NX0.YVXEZgVJpkSTd7Ms5LrwmQgD0cUFBvfzYykYe9KILhg"
 
+        /**
+         * Adresse, unter der die App vom Link aus der Mail erreicht wird:
+         * crewfit://reset-password. Steht hier, weil sie an drei Stellen
+         * zusammenpassen muss - hier, im intent-filter der
+         * ResetPasswordActivity und in den Redirect-URLs des Supabase-Projekts.
+         */
+        const val DEEPLINK_SCHEME = "crewfit"
+        const val DEEPLINK_HOST = "reset-password"
+
         private const val PREFS_NAME = "CrewFitDatabase"
         private const val KEY_SESSION_USER = "current_session_user"
         private const val KEY_JOINED_CREW = "user_joined_crew_code"
@@ -80,7 +91,14 @@ class AppRepository private constructor(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     private val client: SupabaseClient = createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY) {
-        install(Auth)
+        install(Auth) {
+            // Ziel des Links aus der Mail zum Zuruecksetzen des Passworts.
+            // Muss zum intent-filter von ResetPasswordActivity passen und in
+            // Supabase unter den erlaubten Redirect-URLs stehen, sonst leitet
+            // der Server nicht dorthin weiter.
+            scheme = DEEPLINK_SCHEME
+            host = DEEPLINK_HOST
+        }
         install(Postgrest)
         install(Storage)
         // Realtime war installiert, wurde aber nirgends verwendet. Das Modul
@@ -229,6 +247,55 @@ class AppRepository private constructor(context: Context) {
         }
 
     /** Verschickt die Bestaetigungsmail erneut. */
+    /**
+     * Schickt eine Mail zum Zuruecksetzen des Passworts.
+     *
+     * Gibt null zurueck, wenn sie unterwegs ist, sonst den Grund.
+     *
+     * Der Link darin fuehrt ueber den Deeplink zurueck in die App. Dass die
+     * Adresse ueberhaupt existiert, wird bewusst nicht geprueft und auch nicht
+     * gemeldet: sonst liesse sich ueber dieses Feld herausfinden, wer ein Konto
+     * hat. Supabase antwortet aus demselben Grund auch fuer unbekannte
+     * Adressen mit Erfolg.
+     */
+    suspend fun sendPasswordReset(email: String): AuthError? = withContext(Dispatchers.IO) {
+        try {
+            client.auth.resetPasswordForEmail(email)
+            null
+        } catch (e: Exception) {
+            Log.e("SupabaseAuth", "Could not send the password reset mail: ${e.message}")
+            errorFor(e)
+        }
+    }
+
+    /**
+     * Setzt das Passwort der laufenden Sitzung neu.
+     *
+     * Verlangt eine gueltige Sitzung. Nach dem Link aus der Mail ist genau das
+     * gegeben - Supabase legt beim Oeffnen des Deeplinks eine Sitzung an, die
+     * fuer diesen einen Zweck reicht.
+     */
+    suspend fun updatePassword(newPassword: String): AuthError? = withContext(Dispatchers.IO) {
+        try {
+            client.auth.updateUser { password = newPassword }
+            null
+        } catch (e: Exception) {
+            Log.e("SupabaseAuth", "Could not update the password: ${e.message}")
+            errorFor(e)
+        }
+    }
+
+    /**
+     * Nimmt den Link aus der Mail entgegen und legt daraus die Sitzung an.
+     *
+     * Gibt zurueck, ob der Link zu uns gehoerte und eine Sitzung entstanden
+     * ist. Die Bibliothek prueft dabei Schema und Host gegen ihre eigene
+     * Konfiguration und ignoriert alles andere.
+     */
+    fun handleResetLink(intent: Intent, onReady: () -> Unit) {
+        client.handleDeeplinks(intent) { onReady() }
+    }
+
     /**
      * Schickt die Bestaetigungsmail erneut.
      *

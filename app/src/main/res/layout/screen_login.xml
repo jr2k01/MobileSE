@@ -123,6 +123,19 @@
             android:layout_marginTop="6dp"
             app:layout_constraintTop_toBottomOf="@id/btnLogin" />
 
+        <!--
+            Zurueckhaltender als die Registrierung: wer sein Passwort noch
+            weiss, soll hier nicht daran haengenbleiben.
+        -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnForgotPassword"
+            style="@style/Widget.CrewFit.Button.Text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/forgot_password"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintTop_toBottomOf="@id/btnRegister" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

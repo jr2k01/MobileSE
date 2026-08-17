@@ -62,6 +62,27 @@
         <activity android:name=".WorkoutDetailActivity" android:exported="false" />
 
         <!--
+            Ziel des Links aus der Mail zum Zuruecksetzen des Passworts.
+            Muss zu AppRepository.DEEPLINK_SCHEME/HOST passen und in Supabase
+            unter den erlaubten Redirect-URLs stehen.
+
+            Als einziger Weg von aussen in die App muss die Activity exportiert
+            sein. Sie nimmt nichts entgegen ausser dem Link selbst, und ohne
+            gueltige Sitzung darin laesst sich das Passwort nicht aendern.
+        -->
+        <activity
+            android:name=".ResetPasswordActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="crewfit" android:host="reset-password" />
+            </intent-filter>
+        </activity>
+
+        <!--
             Health Connect verlangt, dass eine App erklaeren kann, wofuer sie
             die Gesundheitsdaten braucht. Aus der Systemoberflaeche heraus
             fuehrt ein Link hierher; fehlt der Bildschirm, laeuft er ins Leere.

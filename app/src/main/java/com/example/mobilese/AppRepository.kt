@@ -409,7 +409,21 @@ class AppRepository private constructor(context: Context) {
                     weight = weight,
                     birthdate = birthDate,
                     avatarUrl = existing?.avatarUrl,
-                    displayName = displayName.trim().takeIf { it.isNotEmpty() }
+                    // Bewusst der leere Text und nicht null.
+                    //
+                    // Supabase serialisiert mit den Voreinstellungen von
+                    // kotlinx: encodeDefaults ist aus, ein Feld mit seinem
+                    // Standardwert wird also gar nicht erst mitgeschickt. Der
+                    // Standardwert von displayName ist null - ein geleertes
+                    // Kuerzel fiel damit aus dem Upsert heraus, und Postgrest
+                    // liess die Spalte unveraendert. Das Kuerzel liess sich
+                    // setzen und aendern, aber nie wieder entfernen.
+                    //
+                    // Der leere Text entspricht nicht dem Standardwert, wird
+                    // also uebertragen und ueberschreibt. Fuer die Anzeige ist
+                    // er gleichbedeutend mit "nicht gesetzt", siehe
+                    // DisplayName.resolve.
+                    displayName = displayName.trim()
                 )
 
                 try {

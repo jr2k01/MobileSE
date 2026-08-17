@@ -21,6 +21,25 @@ class DisplayNameTest {
         )
     }
 
+    /**
+     * Ein geleertes Kuerzel wird als leerer Text gespeichert, nicht als null -
+     * anders liesse es sich nicht wieder entfernen, siehe
+     * AppRepository.saveUserProfile. Fuer die Anzeige muss beides dasselbe
+     * bedeuten.
+     */
+    @Test
+    fun `an empty short name counts the same as none at all`() {
+        assertEquals(
+            DisplayName.resolve(null, "Jannik Rikazewski", "jannik@example.com"),
+            DisplayName.resolve("", "Jannik Rikazewski", "jannik@example.com")
+        )
+        assertEquals("Jannik R.", DisplayName.resolve("", "Jannik Rikazewski", null))
+
+        val cleared = UserProfile(id = "1", email = "t@example.com", name = "Timo Kosowski")
+            .copy(displayName = "")
+        assertEquals("Timo K.", DisplayName.of(cleared))
+    }
+
     @Test
     fun `without a short name the full name is shortened`() {
         assertEquals(

@@ -70,14 +70,16 @@
     <dimen name="podium_avatar_radius">22dp</dimen>
     <dimen name="podium_avatar_size_first">54dp</dimen>
     <dimen name="podium_avatar_radius_first">27dp</dimen>
-    <dimen name="podium_block_first_height">58dp</dimen>
-    <dimen name="podium_block_second_height">42dp</dimen>
-    <dimen name="podium_block_third_height">32dp</dimen>
+    <!--
+        Flaeche der Podest-Zeichnung. Muss dem Verhaeltnis 300 zu 140 aus
+        podium_blocks folgen, sonst verzieht sich die Zeichnung und die Bilder
+        sitzen nicht mehr auf ihren Bloecken.
+    -->
+    <dimen name="podium_width">280dp</dimen>
+    <dimen name="podium_height">155dp</dimen>
     <!-- Der Schein liegt hinter dem Bild und muss deutlich groesser sein. -->
     <dimen name="podium_glow_size">82dp</dimen>
     <dimen name="podium_crown_size">20dp</dimen>
-    <!-- Abstand zwischen Bild und Block; klein, damit die Saeule nicht wandert. -->
-    <dimen name="podium_avatar_gap">6dp</dimen>
 
     <!-- Ring zum Tagesziel neben der Schrittzahl -->
     <dimen name="steps_goal_ring_size">34dp</dimen>

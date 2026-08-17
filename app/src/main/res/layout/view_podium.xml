@@ -7,89 +7,100 @@
     Profilbild - der Platz geht aus der Hoehe und der Ziffer hervor, Name und
     Punkte stehen auf dem Ranglisten-Bildschirm.
 
-    Die drei Spalten teilen sich die Breite zu gleichen Teilen und sind unten
-    ausgerichtet, damit die Bloecke trotz unterschiedlicher Hoehe auf einer
-    Linie stehen. Darunter klingt eine Bodenlinie zu den Seiten aus.
+    Die Bloecke sind eine einzige Zeichnung (podium_blocks). Alles, was
+    darueber liegt - Bilder, Krone, Ziffern - wird ueber Hilfslinien in Prozent
+    plaziert. Die Flaeche behaelt das Seitenverhaeltnis der Zeichnung bei, also
+    treffen die Prozentwerte auf jedem Bildschirm dieselben Stellen.
+
+    Die Zahlen stammen unmittelbar aus podium_blocks: 300 breit, 166 hoch.
+    Senkrecht die Mitten der drei Bloecke (51, 150, 249), waagerecht die
+    Oberkanten (82, 100, 112) und die Mitten der sichtbaren Vorderseiten.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:baselineAligned="false"
-        android:gravity="bottom">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clPodium"
+        android:clipChildren="false"
+        android:layout_width="@dimen/podium_width"
+        android:layout_height="@dimen/podium_height"
+        android:layout_gravity="center_horizontal">
 
-        <!-- === Platz 2 === -->
-        <LinearLayout
-            android:id="@+id/llPodiumSecond"
+        <ImageView
             android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/podium_blocks"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- === Hilfslinien === -->
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gSecondX"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center_horizontal|bottom">
+            app:layout_constraintGuide_percent="0.17" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cvPodiumSecond"
-                android:layout_width="@dimen/podium_avatar_size"
-                android:layout_height="@dimen/podium_avatar_size"
-                android:layout_marginBottom="@dimen/podium_avatar_gap"
-                app:cardCornerRadius="@dimen/podium_avatar_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="2dp"
-                app:strokeColor="@color/podium_second"
-                app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gFirstX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
 
-                <ImageView
-                    android:id="@+id/ivPodiumSecond"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="@string/profile_desc"
-                    android:src="@drawable/ic_image" />
-            </com.google.android.material.card.MaterialCardView>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gThirdX"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.83" />
 
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/podium_block_second_height"
-                android:layout_marginEnd="3dp"
-                android:background="@drawable/bg_podium_block_second">
+        <!-- Oberkanten der Bloecke: 82, 100 und 112 von 166 -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gFirstTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.494" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/podium_rank_2"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"
-                    android:textColor="@color/podium_rank_label" />
-            </FrameLayout>
-        </LinearLayout>
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gSecondTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.602" />
 
-        <!-- === Platz 1 === -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/gThirdTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.675" />
+
+        <!-- === Platz 1: Krone, Schein, Bild === -->
+
+        <!--
+            Krone, Schein und Bild in einem Halter: bei einem unbesetzten Platz
+            blendet genau dieser ab, waehrend der Block darunter in voller Farbe
+            stehen bleibt.
+        -->
         <LinearLayout
-            android:id="@+id/llPodiumFirst"
-            android:layout_width="0dp"
+            android:id="@+id/llPodiumFirstAvatar"
+            android:clipChildren="false"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:gravity="center_horizontal|bottom">
-
-            <!--
-                Krone, Schein und Bild gehoeren zusammen: bei einem noch
-                unbesetzten Platz blendet genau dieser Block ab, waehrend die
-                Saeule darunter in voller Farbe stehen bleibt.
-            -->
-            <LinearLayout
-                android:id="@+id/llPodiumFirstAvatar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center_horizontal">
+            app:layout_constraintStart_toStartOf="@id/gFirstX"
+            app:layout_constraintEnd_toEndOf="@id/gFirstX"
+            app:layout_constraintBottom_toTopOf="@id/gFirstTop">
 
             <ImageView
                 android:layout_width="@dimen/podium_crown_size"
@@ -98,11 +109,16 @@
                 android:contentDescription="@null"
                 android:src="@drawable/ic_crown" />
 
-            <!-- Bild und Schein liegen uebereinander, deshalb ein FrameLayout. -->
+            <!--
+                So gross wie das Bild, nicht wie der Schein: der Schein ist
+                deutlich groesser und ragt hinaus (clipChildren aus). Bekaeme
+                er Platz im Layout, stuende das Bild um seinen Ueberstand vom
+                Block entfernt statt darauf.
+            -->
             <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/podium_avatar_gap">
+                android:layout_width="@dimen/podium_avatar_size_first"
+                android:layout_height="@dimen/podium_avatar_size_first"
+                android:clipChildren="false">
 
                 <View
                     android:layout_width="@dimen/podium_glow_size"
@@ -114,90 +130,107 @@
                     android:layout_width="@dimen/podium_avatar_size_first"
                     android:layout_height="@dimen/podium_avatar_size_first"
                     android:layout_gravity="center"
+                    app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
                     app:cardCornerRadius="@dimen/podium_avatar_radius_first"
                     app:cardElevation="0dp"
-                    app:strokeWidth="3dp"
                     app:strokeColor="@color/podium_first"
-                    app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+                    app:strokeWidth="3dp">
 
                     <ImageView
                         android:id="@+id/ivPodiumFirst"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
                         android:contentDescription="@string/profile_desc"
+                        android:scaleType="centerCrop"
                         android:src="@drawable/ic_image" />
                 </com.google.android.material.card.MaterialCardView>
             </FrameLayout>
-            </LinearLayout>
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/podium_block_first_height"
-                android:background="@drawable/bg_podium_block_first">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/podium_rank_1"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textStyle="bold"
-                    android:textColor="@color/podium_rank_label" />
-            </FrameLayout>
         </LinearLayout>
+
+        <!-- === Platz 2 === -->
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvPodiumSecond"
+            android:layout_width="@dimen/podium_avatar_size"
+            android:layout_height="@dimen/podium_avatar_size"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/podium_avatar_radius"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/podium_second"
+            app:strokeWidth="2dp"
+            app:layout_constraintStart_toStartOf="@id/gSecondX"
+            app:layout_constraintEnd_toEndOf="@id/gSecondX"
+            app:layout_constraintBottom_toTopOf="@id/gSecondTop">
+
+            <ImageView
+                android:id="@+id/ivPodiumSecond"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/profile_desc"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image" />
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- === Platz 3 === -->
-        <LinearLayout
-            android:id="@+id/llPodiumThird"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center_horizontal|bottom">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cvPodiumThird"
-                android:layout_width="@dimen/podium_avatar_size"
-                android:layout_height="@dimen/podium_avatar_size"
-                android:layout_marginBottom="@dimen/podium_avatar_gap"
-                app:cardCornerRadius="@dimen/podium_avatar_radius"
-                app:cardElevation="0dp"
-                app:strokeWidth="2dp"
-                app:strokeColor="@color/podium_third"
-                app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvPodiumThird"
+            android:layout_width="@dimen/podium_avatar_size"
+            android:layout_height="@dimen/podium_avatar_size"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+            app:cardCornerRadius="@dimen/podium_avatar_radius"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/podium_third"
+            app:strokeWidth="2dp"
+            app:layout_constraintStart_toStartOf="@id/gThirdX"
+            app:layout_constraintEnd_toEndOf="@id/gThirdX"
+            app:layout_constraintBottom_toTopOf="@id/gThirdTop">
 
-                <ImageView
-                    android:id="@+id/ivPodiumThird"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    android:contentDescription="@string/profile_desc"
-                    android:src="@drawable/ic_image" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <FrameLayout
+            <ImageView
+                android:id="@+id/ivPodiumThird"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/podium_block_third_height"
-                android:layout_marginStart="3dp"
-                android:background="@drawable/bg_podium_block_third">
+                android:layout_height="match_parent"
+                android:contentDescription="@string/profile_desc"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image" />
+        </com.google.android.material.card.MaterialCardView>
+        <!-- === Ziffern auf den Vorderseiten === -->
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/podium_rank_3"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"
-                    android:textColor="@color/podium_rank_label" />
-            </FrameLayout>
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/podium_rank_1"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/podium_rank_label"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/gFirstX"
+            app:layout_constraintEnd_toEndOf="@id/gFirstX"
+            app:layout_constraintTop_toTopOf="@id/gFirstTop"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/podium_rank_2"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/podium_rank_label"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/gSecondX"
+            app:layout_constraintEnd_toEndOf="@id/gSecondX"
+            app:layout_constraintTop_toTopOf="@id/gSecondTop"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@drawable/bg_podium_floor" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/podium_rank_3"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/podium_rank_label"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@id/gThirdX"
+            app:layout_constraintEnd_toEndOf="@id/gThirdX"
+            app:layout_constraintTop_toTopOf="@id/gThirdTop"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-</LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

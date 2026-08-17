@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Das Podest als eine zusammenhaengende Zeichnung.
+
+    Vorher waren es drei Views mit je einem Farbverlauf als Hintergrund - das
+    sah nach drei farbigen Balken aus. Ein Versuch, mit einer zweiten Ebene eine
+    helle Trittkante aufzusetzen, sass an den gerundeten Ecken sichtbar versetzt,
+    weil beide Ebenen ihre Ecken unabhaengig voneinander runden.
+
+    Hier liegt alles in einem Koordinatensystem, also passt es zusammen: jeder
+    Block hat eine helle Trittflaeche oben, einen Verlauf ins Dunkle nach unten
+    und eine abgedunkelte rechte Kante - die Rundung, die ein Koerper im Licht
+    hat.
+
+    Die oberen 26 Einheiten bleiben leer. Dort stehen im Layout Krone und
+    Profilbild des Ersten; ohne diesen Vorrat wuerde die Krone am oberen Rand
+    abgeschnitten.
+
+    Das Verhaeltnis 300 zu 166 ist fest. Die Masse der Flaeche im Layout halten
+    genau dieses Verhaeltnis ein, damit die Profilbilder darueber an jeder
+    Bildschirmbreite auf ihren Bloecken sitzen und nicht daneben.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="300dp"
+    android:height="166dp"
+    android:viewportWidth="300"
+    android:viewportHeight="166">
+
+    <!-- === Boden: klingt zu den Seiten hin aus === -->
+    <path android:pathData="M6,150 L294,150 L294,153 L6,153 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="6"
+                android:startY="0"
+                android:endX="294"
+                android:endY="0"
+                android:startColor="#00C6C6D0"
+                android:centerColor="#73C6C6D0"
+                android:endColor="#00C6C6D0" />
+        </aapt:attr>
+    </path>
+
+    <!-- === Platz 2, links: Oberkante bei 100 === -->
+    <path android:pathData="M10,100 L92,100 Q99,100 99,107 L99,150 L3,150 L3,107 Q3,100 10,100 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="100"
+                android:endX="0"
+                android:endY="150"
+                android:startColor="@color/podium_second"
+                android:endColor="@color/podium_second_deep" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="@color/podium_second_light"
+        android:pathData="M10,100 L92,100 Q99,100 99,107 L99,108 L3,108 L3,107 Q3,100 10,100 Z" />
+    <path
+        android:fillColor="#26000000"
+        android:pathData="M89,108 L99,108 L99,150 L89,150 Z" />
+
+    <!-- === Platz 1, Mitte und am hoechsten: Oberkante bei 82 === -->
+    <path android:pathData="M109,82 L191,82 Q198,82 198,89 L198,150 L102,150 L102,89 Q102,82 109,82 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="82"
+                android:endX="0"
+                android:endY="150"
+                android:startColor="@color/podium_first"
+                android:endColor="@color/podium_first_deep" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="@color/podium_first_light"
+        android:pathData="M109,82 L191,82 Q198,82 198,89 L198,90 L102,90 L102,89 Q102,82 109,82 Z" />
+    <path
+        android:fillColor="#26000000"
+        android:pathData="M188,90 L198,90 L198,150 L188,150 Z" />
+
+    <!-- === Platz 3, rechts: Oberkante bei 112 === -->
+    <path android:pathData="M208,112 L290,112 Q297,112 297,119 L297,150 L201,150 L201,119 Q201,112 208,112 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="112"
+                android:endX="0"
+                android:endY="150"
+                android:startColor="@color/podium_third"
+                android:endColor="@color/podium_third_deep" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="@color/podium_third_light"
+        android:pathData="M208,112 L290,112 Q297,112 297,119 L297,120 L201,120 L201,119 Q201,112 208,112 Z" />
+    <path
+        android:fillColor="#26000000"
+        android:pathData="M287,120 L297,120 L297,150 L287,150 Z" />
+
+</vector>

@@ -12,11 +12,15 @@
     <!-- Passwort vergessen -->
     <string name="forgot_password">Forgot your password?</string>
     <string name="forgot_password_title">Reset password</string>
-    <string name="forgot_password_message">We will send a link to this address. Open it on this phone to set a new password.</string>
+    <string name="forgot_password_message">We will send a mail with a code and a link. Either one lets you set a new password.</string>
+    <string name="reset_code_hint">Code from the mail</string>
+    <string name="reset_code_helper">Not needed if you opened the link from the mail</string>
+    <string name="reset_code_required">Please enter the code from the mail</string>
+    <string name="error_code_invalid">This code is not correct or has expired. Request a new mail on the login screen.</string>
     <string name="forgot_password_send">Send link</string>
     <string name="forgot_password_sent">If an account exists for this address, a link is on its way.</string>
     <string name="reset_title">New password</string>
-    <string name="reset_sub">Choose a new password for your CrewFit account.</string>
+    <string name="reset_sub">Enter the code from the mail and choose a new password.</string>
     <string name="reset_new_password">New password</string>
     <string name="reset_save">Save password</string>
     <string name="reset_done">Password changed. Please sign in with it.</string>

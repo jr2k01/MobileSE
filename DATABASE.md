@@ -72,6 +72,22 @@ crewfit://reset-password
 Dieselbe Adresse steht in `AppRepository.DEEPLINK_SCHEME`/`DEEPLINK_HOST` und im
 intent-filter der `ResetPasswordActivity`. Alle drei muessen uebereinstimmen.
 
+### Code in die Mail aufnehmen
+
+Der Link allein genuegt nicht. Oeffnet das Mailprogramm ihn in seiner
+eingebauten Ansicht, kennt die das Schema `crewfit://` nicht - es bleibt bei
+einer leeren Seite und die App wird nie geoeffnet. Deshalb enthaelt die Mail
+zusaetzlich einen Code zum Abtippen.
+
+Supabase → **Authentication** → **Email Templates** → **Reset Password**, in die
+Vorlage aufnehmen:
+
+```html
+<p>Oder gib diesen Code in der App ein: <strong>{{ .Token }}</strong></p>
+```
+
+Ohne `{{ .Token }}` steht in der Mail kein Code und es bleibt beim Link.
+
 ## Wenn eine dieser Spalten fehlt
 
 Die App bricht dann nicht ab, sondern schreibt ohne die betroffene Spalte

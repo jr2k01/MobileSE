@@ -269,6 +269,26 @@ class AppRepository private constructor(context: Context) {
     }
 
     /**
+     * Loest den Code aus der Mail gegen eine Sitzung ein.
+     *
+     * Der zweite Weg neben dem Link - und der verlaesslichere. Ein Link auf
+     * crewfit:// muss vom Browser an die App uebergeben werden; oeffnet das
+     * Mailprogramm ihn in seiner eingebauten Ansicht, kennt die das Schema
+     * nicht und es bleibt bei einer leeren Seite. Ein abgetippter Code geht
+     * diesen Weg gar nicht erst.
+     */
+    suspend fun verifyRecoveryCode(email: String, code: String): AuthError? =
+        withContext(Dispatchers.IO) {
+            try {
+                client.auth.verifyEmailOtp(OtpType.Email.RECOVERY, email, code.trim())
+                null
+            } catch (e: Exception) {
+                Log.e("SupabaseAuth", "Could not verify the recovery code: ${e.message}")
+                errorFor(e)
+            }
+        }
+
+    /**
      * Setzt das Passwort der laufenden Sitzung neu.
      *
      * Verlangt eine gueltige Sitzung. Nach dem Link aus der Mail ist genau das
@@ -362,6 +382,10 @@ class AppRepository private constructor(context: Context) {
                 AuthErrorCode.SignupDisabled -> AuthError.SIGNUP_DISABLED
                 AuthErrorCode.EmailNotConfirmed -> AuthError.EMAIL_NOT_CONFIRMED
                 AuthErrorCode.InvalidCredentials -> AuthError.INVALID_CREDENTIALS
+                // Haeufigster Fall beim Zuruecksetzen: vertippt, oder der Code
+                // ist zu alt. Ohne eigene Zuordnung stuende dort nur die
+                // Sammelmeldung fuer unbekannte Fehler.
+                AuthErrorCode.OtpExpired -> AuthError.CODE_INVALID
                 else -> AuthError.UNKNOWN
             }
         }

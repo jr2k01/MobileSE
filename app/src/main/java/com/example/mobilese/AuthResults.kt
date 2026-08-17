@@ -38,6 +38,9 @@ enum class AuthError {
     /** E-Mail oder Passwort stimmen nicht. */
     INVALID_CREDENTIALS,
 
+    /** Der Code aus der Mail ist falsch oder abgelaufen. */
+    CODE_INVALID,
+
     /** Das Konto existiert, die Adresse wurde aber noch nicht bestaetigt. */
     EMAIL_NOT_CONFIRMED,
 

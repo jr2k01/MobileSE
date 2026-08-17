@@ -54,24 +54,38 @@ class ResetPasswordActivity : AppCompatActivity() {
 
         repository.handleResetLink(intent) { linkAccepted = true }
 
+        val email = intent.getStringExtra(EXTRA_EMAIL).orEmpty()
+        val tilCode = findViewById<View>(R.id.tilResetCode)
+        val etCode = findViewById<EditText>(R.id.etResetCode)
+
+        // Ueber den Link liegt die Sitzung schon vor - dann ist nichts
+        // abzutippen. Sonst fuehrt der Code aus derselben Mail zum Ziel.
+        tilCode.visibility = if (linkAccepted) View.GONE else View.VISIBLE
+
         btnSave.setOnClickListener {
             val password = etNewPassword.text.toString()
+            val code = etCode.text.toString().trim()
 
             if (!PasswordPolicy.isValid(password)) {
                 toast(R.string.error_password_rules)
                 return@setOnClickListener
             }
-            if (!linkAccepted) {
-                // Etwa wenn der Bildschirm ohne Link erreicht wurde oder der
-                // Link zu alt war. Ohne diesen Hinweis liefe der Nutzer in eine
+            if (!linkAccepted && (code.isEmpty() || email.isEmpty())) {
+                // Weder Link noch Code: etwa wenn der Bildschirm ohne beides
+                // erreicht wurde. Ohne diesen Hinweis liefe der Nutzer in eine
                 // Fehlermeldung des Servers, die ihm nichts sagt.
-                showExpired()
+                if (email.isEmpty()) showExpired() else toast(R.string.reset_code_required)
                 return@setOnClickListener
             }
 
             setBusy(true, btnSave, btnBack)
             lifecycleScope.launch {
-                val error = repository.updatePassword(password)
+                // Erst den Code einloesen, falls es keinen Link gab - ohne
+                // Sitzung laesst sich das Passwort nicht aendern.
+                val codeError =
+                    if (linkAccepted) null else repository.verifyRecoveryCode(email, code)
+
+                val error = codeError ?: repository.updatePassword(password)
                 setBusy(false, btnSave, btnBack)
 
                 if (error != null) {
@@ -79,7 +93,7 @@ class ResetPasswordActivity : AppCompatActivity() {
                     return@launch
                 }
                 // Abmelden, damit sich der Nutzer mit dem neuen Passwort
-                // anmeldet. Die Sitzung aus dem Link ist danach erledigt.
+                // anmeldet. Die Sitzung aus Link oder Code ist danach erledigt.
                 repository.logout()
                 toast(R.string.reset_done)
                 openLogin()
@@ -109,4 +123,16 @@ class ResetPasswordActivity : AppCompatActivity() {
     }
 
     private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_LONG).show()
+
+    companion object {
+        private const val EXTRA_EMAIL = "email"
+
+        /**
+         * Weg vom Anmeldebildschirm aus, direkt nach dem Verschicken der Mail.
+         * Die Adresse wird mitgegeben, weil der Code nur zusammen mit ihr
+         * eingeloest werden kann.
+         */
+        fun intent(context: android.content.Context, email: String): Intent =
+            Intent(context, ResetPasswordActivity::class.java).putExtra(EXTRA_EMAIL, email)
+    }
 }

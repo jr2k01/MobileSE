@@ -17,6 +17,7 @@ fun AuthError.messageRes(): Int = when (this) {
     AuthError.RATE_LIMITED -> R.string.error_rate_limited
     AuthError.SIGNUP_DISABLED -> R.string.error_signup_disabled
     AuthError.INVALID_CREDENTIALS -> R.string.error_invalid_credentials
+    AuthError.CODE_INVALID -> R.string.error_code_invalid
     AuthError.EMAIL_NOT_CONFIRMED -> R.string.not_confirmed_message
     AuthError.NETWORK -> R.string.error_network
     AuthError.UNKNOWN -> R.string.error_unknown

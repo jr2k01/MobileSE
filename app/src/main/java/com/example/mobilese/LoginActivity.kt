@@ -111,9 +111,16 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val error = repository.sendPasswordReset(email)
+            if (error != null) {
+                toast(error.messageRes())
+                return@launch
+            }
             // Auch bei Erfolg keine Auskunft darueber, ob es das Konto gibt -
             // sonst liesse sich hier durchprobieren, wer angemeldet ist.
-            toast(error?.messageRes() ?: R.string.forgot_password_sent)
+            toast(R.string.forgot_password_sent)
+            // Gleich weiter zum Bildschirm fuer den Code. Der Link aus der Mail
+            // fuehrt zwar auch dorthin, aber nicht von jedem Mailprogramm aus.
+            startActivity(ResetPasswordActivity.intent(this@LoginActivity, email))
         }
     }
 

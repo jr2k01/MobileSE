@@ -28,7 +28,8 @@ class RegistrationActivity : AppCompatActivity() {
 
         repository = AppRepository.get(this)
 
-        val etName = findViewById<EditText>(R.id.etRegName)
+        val etFirstName = findViewById<EditText>(R.id.etRegFirstName)
+        val etLastName = findViewById<EditText>(R.id.etRegLastName)
         val etBirthDate = findViewById<EditText>(R.id.etRegBirthDate)
         val etEmail = findViewById<EditText>(R.id.etRegEmail)
         val etPassword = findViewById<EditText>(R.id.etRegPassword)
@@ -66,7 +67,11 @@ class RegistrationActivity : AppCompatActivity() {
         BirthDatePicker.reattach(this, applyPickedDate)
 
         btnRegister.setOnClickListener {
-            val name = etName.text.toString().trim()
+            // Zwei Felder, in der Datenbank ein Name - siehe PersonName.
+            val name = PersonName.join(
+                etFirstName.text.toString(),
+                etLastName.text.toString()
+            )
             val birthDate = etBirthDate.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()

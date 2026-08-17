@@ -67,23 +67,48 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilRegName"
-            style="@style/Widget.CrewFit.TextField"
+        <!-- Vor- und Nachname nebeneinander, wie im Profil -->
+        <LinearLayout
+            android:id="@+id/llRegName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/full_name_hint"
             android:layout_marginTop="28dp"
-            app:layout_constraintTop_toBottomOf="@id/tvRegSub"
-            app:startIconDrawable="@drawable/ic_person">
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/tvRegSub">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRegName"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.CrewFit.TextField"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:autofillHints="name"
-                android:inputType="textPersonName" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:layout_weight="1"
+                android:hint="@string/first_name_hint"
+                app:startIconDrawable="@drawable/ic_person">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRegFirstName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="personGivenName"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.CrewFit.TextField"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:hint="@string/last_name_hint">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRegLastName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:autofillHints="personFamilyName"
+                    android:inputType="textPersonName" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegBirth"
@@ -92,7 +117,7 @@
             android:layout_height="wrap_content"
             android:hint="@string/birth_date_hint"
             android:layout_marginTop="14dp"
-            app:layout_constraintTop_toBottomOf="@id/tilRegName"
+            app:layout_constraintTop_toBottomOf="@id/llRegName"
             app:startIconDrawable="@drawable/ic_calendar">
 
             <!--

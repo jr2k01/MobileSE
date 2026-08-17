@@ -13,6 +13,7 @@
     <dimen name="top_bar_padding_top">28dp</dimen>
 
     <dimen name="profile_photo_size">120dp</dimen>
+    <dimen name="profile_photo_radius">60dp</dimen>
     <dimen name="logo_size_large">104dp</dimen>
     <dimen name="logo_size_medium">72dp</dimen>
 

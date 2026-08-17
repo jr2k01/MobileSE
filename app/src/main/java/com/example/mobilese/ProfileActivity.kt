@@ -7,8 +7,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -73,6 +75,8 @@ class ProfileActivity : AppCompatActivity() {
         }
         // Falls der Kalender offen war, als das Geraet gedreht wurde.
         BirthDatePicker.reattach(this, applyPickedDate)
+
+        showMedals()
 
         // Beim Drehen des Geraets wird die Activity neu erzeugt. Die Textfelder
         // stellt Android dabei selbst wieder her - sie danach erneut aus der
@@ -184,6 +188,32 @@ class ProfileActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnDeleteProfile).setOnClickListener {
             confirmDeletion()
+        }
+    }
+
+    /**
+     * Die eigenen Medaillen.
+     *
+     * Auch die noch offenen stehen abgeblendet mit, damit sichtbar ist, was es
+     * zu holen gibt. Berechnet werden sie aus demselben Crew-Snapshot wie in
+     * der Rangliste - ohne Crew gibt es keine Grundlage, dann bleibt der
+     * Bereich leer.
+     */
+    private fun showMedals() {
+        val grid = findViewById<GridLayout>(R.id.glMedals)
+        val progress = findViewById<TextView>(R.id.tvMedalsProgress)
+
+        lifecycleScope.launch {
+            val crewCode = repository.getJoinedCrewCode() ?: return@launch
+            val userId = repository.getProfile(currentUserEmail)?.id ?: return@launch
+            val status = Medals.statusFor(userId, repository.loadCrewSnapshot(crewCode))
+
+            MedalGrid.fill(grid, status)
+            progress.text = getString(
+                R.string.medals_progress,
+                status.count { it.value },
+                status.size
+            )
         }
     }
 

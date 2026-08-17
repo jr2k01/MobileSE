@@ -2,9 +2,11 @@ package com.example.mobilese
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -46,15 +48,36 @@ class CrewDetailsActivity : AppCompatActivity() {
 
             crewName = name
             findViewById<TextView>(R.id.tvCrewNameDisplay).text = name
-            findViewById<TextView>(R.id.tvMembersList).text = members.joinToString("\n") { member ->
-                "- " + DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
-            }
+            showMembers(members)
 
             if (qr == null) {
                 Toast.makeText(this@CrewDetailsActivity, R.string.qr_generation_failed, Toast.LENGTH_SHORT).show()
             } else {
                 findViewById<ImageView>(R.id.ivOverviewQrCode).setImageBitmap(qr)
             }
+        }
+    }
+
+    /** Eine Zeile je Mitglied; angetippt fuehrt sie zum Kurzprofil. */
+    private fun showMembers(members: List<UserProfile>) {
+        val container = findViewById<LinearLayout>(R.id.llMembersList)
+        container.removeAllViews()
+        val inflater = LayoutInflater.from(this)
+
+        for (member in members) {
+            val row = inflater.inflate(R.layout.item_crew_member_row, container, false)
+            row.findViewById<TextView>(R.id.tvMemberName).text =
+                DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
+            ImageLoader.into(
+                row.findViewById(R.id.ivMemberPhoto),
+                member.avatarUrl,
+                circular = true,
+                placeholder = android.R.drawable.ic_menu_gallery
+            )
+            row.setOnClickListener {
+                startActivity(MemberProfileActivity.intent(this, member.id))
+            }
+            container.addView(row)
         }
     }
 

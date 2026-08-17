@@ -33,7 +33,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                app:cardCornerRadius="56dp"
+                app:cardCornerRadius="@dimen/profile_photo_radius"
                 app:cardElevation="0dp"
                 app:strokeColor="?attr/colorPrimary"
                 app:strokeWidth="2dp"
@@ -133,6 +133,37 @@
                     android:focusableInTouchMode="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Medaillen: verdiente in Farbe, offene abgeblendet daneben -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/medals_label" />
+
+                <TextView
+                    android:id="@+id/tvMedalsProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <GridLayout
+                android:id="@+id/glMedals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:columnCount="@integer/medal_columns" />
 
             <TextView
                 style="@style/TextAppearance.CrewFit.SectionLabel"

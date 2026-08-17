@@ -101,6 +101,29 @@
     <!-- Die Ziffer steht auf dem Block, nicht davor: dunkel und leicht durchscheinend. -->
     <color name="podium_rank_label">#A6101319</color>
 
+    <!--
+        Medaillen. Jede hat ihre eigene Farbe, damit sie sich im Profil schon
+        von weitem unterscheiden lassen - der Rand ist jeweils die dunklere
+        Fassung, das Motiv sitzt darauf.
+    -->
+    <color name="medal_bronze">#D9955C</color>
+    <color name="medal_bronze_dark">#A66535</color>
+    <color name="medal_silver">#C3C8D2</color>
+    <color name="medal_silver_dark">#8F97A5</color>
+    <color name="medal_gold">#F5C851</color>
+    <color name="medal_gold_dark">#C79420</color>
+    <color name="medal_green">#6FE7B7</color>
+    <color name="medal_green_dark">#2E9C74</color>
+    <color name="medal_indigo">#AEB6FF</color>
+    <color name="medal_indigo_dark">#5A63C4</color>
+    <color name="medal_flame">#FFB77C</color>
+    <color name="medal_flame_dark">#C4703A</color>
+    <color name="medal_sky">#8FC4FF</color>
+    <color name="medal_sky_dark">#3D77C4</color>
+    <!-- Motiv auf der Scheibe: dunkel, damit es auf jeder Farbe lesbar bleibt. -->
+    <color name="medal_symbol">#1A1214</color>
+    <color name="medal_ribbon">#7A8090</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

@@ -292,6 +292,10 @@ class MainHubActivity : AppCompatActivity() {
             val view = inflater.inflate(R.layout.item_member_profile_mini, llMembers, false)
             view.findViewById<TextView>(R.id.tvMemberName).text =
                 DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
+            // Antippen fuehrt zum Kurzprofil mit Kennzahlen und Medaillen.
+            view.setOnClickListener {
+                startActivity(MemberProfileActivity.intent(this, member.id))
+            }
             ImageLoader.into(
                 view.findViewById(R.id.ivMemberPhoto),
                 member.avatarUrl,

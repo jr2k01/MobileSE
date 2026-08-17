@@ -106,14 +106,19 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp">
 
-                <TextView
-                    android:id="@+id/tvMembersList"
+                <!--
+                    Frueher ein einzelner Textblock mit allen Namen. Jetzt eine
+                    Zeile je Mitglied, weil man von hier aus auf das Profil
+                    kommen soll - und mit Bild ist die Liste ohnehin besser zu
+                    lesen.
+                -->
+                <LinearLayout
+                    android:id="@+id/llMembersList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="@dimen/card_padding"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    android:textColor="?attr/colorOnSurface"
-                    android:lineSpacingExtra="8dp" />
+                    android:orientation="vertical"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton

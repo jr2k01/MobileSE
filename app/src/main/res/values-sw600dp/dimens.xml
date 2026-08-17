@@ -17,6 +17,7 @@
     <dimen name="card_padding">28dp</dimen>
 
     <dimen name="profile_photo_size">160dp</dimen>
+    <dimen name="profile_photo_radius">80dp</dimen>
 
     <dimen name="logo_size_large">150dp</dimen>
     <dimen name="logo_size_medium">96dp</dimen>
@@ -49,4 +50,7 @@
     <dimen name="leaderboard_ring_size">36dp</dimen>
     <dimen name="leaderboard_steps_column">78dp</dimen>
     <dimen name="leaderboard_score_column">116dp</dimen>
+
+    <dimen name="medal_size">76dp</dimen>
+    <dimen name="medal_label_width">104dp</dimen>
 </resources>

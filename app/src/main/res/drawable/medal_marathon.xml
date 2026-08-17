@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Marathon" - Himmelblau mit laufender Figur. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <path android:fillColor="@color/medal_ribbon"
+        android:pathData="M16,29L9,45L16,42L20,46L25,32Z" />
+    <path android:fillColor="@color/medal_ribbon"
+        android:pathData="M32,29L39,45L32,42L28,46L23,32Z" />
+
+    <path android:fillColor="@color/medal_sky_dark"
+        android:pathData="M24,4C33.4,4 41,11.6 41,21C41,30.4 33.4,38 24,38C14.6,38 7,30.4 7,21C7,11.6 14.6,4 24,4Z" />
+    <path android:fillColor="@color/medal_sky"
+        android:pathData="M24,7.5C31.5,7.5 37.5,13.5 37.5,21C37.5,28.5 31.5,34.5 24,34.5C16.5,34.5 10.5,28.5 10.5,21C10.5,13.5 16.5,7.5 24,7.5Z" />
+
+    <!-- Laufende Figur -->
+    <path android:fillColor="@color/medal_symbol"
+        android:pathData="M27.4,13.6C28.6,13.6 29.5,12.7 29.5,11.5C29.5,10.3 28.6,9.4 27.4,9.4C26.2,9.4 25.3,10.3 25.3,11.5C25.3,12.7 26.2,13.6 27.4,13.6Z" />
+    <path android:fillColor="@color/medal_symbol"
+        android:pathData="M20,20.6L18.4,28.8L16.2,32H18.9L21.5,27.6L22.6,22.8L25,25.4V32H27.2V23.8L24.8,21L25.6,17.2C26.9,18.8 29,19.8 31.4,19.8V17.6C29.4,17.6 27.7,16.5 26.9,15L25.8,13.2C25.4,12.6 24.8,12.2 24,12.2C23.7,12.2 23.4,12.3 23.1,12.4L17.6,14.7V19.8H19.8V16.2L20,20.6Z" />
+</vector>

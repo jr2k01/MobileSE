@@ -6,4 +6,7 @@
         einmal als Eingabegrenze und einmal fuer den Zaehler unter dem Feld.
     -->
     <integer name="display_name_max_length">12</integer>
+
+    <!-- Spalten im Medaillenraster; auf dem Tablet passen mehr nebeneinander. -->
+    <integer name="medal_columns">4</integer>
 </resources>

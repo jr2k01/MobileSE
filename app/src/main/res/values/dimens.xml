@@ -33,6 +33,7 @@
 
     <!-- Profilbild auf dem Profilbildschirm -->
     <dimen name="profile_photo_size">112dp</dimen>
+    <dimen name="profile_photo_radius">56dp</dimen>
 
     <!-- Logo auf den Anmeldebildschirmen und im Kopf des Startbildschirms -->
     <dimen name="logo_size_large">112dp</dimen>
@@ -94,4 +95,8 @@
         Ueberschrift bei jedem Punktestand woanders staende als der Ring.
     -->
     <dimen name="leaderboard_score_column">92dp</dimen>
+
+    <!-- Medaillen im Profil -->
+    <dimen name="medal_size">56dp</dimen>
+    <dimen name="medal_label_width">78dp</dimen>
 </resources>

@@ -128,6 +128,25 @@ hochsetzen: Supabase setzt beim Einschalten von eigenem SMTP zunaechst 30 Mails
 pro Stunde an. Das ist zwar mehr als beim eingebauten Dienst, aber immer noch
 eine Grenze, in die man beim Testen laeuft.
 
+## Ein Konto vollstaendig loeschen
+
+Die Anmeldung liegt nicht in `profiles`, sondern in `auth.users` - einer
+Tabelle, die Supabase selbst verwaltet. Beides haengt nur ueber die Kennung
+zusammen.
+
+Wird die Zeile in `profiles` geloescht, bleibt das Konto also bestehen. Eine
+Registrierung mit derselben Adresse scheitert danach mit "diese Adresse hat
+schon ein Konto", obwohl in `profiles` nichts mehr steht.
+
+Zum vollstaendigen Loeschen: Supabase → **Authentication** → **Users**, den
+Eintrag suchen und dort loeschen. Danach ist die Adresse wieder frei.
+
+Dasselbe gilt fuer "Delete profile & all data" in der App: der Knopf loescht
+Workouts, Crew-Mitgliedschaft, Belohnungen, Dateien und die Profilzeile, aber
+nicht die Anmeldung. Aus der App heraus geht das auch nicht - dafuer braeuchte
+es den Service-Role-Key, und der darf in einer App niemals liegen. Sauber waere
+eine Edge Function, die serverseitig loescht.
+
 ## Wenn eine dieser Spalten fehlt
 
 Die App bricht dann nicht ab, sondern schreibt ohne die betroffene Spalte

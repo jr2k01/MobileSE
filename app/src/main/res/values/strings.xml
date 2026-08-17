@@ -269,7 +269,13 @@
     <string name="profile_save_failed">Could not save the profile</string>
     <string name="profile_deleted">Profile and data deleted</string>
     <string name="delete_profile_title">Delete profile?</string>
-    <string name="delete_profile_message">This will permanently delete all your workouts, points and account data. This cannot be undone.</string>
+    <!--
+        Sagt ausdruecklich, dass die Anmeldung bleibt. Vorher stand hier
+        "account data", was den Eindruck erweckte, das Konto sei danach weg -
+        es laesst sich aber nur serverseitig loeschen, und wer es versucht,
+        steht spaeter vor "diese Adresse hat schon ein Konto".
+    -->
+    <string name="delete_profile_message">This deletes all your workouts, points and profile data, and cannot be undone.\n\nYour login stays. The same email address cannot be used to register again - ask an administrator to remove the account itself.</string>
     <string name="delete_profile_confirm">Delete everything</string>
     <string name="image_saved">Image saved</string>
     <string name="image_save_failed">Could not save the image</string>

@@ -133,6 +133,21 @@
     <string name="medal_fifty_workouts">Fifty Workouts</string>
     <string name="medal_fifty_workouts_desc">Log fifty workouts.</string>
 
+    <!-- === Einzelansicht eines Workouts === -->
+    <string name="workout_detail_title">Workout</string>
+    <string name="workout_by">by %1$s</string>
+    <string name="workout_not_found">This workout could not be opened</string>
+    <string name="workout_photo_desc">Photo of the workout</string>
+    <string name="map_desc">Map of the training location</string>
+    <string name="play_voice_note">Play voice note</string>
+    <string name="detail_stat_duration">Duration</string>
+    <string name="detail_stat_distance">Distance</string>
+    <string name="detail_stat_points">Points</string>
+    <string name="value_none">–</string>
+    <string name="detail_distance_km">%1$s km</string>
+    <!-- Wer und wann in einer Zeile der Uebersicht -->
+    <string name="summary_meta">%1$s · %2$s</string>
+
     <!-- === Profil eines Crewmitglieds === -->
     <string name="member_profile_title">Crew Member</string>
     <string name="member_stat_points">Points</string>

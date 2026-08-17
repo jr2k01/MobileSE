@@ -59,6 +59,7 @@
         <activity android:name=".LeaderboardActivity" android:exported="false" />
         <activity android:name=".CrewChallengesActivity" android:exported="false" />
         <activity android:name=".MemberProfileActivity" android:exported="false" />
+        <activity android:name=".WorkoutDetailActivity" android:exported="false" />
 
         <!--
             Health Connect verlangt, dass eine App erklaeren kann, wofuer sie

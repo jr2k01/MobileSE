@@ -1,7 +1,6 @@
 package com.example.mobilese
 
 import android.content.Intent
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -51,7 +50,7 @@ class MainHubActivity : AppCompatActivity() {
      */
     private class PodiumPlace(val avatar: ImageView, val avatarHolder: View)
 
-    private var mediaPlayer: MediaPlayer? = null
+    private val voicePlayer = VoicePlayer { toast(R.string.playback_failed) }
 
     /** Laufender Ladevorgang, damit sich zwei Aufrufe nicht ueberholen. */
     private var loadJob: Job? = null
@@ -247,8 +246,7 @@ class MainHubActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        voicePlayer.release()
     }
 
     // --- Daten ---
@@ -384,34 +382,10 @@ class MainHubActivity : AppCompatActivity() {
                 btnPlay.visibility = View.GONE
             } else {
                 btnPlay.visibility = View.VISIBLE
-                btnPlay.setOnClickListener { playVoiceNote(voiceUrl) }
+                btnPlay.setOnClickListener { voicePlayer.play(voiceUrl) }
             }
 
             llLatestActivities.addView(view)
-        }
-    }
-
-    /**
-     * Sprachnotizen liegen als URL vor. prepare() wuerde dafuer synchron im
-     * Main-Thread auf das Netz warten und einen ANR riskieren, deshalb
-     * prepareAsync() mit Callback.
-     */
-    private fun playVoiceNote(url: String) {
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setOnPreparedListener { it.start() }
-            setOnErrorListener { _, what, extra ->
-                android.util.Log.e("Audio", "Playback error $what/$extra")
-                toast(R.string.playback_failed)
-                true
-            }
-            try {
-                setDataSource(url)
-                prepareAsync()
-            } catch (e: Exception) {
-                android.util.Log.e("Audio", "Could not set data source: ${e.message}")
-                toast(R.string.playback_failed)
-            }
         }
     }
 

@@ -111,85 +111,47 @@ class WorkoutHistoryActivity : AppCompatActivity() {
 
         val inflater = LayoutInflater.from(this)
         for ((activity, author) in entries) {
-            val view = inflater.inflate(R.layout.item_workout_history_entry, container, false)
-
-            val tvAuthor = view.findViewById<TextView>(R.id.tvActivityAuthor)
-            if (author == null) {
-                tvAuthor.visibility = View.GONE
-            } else {
-                tvAuthor.text = author
-                tvAuthor.visibility = View.VISIBLE
-            }
-
-            view.findViewById<TextView>(R.id.tvActivitySport).text = activity.sport
-            view.findViewById<TextView>(R.id.tvActivityDate).text =
-                ActivityTime.toDisplay(activity.timestamp)
-
-            view.findViewById<TextView>(R.id.tvActivityDuration).apply {
-                text = getString(R.string.duration_unit, activity.duration.toString())
-                visibility = View.VISIBLE
-            }
-
-            // Fotos liegen seit der Supabase-Migration als oeffentliche URL vor.
-            // Aeltere Eintraege koennen noch einen lokalen Dateipfad enthalten;
-            // der ImageLoader behandelt beide Faelle.
-            val ivPhoto = view.findViewById<ImageView>(R.id.ivActivityPhoto)
-            val photoUrl = activity.photoUrl
-            if (photoUrl.isNullOrEmpty()) {
-                ivPhoto.visibility = View.GONE
-            } else {
-                ivPhoto.visibility = View.VISIBLE
-                ImageLoader.into(ivPhoto, photoUrl, placeholder = android.R.drawable.ic_menu_gallery)
-            }
-
-            val tvLocation = view.findViewById<TextView>(R.id.tvActivityLocation)
-            if (activity.location.isNullOrEmpty()) {
-                tvLocation.visibility = View.GONE
-            } else {
-                tvLocation.text = activity.location
-                tvLocation.visibility = View.VISIBLE
-            }
-
-            showMap(view, activity)
-
-            container.addView(view)
+            container.addView(summaryRow(inflater, activity, author))
         }
     }
 
     /**
-     * Kartenausschnitt zu einer Aktivitaet, sofern Koordinaten gespeichert
-     * wurden. Aeltere Eintraege haben keine und zeigen weiterhin nur den
-     * Ortsnamen.
+     * Ein Workout als Zeile.
      *
-     * Die Views werden hier je Eintrag frisch erzeugt und nicht wie in einer
-     * RecyclerView wiederverwendet - eine Verwechslung durch spaet
-     * eintreffende Bilder ist deshalb ausgeschlossen.
+     * Bewusst knapp: Sportart, wer und wann, Dauer - und drei kleine Zeichen
+     * dafuer, ob es Foto, Ort und Sprachnotiz gibt. Vorher stand hier je
+     * Eintrag eine Karte mit grossem Foto und Landkarte; auf dem Bildschirm
+     * waren damit knapp zwei Workouts zu sehen, und beim Suchen nach einem
+     * bestimmten Training scrollte man endlos. Alles Weitere steht jetzt in
+     * [WorkoutDetailActivity].
      */
-    private fun showMap(view: View, activity: Activity) {
-        val cvMap = view.findViewById<View>(R.id.cvActivityMap)
-        val ivMap = view.findViewById<ImageView>(R.id.ivActivityMap)
-        val tvAttribution = view.findViewById<TextView>(R.id.tvActivityMapAttribution)
+    private fun summaryRow(inflater: LayoutInflater, activity: Activity, author: String?): View {
+        val view = inflater.inflate(R.layout.item_workout_summary, container, false)
 
-        val latitude = activity.latitude
-        val longitude = activity.longitude
-        if (latitude == null || longitude == null) {
-            cvMap.visibility = View.GONE
-            tvAttribution.visibility = View.GONE
-            return
+        view.findViewById<ImageView>(R.id.ivSummarySport)
+            .setImageResource(Sports.iconFor(activity.sport))
+        view.findViewById<TextView>(R.id.tvSummarySport).text = activity.sport
+        view.findViewById<TextView>(R.id.tvSummaryDuration).text =
+            getString(R.string.duration_unit, activity.duration.toString())
+
+        val date = ActivityTime.toDisplay(activity.timestamp)
+        view.findViewById<TextView>(R.id.tvSummaryMeta).text =
+            if (author == null) date else getString(R.string.summary_meta, author, date)
+
+        // Die Zeichen sagen, was in der Einzelansicht zu erwarten ist - so
+        // muss niemand ein Workout oeffnen, um zu sehen, dass es kein Foto hat.
+        showBadge(view, R.id.ivSummaryHasPhoto, !activity.photoUrl.isNullOrEmpty())
+        showBadge(view, R.id.ivSummaryHasMap, activity.latitude != null && activity.longitude != null)
+        showBadge(view, R.id.ivSummaryHasVoice, !activity.voiceUrl.isNullOrEmpty())
+
+        view.setOnClickListener {
+            startActivity(WorkoutDetailActivity.intent(this, activity, author))
         }
-
-        lifecycleScope.launch {
-            val map = StaticMap.preview(
-                this@WorkoutHistoryActivity,
-                latitude,
-                longitude,
-                ContextCompat.getColor(this@WorkoutHistoryActivity, R.color.primary)
-            ) ?: return@launch
-
-            ivMap.setImageBitmap(map)
-            cvMap.visibility = View.VISIBLE
-            tvAttribution.text = StaticMap.ATTRIBUTION
-            tvAttribution.visibility = View.VISIBLE
-        }
+        return view
     }
+
+    private fun showBadge(row: View, id: Int, present: Boolean) {
+        row.findViewById<View>(id).visibility = if (present) View.VISIBLE else View.GONE
+    }
+
 }

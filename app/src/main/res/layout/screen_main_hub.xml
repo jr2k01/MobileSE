@@ -89,6 +89,13 @@
                     android:gravity="center_vertical" />
             </HorizontalScrollView>
 
+            <include
+                android:id="@+id/stepsCard"
+                layout="@layout/view_steps_today"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp" />
+
             <!-- Top 3 der Crew -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.CrewFit.Card"

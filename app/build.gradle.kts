@@ -13,7 +13,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mobilese"
-        minSdk = 24
+        // Angehoben von 24 auf 26: Health Connect setzt Android 8.0 voraus.
+        // Aeltere Geraete waeren sonst gar nicht mehr baubar, weil die
+        // Bibliothek ihre eigene Untergrenze mitbringt.
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -67,6 +70,11 @@ dependencies {
     // QR-Codes
     implementation(libs.zxing.android.embedded)
     implementation(libs.zxing.core)
+
+    // Schrittzahl aus Health Connect, der Gesundheitsdatenbank von Android.
+    // Ohne diese Bibliothek ist Health Connect nicht ansprechbar: der Zugriff
+    // laeuft ueber einen Systemdienst, nicht ueber eine offene Schnittstelle.
+    implementation(libs.health.connect.client)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

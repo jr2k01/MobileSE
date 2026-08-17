@@ -23,6 +23,7 @@
     <issue id="MissingConstraints">
         <ignore path="src/main/res/layout/screen_crew_challenges.xml" />
         <ignore path="src/main/res/layout/screen_crew_details.xml" />
+        <ignore path="src/main/res/layout/screen_health_privacy.xml" />
         <ignore path="src/main/res/layout/screen_leaderboard.xml" />
         <ignore path="src/main/res/layout/screen_main_hub.xml" />
         <ignore path="src/main/res/layout/screen_profile.xml" />

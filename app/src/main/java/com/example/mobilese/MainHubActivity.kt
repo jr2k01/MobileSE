@@ -12,12 +12,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.navigation.NavigationBarView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 
 /**
  * Startbildschirm: Crew-Name, Mitglieder, Top 3 und die letzten Aktivitaeten.
@@ -53,6 +55,30 @@ class MainHubActivity : AppCompatActivity() {
     /** Laufender Ladevorgang, damit sich zwei Aufrufe nicht ueberholen. */
     private var loadJob: Job? = null
 
+    // --- Schrittzahl aus Health Connect ---
+
+    private lateinit var tvStepsCount: TextView
+    private lateinit var tvStepsHint: TextView
+    private lateinit var btnConnectHealth: Button
+
+    /**
+     * Fragt die Erlaubnis zum Lesen der Schritte an.
+     *
+     * Health Connect bringt seinen eigenen Dialog mit; wir bekommen nur
+     * zurueck, welche Berechtigungen danach erteilt sind. Deshalb wird das
+     * Ergebnis nicht ausgewertet, sondern schlicht neu geladen - das gibt
+     * dieselbe Anzeige, egal ob der Nutzer zugestimmt, abgelehnt oder den
+     * Dialog weggewischt hat.
+     */
+    private val requestHealthPermissions =
+        registerForActivityResult(PermissionController.createRequestPermissionResultContract()) {
+            granted ->
+            if (!granted.containsAll(HealthSteps.PERMISSIONS)) {
+                toast(R.string.steps_permission_denied)
+            }
+            showStepsToday()
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_main_hub)
@@ -68,6 +94,13 @@ class MainHubActivity : AppCompatActivity() {
             PodiumPlace(findViewById(R.id.ivPodiumSecond), findViewById(R.id.cvPodiumSecond)),
             PodiumPlace(findViewById(R.id.ivPodiumThird), findViewById(R.id.cvPodiumThird))
         )
+
+        tvStepsCount = findViewById(R.id.tvStepsCount)
+        tvStepsHint = findViewById(R.id.tvStepsHint)
+        btnConnectHealth = findViewById(R.id.btnConnectHealth)
+        btnConnectHealth.setOnClickListener {
+            requestHealthPermissions.launch(HealthSteps.PERMISSIONS)
+        }
 
         // Steht unter der Liste der letzten Aktivitaeten statt in der
         // Navigationsleiste.
@@ -113,7 +146,56 @@ class MainHubActivity : AppCompatActivity() {
         // Start ohnehin direkt nach onCreate, sonst wuerde jeder Kaltstart alle
         // Abfragen doppelt ausloesen.
         refresh()
+        // Ebenfalls hier, damit eine in den Systemeinstellungen erteilte oder
+        // wieder entzogene Erlaubnis beim Zurueckkehren sofort greift.
+        showStepsToday()
     }
+
+    /**
+     * Zeigt die heutigen Schritte an - oder das, was stattdessen zutrifft.
+     *
+     * Vier Faelle, und jeder sagt dem Nutzer etwas anderes: Zahl vorhanden,
+     * Erlaubnis fehlt (dann der Knopf), Health Connect gibt es hier nicht, oder
+     * die Abfrage ging schief. Bewusst kein stiller Nullwert - "0 Schritte"
+     * waere fuer alle drei anderen Faelle schlicht gelogen.
+     */
+    private fun showStepsToday() {
+        lifecycleScope.launch {
+            when (val reading = HealthSteps.today(this@MainHubActivity)) {
+                is HealthSteps.Reading.Steps -> {
+                    tvStepsCount.text = formatSteps(reading.count)
+                    tvStepsCount.visibility = View.VISIBLE
+                    btnConnectHealth.visibility = View.GONE
+                    tvStepsHint.setText(
+                        if (reading.count == 0L) R.string.steps_hint_none_yet
+                        else R.string.steps_hint_source
+                    )
+                }
+
+                HealthSteps.Reading.NotAllowed -> {
+                    tvStepsCount.visibility = View.GONE
+                    btnConnectHealth.visibility = View.VISIBLE
+                    tvStepsHint.setText(R.string.steps_hint_not_allowed)
+                }
+
+                HealthSteps.Reading.Unavailable -> {
+                    tvStepsCount.visibility = View.GONE
+                    btnConnectHealth.visibility = View.GONE
+                    tvStepsHint.setText(R.string.steps_hint_unavailable)
+                }
+
+                HealthSteps.Reading.Failed -> {
+                    tvStepsCount.visibility = View.GONE
+                    btnConnectHealth.visibility = View.GONE
+                    tvStepsHint.setText(R.string.steps_hint_failed)
+                }
+            }
+        }
+    }
+
+    /** Tausendertrennung nach den Regeln der eingestellten Sprache. */
+    private fun formatSteps(count: Long): String =
+        NumberFormat.getIntegerInstance().format(count)
 
     override fun onStop() {
         super.onStop()

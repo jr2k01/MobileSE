@@ -18,9 +18,11 @@ import java.util.TimeZone
  * Die Anzeige wird erst in der UI ins deutsche Format uebersetzt.
  * Alte Datensaetze im deutschen Format werden weiterhin gelesen.
  *
- * Bewusst SimpleDateFormat statt java.time: minSdk ist 24, java.time steht
- * erst ab API 26 zur Verfuegung und Core Library Desugaring ist im Projekt
- * nicht aktiviert.
+ * Verwendet SimpleDateFormat statt java.time. Der Grund dafuer ist entfallen:
+ * java.time gibt es ab API 26, und seit der Anbindung an Health Connect liegt
+ * minSdk dort. Umgestellt ist es noch nicht - hier steht funktionierender, von
+ * Tests abgedeckter Code, und eine Umstellung ohne Anlass birgt mehr Risiko als
+ * Nutzen. Neuer Code darf java.time nehmen, [HealthSteps] tut es bereits.
  */
 object ActivityTime {
 

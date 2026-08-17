@@ -13,9 +13,9 @@ import java.util.TimeZone
  * auseinanderlaufen konnten - und ein einmal eingetragenes Alter veraltete mit
  * jedem Geburtstag stillschweigend.
  *
- * Bewusst Calendar statt java.time: minSdk ist 24, java.time gibt es erst ab
- * API 26 und Core Library Desugaring ist im Projekt nicht aktiviert. Dieselbe
- * Begruendung wie bei [ActivityTime].
+ * Verwendet Calendar statt java.time - dieselbe Lage wie bei [ActivityTime]:
+ * der urspruengliche Grund (minSdk 24) ist mit der Anhebung auf 26 entfallen,
+ * die Umstellung steht aber noch aus.
  */
 object BirthDate {
 

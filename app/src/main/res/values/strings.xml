@@ -14,6 +14,19 @@
     <string name="register_sub">Become part of the crew and start your training.</string>
     <string name="full_name_hint">Full Name</string>
     <string name="display_name_hint">Short Name</string>
+
+    <!-- Schritte aus Health Connect -->
+    <string name="steps_today_label">Steps today</string>
+    <string name="steps_connect">Connect</string>
+    <string name="steps_hint_not_allowed">From Health Connect, once you allow it</string>
+    <string name="steps_hint_unavailable">Health Connect is not available on this device</string>
+    <string name="steps_hint_failed">Could not be read right now</string>
+    <string name="steps_hint_source">From Health Connect</string>
+    <string name="steps_hint_none_yet">Nothing recorded yet today</string>
+    <string name="steps_permission_denied">Without access to Health Connect CrewFit cannot show your steps</string>
+    <string name="health_privacy_title">Health data</string>
+    <string name="health_privacy_headline">Why CrewFit reads your steps</string>
+    <string name="health_privacy_body">CrewFit shows how many steps you have taken today, next to your crew overview.\n\nThe steps are read from Health Connect, where your phone and any watch or fitness app record them. CrewFit only reads them - it never writes health data, and it reads nothing beyond the step count.\n\nThe number stays on your device. It is not sent to the CrewFit server and your crew mates cannot see it. You can withdraw the access at any time in the Health Connect settings.</string>
     <!-- Ziffern auf den drei Podestbloecken -->
     <string name="podium_rank_1">1</string>
     <string name="podium_rank_2">2</string>

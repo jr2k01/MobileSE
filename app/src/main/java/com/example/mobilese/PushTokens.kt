@@ -1,0 +1,61 @@
+package com.example.mobilese
+
+import android.content.Context
+import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+/**
+ * Meldet dieses Geraet fuer Push an und wieder ab.
+ *
+ * Alles hier faengt den Fall ab, dass Firebase gar nicht eingerichtet ist. Ohne
+ * google-services.json wird das Plugin nicht angewendet (siehe
+ * app/build.gradle.kts), die Bibliothek findet beim Zugriff keine Konfiguration
+ * und wirft. Das darf die Anmeldung nicht aufhalten: ohne Push ist die App
+ * vollstaendig benutzbar, sie sagt einem nur nichts von selbst.
+ */
+object PushTokens {
+
+    /**
+     * Holt die Kennung dieses Geraets und hinterlegt sie beim angemeldeten
+     * Nutzer. Nach jeder Anmeldung aufzurufen - die Kennung gilt pro Geraet,
+     * die Zuordnung zum Konto aber nicht.
+     */
+    suspend fun register(context: Context) {
+        val token = currentToken() ?: return
+        AppRepository.get(context).savePushToken(token)
+    }
+
+    /** Nimmt die Kennung wieder aus der Datenbank, damit das Geraet nichts mehr bekommt. */
+    suspend fun unregister(context: Context) {
+        val token = currentToken() ?: return
+        AppRepository.get(context).deletePushToken(token)
+    }
+
+    /**
+     * Die aktuelle Kennung, oder null wenn Firebase nicht eingerichtet ist oder
+     * gerade nicht erreichbar war.
+     *
+     * FirebaseMessaging arbeitet mit Task und nicht mit Coroutinen; das
+     * Umhaengen von Hand erspart die zusaetzliche Abhaengigkeit
+     * kotlinx-coroutines-play-services, die genau diese acht Zeilen mitbraechte.
+     */
+    private suspend fun currentToken(): String? = try {
+        suspendCancellableCoroutine { continuation ->
+            FirebaseMessaging.getInstance().token
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(task.result)
+                    } else {
+                        Log.w("CrewFitPush", "No push token: ${task.exception?.message}")
+                        continuation.resume(null)
+                    }
+                }
+        }
+    } catch (e: Exception) {
+        // Kein Firebase-Projekt hinterlegt. Kein Grund, irgendetwas abzubrechen.
+        Log.w("CrewFitPush", "Push is not set up: ${e.message}")
+        null
+    }
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Zeichen in der Statusleiste. Android faerbt es einfarbig und wirft alles
+    weg, was nicht deckend ist - deshalb eine schlichte Glocke aus vollen
+    Flaechen und keine Fassung des App-Logos.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Koerper der Glocke: Haube, Flanken, Rand -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,2.6 C12.9,2.6 13.6,3.3 13.6,4.2 L13.6,4.9 C16.4,5.6 18.3,8.1 18.3,11 L18.3,15.2 L20,17.6 L20,18.4 L4,18.4 L4,17.6 L5.7,15.2 L5.7,11 C5.7,8.1 7.6,5.6 10.4,4.9 L10.4,4.2 C10.4,3.3 11.1,2.6 12,2.6 Z" />
+
+    <!-- Kloeppel -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M9.7,19.6 L14.3,19.6 C14.3,20.8 13.3,21.8 12,21.8 C10.7,21.8 9.7,20.8 9.7,19.6 Z" />
+</vector>

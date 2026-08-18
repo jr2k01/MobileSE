@@ -147,6 +147,12 @@ class LoginActivity : AppCompatActivity() {
         if (navigated) return
         navigated = true
 
+        // Das Geraet fuer Push anmelden. Hier und nicht beim Start der App:
+        // die Kennung wird an das Konto gehaengt, und das steht erst jetzt
+        // fest. Der Aufruf blockiert nichts - schlaegt er fehl, geht es ohne
+        // Benachrichtigungen weiter.
+        lifecycleScope.launch { PushTokens.register(this@LoginActivity) }
+
         val target =
             if (repository.getJoinedCrewCode() != null) MainHubActivity::class.java
             else CrewLandingActivity::class.java

@@ -285,6 +285,22 @@
     <string name="logo_desc">CrewFit Logo</string>
     <string name="unknown_member">Unknown</string>
 
+    <!-- === Benachrichtigungen === -->
+    <string name="channel_activities">Crew workouts</string>
+    <string name="channel_activities_desc">When somebody in your crew logs a workout</string>
+    <string name="channel_ranking">Ranking</string>
+    <string name="channel_ranking_desc">When the order in the crew ranking changes</string>
+    <string name="push_activity_title">New workout in the crew</string>
+    <string name="push_activity_text">%1$s trained %2$s for %3$s minutes</string>
+    <string name="push_ranking_title">The ranking moved</string>
+    <string name="push_overtake_text">%1$s went past you. You are now number %2$d.</string>
+    <string name="push_lead_text">%1$s is now leading the crew.</string>
+    <string name="push_permission_denied">Without the permission CrewFit cannot notify you</string>
+    <string name="settings_notifications_label">NOTIFICATIONS</string>
+    <string name="settings_notifications">Push notifications</string>
+    <string name="settings_notifications_on">On. You hear about workouts and changes in the ranking.</string>
+    <string name="settings_notifications_off">Off. Tap to allow notifications.</string>
+
     <!--
         Rueckmeldungen an den Nutzer. Diese Texte standen vorher fest im
         Kotlin-Code. Als Ressourcen sind sie an einer Stelle gebuendelt und

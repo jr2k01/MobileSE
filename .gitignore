@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Gehoert zum Firebase-Projekt, nicht zum Quelltext. Anleitung: PUSH.md
+app/google-services.json

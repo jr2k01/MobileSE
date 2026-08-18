@@ -72,6 +72,45 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- === Benachrichtigungen === -->
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/settings_notifications_label" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+                <LinearLayout
+                    android:id="@+id/llNotifications"
+                    style="@style/Widget.CrewFit.SettingsRow"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_notifications"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+                    <!-- Ob sie ankommen, entscheidet das System; der Text sagt,
+                         woran man gerade ist. -->
+                    <TextView
+                        android:id="@+id/tvNotificationsStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- === Schritte === -->
             <TextView
                 style="@style/TextAppearance.CrewFit.SectionLabel"

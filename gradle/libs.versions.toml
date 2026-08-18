@@ -15,6 +15,8 @@ ktor = "3.0.3"
 kotlinx-serialization = "1.7.3"
 lifecycleKtx = "2.6.2"
 healthConnect = "1.1.0"
+firebaseBom = "33.7.0"
+googleServices = "4.4.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,7 +36,10 @@ supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-k
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "1.9.22" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

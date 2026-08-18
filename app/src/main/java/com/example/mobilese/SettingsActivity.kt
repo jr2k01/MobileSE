@@ -1,11 +1,15 @@
 package com.example.mobilese
 
+import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
@@ -54,6 +58,8 @@ class SettingsActivity : AppCompatActivity() {
         showThemeChoice()
         findViewById<View>(R.id.llTheme).setOnClickListener { askForTheme() }
 
+        findViewById<View>(R.id.llNotifications).setOnClickListener { onNotificationsTapped() }
+
         findViewById<View>(R.id.llSettingsAccount).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -63,6 +69,52 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.llHealthConnect).setOnClickListener { onHealthConnectTapped() }
         findViewById<View>(R.id.llLogout).setOnClickListener { logout() }
         findViewById<View>(R.id.llDeleteProfile).setOnClickListener { confirmDeletion() }
+    }
+
+    /**
+     * Fragt beim ersten Mal nach der Erlaubnis; steht sie schon oder wurde sie
+     * abgelehnt, fuehrt der Weg in die Systemeinstellungen. Eine App darf nur
+     * einmal fragen - danach entscheidet das System, und ein zweiter Antipper
+     * wuerde sonst wirkungslos verpuffen.
+     */
+    private val requestNotifications =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) {
+                Toast.makeText(this, R.string.push_permission_denied, Toast.LENGTH_LONG).show()
+            }
+            showNotificationStatus()
+        }
+
+    private fun showNotificationStatus() {
+        findViewById<TextView>(R.id.tvNotificationsStatus).setText(
+            if (Notifications.isAllowed(this)) R.string.settings_notifications_on
+            else R.string.settings_notifications_off
+        )
+    }
+
+    private fun onNotificationsTapped() {
+        if (Notifications.isAllowed(this)) {
+            openAppNotificationSettings()
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            // Vor Android 13 gibt es die Berechtigung nicht; abgeschaltet
+            // werden kann sie trotzdem, dann aber nur in den Systemeinstellungen.
+            openAppNotificationSettings()
+        }
+    }
+
+    private fun openAppNotificationSettings() {
+        try {
+            startActivity(
+                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            )
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.push_permission_denied, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun showThemeChoice() {
@@ -108,6 +160,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         showHealthStatus()
+        showNotificationStatus()
     }
 
     private fun showHealthStatus() {
@@ -159,6 +212,10 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun logout() {
         lifecycleScope.launch {
+            // Erst abmelden, dann die Sitzung beenden: das Loeschen der Zeile
+            // braucht noch die gueltige Anmeldung. Andersherum blieben die
+            // Benachrichtigungen der alten Crew auf diesem Geraet.
+            PushTokens.unregister(this@SettingsActivity)
             // logout() ist suspend, weil es zusaetzlich die Supabase-Sitzung
             // beendet und nicht nur den lokalen Sitzungsmarker loescht.
             repository.logout()

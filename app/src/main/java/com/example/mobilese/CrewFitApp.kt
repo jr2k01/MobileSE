@@ -16,5 +16,10 @@ class CrewFitApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ThemeMode.apply(AppRepository.get(this).getThemeMode())
+
+        // Die Kanaele muessen stehen, bevor die erste Benachrichtigung kommt.
+        // Sie hier anzulegen kostet nichts und erspart die Frage, ob der
+        // empfangende Dienst schon einmal lief.
+        Notifications.createChannels(this)
     }
 }

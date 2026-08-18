@@ -183,3 +183,16 @@ data class ChallengeReward(
     // Diese haette sich zwischen Ausschuettung und Abfrage aendern koennen.
     val points: Int = 0
 )
+
+/**
+ * Die Push-Kennung eines Geraets.
+ *
+ * Der Schluessel ist die Kennung, nicht der Nutzer: wer auf Telefon und Tablet
+ * angemeldet ist, soll auf beiden benachrichtigt werden. Meldet sich auf einem
+ * Geraet jemand anderes an, wandert die Zeile per Upsert zum neuen Konto.
+ */
+@Serializable
+data class DeviceToken(
+    val token: String,
+    @SerialName("user_id") val userId: String
+)

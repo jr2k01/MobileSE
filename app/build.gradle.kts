@@ -3,6 +3,23 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+/*
+ * Firebase nur, wenn es eingerichtet ist.
+ *
+ * Das google-services-Plugin bricht den Build ab, sobald die
+ * google-services.json fehlt. Fest angewendet liesse sich das Projekt also
+ * ohne ein eigenes Firebase-Projekt gar nicht mehr bauen - auf einem frisch
+ * geklonten Rechner, im Kurs, ueberall.
+ *
+ * Deshalb wird es nur angewendet, wenn die Datei tatsaechlich daliegt. Ohne
+ * sie baut und laeuft die App wie bisher, nur ohne Push; PushTokens faengt
+ * genau diesen Fall ab.
+ */
+val firebaseConfigured = file("google-services.json").exists()
+if (firebaseConfigured) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.example.mobilese"
     compileSdk {
@@ -81,6 +98,11 @@ dependencies {
     // Ohne diese Bibliothek ist Health Connect nicht ansprechbar: der Zugriff
     // laeuft ueber einen Systemdienst, nicht ueber eine offene Schnittstelle.
     implementation(libs.health.connect.client)
+
+    // Push-Benachrichtigungen. Die Abhaengigkeit selbst laesst sich immer
+    // uebersetzen; erst zur Laufzeit braucht sie eine Konfiguration.
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

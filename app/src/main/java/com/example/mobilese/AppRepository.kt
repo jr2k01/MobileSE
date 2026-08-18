@@ -194,6 +194,48 @@ class AppRepository private constructor(context: Context) {
     fun setThemeMode(mode: ThemeMode) =
         prefs.edit().putString(KEY_THEME_MODE, mode.storedName).apply()
 
+
+    // --- PUSH ---
+
+    /**
+     * Hinterlegt die Push-Kennung dieses Geraets beim angemeldeten Nutzer.
+     *
+     * Der Schluessel ist die Kennung, nicht der Nutzer: ein Nutzer kann mehrere
+     * Geraete haben und soll auf allen benachrichtigt werden. Meldet sich auf
+     * demselben Geraet jemand anderes an, wandert die Zeile durch das Upsert
+     * mit, statt dass zwei Konten auf dieselbe Kennung zeigen.
+     *
+     * Fehlt die Tabelle oder ist Firebase nicht eingerichtet, bleibt es beim
+     * Protokolleintrag - ohne Push ist die App vollstaendig benutzbar.
+     */
+    suspend fun savePushToken(token: String): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext false
+        try {
+            client.postgrest["device_tokens"].upsert(
+                DeviceToken(token = token, userId = userId)
+            )
+            true
+        } catch (e: Exception) {
+            Log.e("SupabasePush", "Could not store the push token: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Nimmt die Kennung dieses Geraets wieder aus der Datenbank.
+     *
+     * Muss beim Abmelden geschehen: sonst bekaeme das Geraet weiterhin die
+     * Benachrichtigungen der Crew des vorherigen Nutzers.
+     */
+    suspend fun deletePushToken(token: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["device_tokens"].delete { filter { eq("token", token) } }
+            true
+        } catch (e: Exception) {
+            Log.e("SupabasePush", "Could not remove the push token: ${e.message}")
+            false
+        }
+    }
     private fun clearLocalSession() {
         prefs.edit().remove(KEY_SESSION_USER).remove(KEY_JOINED_CREW).apply()
     }

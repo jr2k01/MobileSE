@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Ab Android 13 muss um das Anzeigen von Benachrichtigungen gebeten
+         werden; davor genuegte das Manifest. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!--
         Nur lesen: CrewFit zaehlt keine Schritte selbst, sondern zeigt an, was
         andere Apps ohnehin in Health Connect eintragen. Geschrieben wird
@@ -62,6 +66,28 @@
         <activity android:name=".MemberProfileActivity" android:exported="false" />
         <activity android:name=".WorkoutDetailActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />
+
+        <!--
+            Nimmt die Push-Nachrichten entgegen. Nicht exportiert: die
+            Play-Dienste stellen die Nachricht ueber den vorgegebenen
+            intent-filter zu, ein Zugriff von aussen ist dafuer nicht noetig.
+        -->
+        <service
+            android:name=".CrewFitMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Zeichen und Farbe der Benachrichtigungen, wenn die Nachricht
+             selbst keine mitbringt. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/md_primary" />
 
         <!--
             Ziel des Links aus der Mail zum Zuruecksetzen des Passworts.

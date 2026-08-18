@@ -3,6 +3,10 @@ package com.example.mobilese
 import android.content.Context
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -18,13 +22,29 @@ import kotlin.coroutines.resume
 object PushTokens {
 
     /**
+     * Eigener Bereich statt des lifecycleScope einer Activity.
+     *
+     * Das Anmelden geschieht auf dem Login-Bildschirm, und der beendet sich
+     * unmittelbar danach. An seinen Lebenszyklus gehaengt wurde das Holen der
+     * Kennung mitten im Lauf abgebrochen - sichtbar als "Job was cancelled",
+     * und in der Datenbank stand nie eine Zeile. Die Anmeldung des Geraets
+     * gehoert zu keinem Bildschirm; sie darf ihn ueberleben.
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
      * Holt die Kennung dieses Geraets und hinterlegt sie beim angemeldeten
      * Nutzer. Nach jeder Anmeldung aufzurufen - die Kennung gilt pro Geraet,
      * die Zuordnung zum Konto aber nicht.
+     *
+     * Laeuft im Hintergrund weiter und haelt nichts auf.
      */
-    suspend fun register(context: Context) {
-        val token = currentToken() ?: return
-        AppRepository.get(context).savePushToken(token)
+    fun register(context: Context) {
+        val app = context.applicationContext
+        scope.launch {
+            val token = currentToken() ?: return@launch
+            AppRepository.get(app).savePushToken(token)
+        }
     }
 
     /** Nimmt die Kennung wieder aus der Datenbank, damit das Geraet nichts mehr bekommt. */

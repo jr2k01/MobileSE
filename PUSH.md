@@ -28,8 +28,18 @@ create table if not exists device_tokens (
 
 alter table device_tokens enable row level security;
 
--- Jeder verwaltet nur seine eigenen Geraete. Lesen muss die App sie nicht -
--- das tut die Edge Function mit dem Service-Role-Key.
+-- Jeder verwaltet nur seine eigenen Geraete.
+--
+-- Die Leseregel ist nicht optional, auch wenn die App die Zeilen nie anzeigt:
+-- sie schreibt per Upsert, und ein Upsert ist ein INSERT ... ON CONFLICT DO
+-- UPDATE. Dafuer muss Postgres die kollidierende Zeile lesen duerfen. Ohne die
+-- Regel scheitert jedes Speichern mit "new row violates row-level security
+-- policy" - einer Meldung, die auf die Schreibregel zeigt und nicht auf die
+-- fehlende Leseregel.
+drop policy if exists "device_tokens_read_own" on device_tokens;
+create policy "device_tokens_read_own" on device_tokens
+    for select to authenticated using (auth.uid() = user_id);
+
 drop policy if exists "device_tokens_write_own" on device_tokens;
 create policy "device_tokens_write_own" on device_tokens
     for insert to authenticated with check (auth.uid() = user_id);

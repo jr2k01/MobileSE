@@ -151,7 +151,7 @@ class LoginActivity : AppCompatActivity() {
         // die Kennung wird an das Konto gehaengt, und das steht erst jetzt
         // fest. Der Aufruf blockiert nichts - schlaegt er fehl, geht es ohne
         // Benachrichtigungen weiter.
-        lifecycleScope.launch { PushTokens.register(this@LoginActivity) }
+        PushTokens.register(this)
 
         val target =
             if (repository.getJoinedCrewCode() != null) MainHubActivity::class.java

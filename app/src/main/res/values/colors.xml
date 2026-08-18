@@ -152,6 +152,11 @@
     <color name="chart_sport_5">#C79420</color>
     <color name="chart_sport_6">#B4568F</color>
 
+    <!-- Hintergrund des App-Symbols: das Marineblau aus dem Logo. Steht hier
+         und nicht bei den Flaechenrollen, weil es sich nicht mit dem hellen
+         Modus drehen darf - ein App-Symbol sieht immer gleich aus. -->
+    <color name="ic_launcher_background">#131A2A</color>
+
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

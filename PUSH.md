@@ -125,20 +125,58 @@ npx supabase functions deploy notify --no-verify-jwt
 
 ---
 
-## 5. Webhook auf die Aktivitaeten
+## 5. Ausloeser auf die Aktivitaeten
 
-Supabase → **Database** → **Webhooks** → **Create a new hook**:
+Damit die Funktion bei jedem neuen Workout anlaeuft, braucht es einen Trigger
+auf `activities`. Zwei Wege, die dasselbe tun - ein "Database Webhook" ist bei
+Supabase genau so ein Trigger, nur ueber die Oberflaeche angelegt.
 
-| Feld | Wert |
-| --- | --- |
-| Name | `notify_on_activity` |
-| Table | `activities` |
-| Events | nur **Insert** |
-| Type | **Supabase Edge Functions** |
-| Edge Function | `notify` |
-| Method | `POST` |
+### Per SQL - funktioniert immer
 
-Damit laeuft die Funktion bei jedem neuen Workout an.
+Supabase → **SQL Editor**:
+
+```sql
+-- Erlaubt der Datenbank, HTTP-Anfragen zu stellen. Ohne diese Erweiterung
+-- kaeme der Trigger nicht aus der Datenbank heraus.
+create extension if not exists pg_net;
+
+create or replace function notify_on_activity()
+returns trigger
+language plpgsql
+security definer
+as $$
+begin
+    -- Das Feld heisst record, weil die Funktion genau das erwartet - dieselbe
+    -- Form, die auch ein ueber die Oberflaeche angelegter Webhook schickt.
+    perform net.http_post(
+        url := 'https://ghhtaaoedlvhipmnuziu.supabase.co/functions/v1/notify',
+        headers := '{"Content-Type": "application/json"}'::jsonb,
+        body := jsonb_build_object('record', to_jsonb(new))
+    );
+    return new;
+end;
+$$;
+
+drop trigger if exists notify_on_activity on activities;
+create trigger notify_on_activity
+    after insert on activities
+    for each row execute function notify_on_activity();
+```
+
+`after insert` und nicht `before`: das Workout soll gespeichert sein, bevor
+jemand davon erfaehrt. `net.http_post` wartet nicht auf die Antwort - das
+Speichern eines Workouts haengt also nicht daran, ob die Benachrichtigung
+klappt.
+
+### Oder ueber die Oberflaeche
+
+In aelteren Dashboards unter **Database** → **Webhooks**, in neueren unter
+**Integrations** → **Database Webhooks** (dort erst einschalten). Dann **Create
+a new hook** mit: Tabelle `activities`, Event nur **Insert**, Type **Supabase
+Edge Functions**, Function `notify`, Method `POST`.
+
+Nur einen der beiden Wege gehen - sonst laeuft die Funktion bei jedem Workout
+zweimal und die Benachrichtigung kommt doppelt.
 
 ---
 
@@ -157,6 +195,23 @@ Kommt nichts an, in dieser Reihenfolge nachsehen:
 
 - Supabase → **Edge Functions** → `notify` → **Logs**. Dort steht, ob die
   Funktion ueberhaupt lief und was FCM geantwortet hat.
+- Lief sie gar nicht, hat der Trigger nicht ausgeloest. Was er getan hat, steht
+  in der Datenbank:
+
+  ```sql
+  select id, created, url, status_code, content
+  from net._http_response
+  order by created desc
+  limit 5;
+  ```
+
+  Keine Zeile heisst: der Trigger existiert nicht oder feuert nicht. Dann
+  pruefen, ob er da ist:
+
+  ```sql
+  select tgname from pg_trigger where tgrelid = 'activities'::regclass;
+  ```
+
 - Steht in `device_tokens` eine Zeile fuer den Empfaenger?
 - Ist die Benachrichtigungserlaubnis erteilt? Einstellungen → NOTIFICATIONS.
 - Ein Emulator **ohne Google Play** kann kein FCM. Es braucht ein Abbild mit

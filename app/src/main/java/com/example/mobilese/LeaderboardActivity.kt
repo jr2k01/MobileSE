@@ -10,11 +10,13 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Dispatchers
@@ -24,21 +26,30 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Die Rangliste der Crew.
+ * Die Rangliste der Crew, umschaltbar zwischen Tabelle und Auswertung.
  *
  * Die Challenges standen frueher auf demselben Bildschirm oberhalb der
  * Rangliste und schoben sie nach unten; sie haben jetzt einen eigenen, siehe
  * [CrewChallengesActivity]. Faellige Belohnungen werden hier trotzdem noch
  * ausgeschuettet - die Punkte sollen ankommen, egal welchen der beiden
  * Bildschirme jemand oeffnet.
+ *
+ * Dasselbe Platzproblem hatte danach die Auswertung: drei Karten ueber der
+ * Tabelle, die man jedes Mal wegscrollen musste. Beides steht deshalb jetzt
+ * hinter einem Umschalter, mit der Rangliste vorne - sie ist der Grund, aus dem
+ * der Bildschirm geoeffnet wird.
  */
 class LeaderboardActivity : AppCompatActivity() {
+
+    /** Welche der beiden Ansichten gerade zu sehen ist. */
+    private enum class Tab { RANKING, ANALYTICS }
 
     private lateinit var repository: AppRepository
     private lateinit var llLeaderboard: LinearLayout
     private lateinit var crewCode: String
     private lateinit var memeView: CrewMemeView
 
+    private var tab = Tab.RANKING
     private var loadJob: Job? = null
 
     /** Ob der angemeldete Nutzer gerade fuehrt - nur dann darf er aufhaengen. */
@@ -63,8 +74,46 @@ class LeaderboardActivity : AppCompatActivity() {
             onRemove = { confirmRemoveMeme() }
         )
         setUpTopBar(R.string.crew_ranking)
+        setUpTabs(savedInstanceState)
 
         load()
+    }
+
+    /**
+     * Der Umschalter zwischen Rangliste und Auswertung.
+     *
+     * Die gewaehlte Seite ueberlebt das Drehen des Geraets: sonst stuende man
+     * nach dem Drehen wieder in der Rangliste, obwohl man sich gerade die
+     * Auswertung angesehen hat.
+     */
+    private fun setUpTabs(savedInstanceState: Bundle?) {
+        tab = savedInstanceState?.getString(STATE_TAB)?.let { Tab.valueOf(it) } ?: Tab.RANKING
+
+        val toggle = findViewById<MaterialButtonToggleGroup>(R.id.tgLeaderboardTab)
+        toggle.check(if (tab == Tab.ANALYTICS) R.id.btnTabAnalytics else R.id.btnTabRanking)
+        toggle.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            tab = if (checkedId == R.id.btnTabAnalytics) Tab.ANALYTICS else Tab.RANKING
+            showTab()
+        }
+
+        showTab()
+    }
+
+    private fun showTab() {
+        findViewById<View>(R.id.llRankingSection).visibility =
+            if (tab == Tab.RANKING) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.llAnalyticsSection).visibility =
+            if (tab == Tab.ANALYTICS) View.VISIBLE else View.GONE
+
+        // Beide Seiten teilen sich eine ScrollView. Ohne das Zuruecksetzen
+        // begaenne die kuerzere dort, wo die laengere stand.
+        findViewById<ScrollView>(R.id.svLeaderboard).scrollTo(0, 0)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_TAB, tab.name)
     }
 
     // --- Bild der Nummer eins ---
@@ -251,5 +300,9 @@ class LeaderboardActivity : AppCompatActivity() {
         row.findViewById<View>(R.id.flStepsGoal).contentDescription =
             if (StepGoal.isReached(steps.toLong())) getString(R.string.steps_hint_goal_reached)
             else getString(R.string.steps_ring_desc, steps, StepGoal.DAILY_STEPS)
+    }
+
+    private companion object {
+        const val STATE_TAB = "leaderboard_tab"
     }
 }

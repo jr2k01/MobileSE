@@ -128,6 +128,8 @@
 
     <!-- Dashboard / Leaderboard -->
     <string name="crew_ranking">Crew Leaderboard</string>
+    <string name="tab_ranking">Leaderboard</string>
+    <string name="tab_analytics">Analytics</string>
     <string name="rank_header">#</string>
     <string name="member_header">MEMBER</string>
     <string name="score_header">SCORE</string>

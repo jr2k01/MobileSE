@@ -96,6 +96,28 @@ Dazu einen **oeffentlichen Storage-Bucket namens `memes`** anlegen: Supabase →
 **Storage** → **New bucket**, Name `memes`, "Public bucket" einschalten - wie
 bei `avatars` und `photos`.
 
+### Die Auswahl an Bildern
+
+Der Fuehrende kann entweder ein eigenes Bild hochladen oder eines aus einer
+vorgegebenen Auswahl nehmen. Diese Auswahl ist kein Code, sondern schlicht der
+Inhalt eines Ordners im selben Bucket:
+
+Supabase → **Storage** → Bucket `memes` → **Create folder**, Name `presets`.
+Alles, was dort hochgeladen wird, steht beim naechsten Oeffnen des Dialogs zur
+Wahl - ohne die App neu zu bauen.
+
+Sortiert wird nach Dateinamen. Soll die Reihenfolge festliegen, hilft eine
+Nummer davor: `01_...png`, `02_...png`. Der Dateiname selbst ist nicht zu sehen;
+er wird nur der Sprachausgabe vorgelesen.
+
+Liegt noch nichts im Ordner - oder gibt es ihn gar nicht - sagt der Dialog das
+und der Upload aus der Galerie funktioniert weiterhin.
+
+**Diese Dateien werden nie geloescht.** Ein Bild aus der Auswahl gehoert keiner
+Crew und kann in mehreren gleichzeitig haengen; die App loescht beim Abnehmen
+oder Austauschen nur, was jemand selbst hochgeladen hat. Erkennbar ist das am
+Ordner: was unter `presets/` liegt, bleibt liegen.
+
 **Was die Regeln nicht koennen:** Dass nur der Fuehrende aufhaengen darf, prueft
 die App. In der Datenbank laesst sich das nicht durchsetzen, weil der Rang aus
 Aktivitaeten, Belohnungen und Schritten in der App gerechnet wird und dort gar

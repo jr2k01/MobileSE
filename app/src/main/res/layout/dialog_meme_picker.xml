@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die Auswahl beim Aufhaengen: das Raster der vorgegebenen Bilder. Der Weg
+    ueber die eigene Galerie steht als Schaltflaeche des Dialogs daneben.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp">
+
+    <!-- Steht da, solange im Ordner noch nichts liegt. -->
+    <TextView
+        android:id="@+id/tvMemePresetsEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:text="@string/meme_no_presets"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/svMemePresets"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <GridLayout
+            android:id="@+id/glMemePresets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="@integer/meme_preset_columns" />
+    </ScrollView>
+
+</LinearLayout>

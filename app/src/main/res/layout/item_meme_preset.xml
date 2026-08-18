@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ein Bild der vorgegebenen Auswahl.
+
+    Vollstaendig zu sehen (fitCenter) und nicht auf die Kachel zugeschnitten:
+    beim Aussuchen zaehlt gerade, was auf dem Bild steht - ein Ausschnitt aus
+    der Mitte waere die schlechteste Vorschau von allen.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dp">
+
+    <!--
+        Die Beschreibung setzt der Code: sie enthaelt den Dateinamen und steht
+        deshalb erst fest, wenn die Auswahl geladen ist.
+    -->
+    <ImageView
+        android:id="@+id/ivMemePreset"
+        android:layout_width="@dimen/meme_preset_width"
+        android:layout_height="@dimen/meme_preset_height"
+        android:background="?attr/colorSurfaceContainerHighest"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        tools:ignore="ContentDescription" />
+
+</FrameLayout>

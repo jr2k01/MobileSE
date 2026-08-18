@@ -133,6 +133,15 @@ data class CrewMeme(
     val caption: String? = null
 )
 
+/**
+ * Ein Bild aus der vorgegebenen Auswahl.
+ *
+ * Kein Datenbankmodell: die Auswahl steht nicht in einer Tabelle, sondern ist
+ * schlicht der Inhalt eines Ordners im Bucket. [name] ist der Dateiname und
+ * dient nur als Beschriftung fuer die Sprachausgabe.
+ */
+data class MemePreset(val name: String, val url: String)
+
 @Serializable
 data class Challenge(
     val id: String,

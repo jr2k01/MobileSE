@@ -1,5 +1,6 @@
 package com.example.mobilese
 
+import android.content.DialogInterface
 import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
@@ -7,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -57,7 +59,7 @@ class LeaderboardActivity : AppCompatActivity() {
 
     private val pickMemeLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { askForCaption(it) }
+            uri?.let { picked -> askForCaption { caption -> saveMeme(picked, caption) } }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,11 +127,61 @@ class LeaderboardActivity : AppCompatActivity() {
             toast(R.string.meme_not_leader)
             return
         }
-        pickMemeLauncher.launch("image/*")
+        showPictureChoice()
+    }
+
+    /**
+     * Die Auswahl: das Raster der vorgegebenen Bilder, daneben der Weg ueber
+     * die eigene Galerie.
+     *
+     * Beides in einem Dialog statt hintereinander - vorgeschaltet zu fragen,
+     * woher das Bild kommen soll, waere ein Schritt mehr fuer eine Frage, die
+     * sich beim Hinsehen von selbst beantwortet.
+     *
+     * Die Auswahl wird bei jedem Oeffnen geholt: sie liegt in einem Ordner im
+     * Bucket und kann sich geaendert haben, ohne dass die App neu gebaut wurde.
+     */
+    private fun showPictureChoice() {
+        lifecycleScope.launch {
+            val presets = repository.listMemePresets()
+
+            val view = layoutInflater.inflate(R.layout.dialog_meme_picker, null)
+            val dialog = MaterialAlertDialogBuilder(this@LeaderboardActivity)
+                .setTitle(R.string.meme_choose_title)
+                .setView(view)
+                .setNegativeButton(R.string.cancel_btn, null)
+                .setNeutralButton(R.string.meme_from_gallery) { _, _ ->
+                    pickMemeLauncher.launch("image/*")
+                }
+                .show()
+
+            view.findViewById<View>(R.id.tvMemePresetsEmpty).visibility =
+                if (presets.isEmpty()) View.VISIBLE else View.GONE
+
+            fillPresetGrid(view.findViewById(R.id.glMemePresets), presets, dialog)
+        }
+    }
+
+    private fun fillPresetGrid(grid: GridLayout, presets: List<MemePreset>, dialog: DialogInterface) {
+        grid.removeAllViews()
+
+        presets.forEach { preset ->
+            val tile = layoutInflater.inflate(R.layout.item_meme_preset, grid, false)
+            val image = tile.findViewById<ImageView>(R.id.ivMemePreset)
+
+            ImageLoader.into(image, preset.url, placeholder = android.R.drawable.ic_menu_gallery)
+            image.contentDescription = getString(R.string.meme_preset_desc, preset.name)
+
+            tile.setOnClickListener {
+                dialog.dismiss()
+                askForCaption { caption -> savePreset(preset, caption) }
+            }
+            grid.addView(tile)
+        }
     }
 
     /** Der Spruch ist freiwillig; leer gelassen zeigt die Karte nur das Bild. */
-    private fun askForCaption(uri: Uri) {
+    private fun askForCaption(onConfirmed: (String) -> Unit) {
         val input = EditText(this).apply {
             setHint(R.string.meme_caption_hint)
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
@@ -145,9 +197,18 @@ class LeaderboardActivity : AppCompatActivity() {
             .setView(container)
             .setNegativeButton(R.string.cancel_btn, null)
             .setPositiveButton(R.string.add_btn) { _, _ ->
-                saveMeme(uri, input.text.toString())
+                onConfirmed(input.text.toString())
             }
             .show()
+    }
+
+    /** Ein Bild aus der Auswahl: es liegt schon im Bucket, nichts zu laden. */
+    private fun savePreset(preset: MemePreset, caption: String) {
+        lifecycleScope.launch {
+            val saved = repository.saveCrewMemePreset(crewCode, preset, caption)
+            toast(if (saved) R.string.meme_saved else R.string.meme_save_failed)
+            if (saved) load()
+        }
     }
 
     private fun saveMeme(uri: Uri, caption: String) {

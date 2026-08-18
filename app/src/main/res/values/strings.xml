@@ -143,6 +143,10 @@
     <string name="meme_image_desc">Picture put up by the crew leader</string>
     <string name="meme_empty_leader">You are leading. Put something up for the crew.</string>
     <string name="meme_empty_other">Whoever leads the crew may put a picture up here.</string>
+    <string name="meme_choose_title">Choose a picture</string>
+    <string name="meme_from_gallery">From my gallery</string>
+    <string name="meme_no_presets">There is nothing to choose from yet. You can still put up a picture of your own.</string>
+    <string name="meme_preset_desc">Picture to choose: %1$s</string>
     <string name="meme_pick_title">Your picture</string>
     <string name="meme_caption_hint">Something to say? (optional)</string>
     <string name="meme_saved">Picture is up</string>

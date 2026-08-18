@@ -9,4 +9,8 @@
 
     <!-- Spalten im Medaillenraster; auf dem Tablet passen mehr nebeneinander. -->
     <integer name="medal_columns">4</integer>
+
+    <!-- Spalten im Auswahlraster fuer das Bild der Nummer eins. Weniger als bei
+         den Medaillen: hier muss man erkennen, was auf dem Bild steht. -->
+    <integer name="meme_preset_columns">2</integer>
 </resources>

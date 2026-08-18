@@ -90,6 +90,18 @@ class AppRepository private constructor(context: Context) {
         const val CONFIRM_REDIRECT_URL =
             "https://jr2k01.github.io/MobileSE/confirmed.html"
 
+        /**
+         * Bucket fuer das Bild der Nummer eins, und darin der Ordner mit der
+         * vorgegebenen Auswahl.
+         *
+         * Beides im selben Bucket: die Auswahl ist oeffentlich lesbar wie die
+         * hochgeladenen Bilder auch, und ein zweiter Bucket haette dieselben
+         * Regeln noch einmal gebraucht. Der Ordner unterscheidet sie - was
+         * darin liegt, gehoert keiner Crew und wird nie geloescht.
+         */
+        const val MEME_BUCKET = "memes"
+        const val MEME_PRESET_FOLDER = "presets"
+
         private const val PREFS_NAME = "CrewFitDatabase"
         private const val KEY_SESSION_USER = "current_session_user"
         private const val KEY_JOINED_CREW = "user_joined_crew_code"
@@ -582,45 +594,86 @@ class AppRepository private constructor(context: Context) {
     }
 
     /**
-     * Haengt ein Bild fuer die Crew auf und ersetzt dabei das vorherige.
+     * Die vorgegebene Auswahl an Bildern.
+     *
+     * Sie liegt als Ordner im selben Bucket wie die hochgeladenen Bilder. Damit
+     * laesst sie sich erweitern, ohne die App neu zu bauen - eine Datei mehr im
+     * Ordner, und sie steht beim naechsten Oeffnen zur Wahl.
+     *
+     * Eine leere Liste ist kein Fehler, sondern der Zustand vor der ersten
+     * hinterlegten Datei: der Auswahldialog sagt das dann und der Upload aus
+     * der Galerie funktioniert weiterhin.
+     */
+    suspend fun listMemePresets(): List<MemePreset> = withContext(Dispatchers.IO) {
+        try {
+            client.storage[MEME_BUCKET].list(MEME_PRESET_FOLDER)
+                // Ordner haben keine Kennung, und in einem leeren Ordner legt
+                // Supabase eine versteckte Platzhalterdatei ab.
+                .filter { it.id != null && !it.name.startsWith(".") }
+                .sortedBy { it.name }
+                .map { MemePreset(it.name, presetUrl(it.name)) }
+        } catch (e: Exception) {
+            Log.e("SupabaseStorage", "Could not load the picture choices: ${e.message}")
+            emptyList()
+        }
+    }
+
+    private fun presetUrl(fileName: String): String =
+        client.storage[MEME_BUCKET].publicUrl("$MEME_PRESET_FOLDER/$fileName")
+
+    /**
+     * Haengt ein eigenes Bild auf und ersetzt dabei das vorherige.
      *
      * Das alte Bild wird erst aus dem Speicher geloescht, nachdem das neue
      * oben ist - schlaegt der Upload fehl, bleibt lieber das alte haengen als
      * gar keins.
+     */
+    suspend fun saveCrewMeme(crewCode: String, localPath: String, caption: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val url = uploadImage(MEME_BUCKET, localPath)
+            if (url.isEmpty()) {
+                Log.e("SupabaseDB", "Uploading the crew picture failed, keeping the old one")
+                return@withContext false
+            }
+            putCrewMeme(crewCode, url, caption)
+        }
+
+    /**
+     * Haengt ein Bild aus der Auswahl auf.
      *
-     * Dass nur der Fuehrende hochladen darf, prueft der Bildschirm. In der
+     * Ohne Upload: die Datei liegt bereits im Bucket, gespeichert wird nur ihre
+     * Adresse.
+     */
+    suspend fun saveCrewMemePreset(crewCode: String, preset: MemePreset, caption: String): Boolean =
+        withContext(Dispatchers.IO) { putCrewMeme(crewCode, preset.url, caption) }
+
+    /**
+     * Schreibt die Zeile der Crew und raeumt das vorherige Bild weg.
+     *
+     * Dass nur der Fuehrende aufhaengen darf, prueft der Bildschirm. In der
      * Datenbank laesst sich das nicht durchsetzen, weil der Rang aus
      * Aktivitaeten, Belohnungen und Schritten in der App gerechnet wird und
      * dort gar nicht bekannt ist. Die Regel in der Datenbank lautet deshalb
      * nur: schreiben darf jeder ausschliesslich unter seinem eigenen Namen.
      */
-    suspend fun saveCrewMeme(crewCode: String, localPath: String, caption: String): Boolean {
+    private suspend fun putCrewMeme(crewCode: String, imageUrl: String, caption: String): Boolean {
         val userId = currentUserId() ?: return false
+        val previous = getCrewMeme(crewCode)
 
-        return withContext(Dispatchers.IO) {
-            val previous = getCrewMeme(crewCode)
-
-            val url = uploadImage("memes", localPath)
-            if (url.isEmpty()) {
-                Log.e("SupabaseDB", "Uploading the crew picture failed, keeping the old one")
-                return@withContext false
-            }
-
-            try {
-                client.postgrest["crew_memes"].upsert(
-                    CrewMeme(
-                        crewId = crewCode,
-                        userId = userId,
-                        imageUrl = url,
-                        caption = caption.trim()
-                    )
+        return try {
+            client.postgrest["crew_memes"].upsert(
+                CrewMeme(
+                    crewId = crewCode,
+                    userId = userId,
+                    imageUrl = imageUrl,
+                    caption = caption.trim()
                 )
-                deleteFileByPublicUrl("memes", previous?.imageUrl)
-                true
-            } catch (e: Exception) {
-                Log.e("SupabaseDB", "Could not save the crew picture: ${e.message}")
-                false
-            }
+            )
+            deleteUploadedMemeFile(previous?.imageUrl)
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not save the crew picture: ${e.message}")
+            false
         }
     }
 
@@ -629,13 +682,29 @@ class AppRepository private constructor(context: Context) {
         val existing = getCrewMeme(crewCode)
         try {
             client.postgrest["crew_memes"].delete { filter { eq("crew_id", crewCode) } }
-            deleteFileByPublicUrl("memes", existing?.imageUrl)
+            deleteUploadedMemeFile(existing?.imageUrl)
             true
         } catch (e: Exception) {
             Log.e("SupabaseDB", "Could not remove the crew picture: ${e.message}")
             false
         }
     }
+
+    /**
+     * Loescht die abgehaengte Datei - aber nur, wenn sie hochgeladen wurde.
+     *
+     * Ein Bild aus der Auswahl gehoert keiner Crew: es liegt einmal im Bucket
+     * und kann in mehreren Crews gleichzeitig haengen. Wuerde es hier mit
+     * geloescht, verschwaende es fuer alle anderen mit - und aus der Auswahl
+     * gleich dazu.
+     */
+    private suspend fun deleteUploadedMemeFile(publicUrl: String?) {
+        if (publicUrl == null || isMemePreset(publicUrl)) return
+        deleteFileByPublicUrl(MEME_BUCKET, publicUrl)
+    }
+
+    private fun isMemePreset(url: String): Boolean =
+        url.contains("/$MEME_BUCKET/$MEME_PRESET_FOLDER/")
 
     /** Laedt ein neues Profilbild hoch und hinterlegt dessen URL. */
     suspend fun saveUserImage(localPath: String): Boolean {

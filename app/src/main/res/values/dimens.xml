@@ -102,6 +102,10 @@
          bleibt darunter. -->
     <dimen name="meme_height">200dp</dimen>
 
+    <!-- Eine Kachel im Auswahlraster. -->
+    <dimen name="meme_preset_width">128dp</dimen>
+    <dimen name="meme_preset_height">104dp</dimen>
+
     <!-- Auswertung auf dem Ranglisten-Bildschirm -->
     <dimen name="chart_week_height">96dp</dimen>
     <dimen name="chart_bar_width">18dp</dimen>

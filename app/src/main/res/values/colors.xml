@@ -1,68 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Farbsystem nach Material Design 3.
+    Farbsystem nach Material Design 3 - die HELLE Fassung.
 
     Material 3 arbeitet nicht mit einzelnen Farben, sondern mit Rollen: zu
     jeder Grundfarbe gehoert eine Kontrastfarbe ("on...") und eine gedaempfte
     Flaechenvariante ("...Container"). Wer sich daran haelt, bekommt lesbare
     Kontraste geschenkt, statt sie pro Bildschirm von Hand zu stimmen.
 
-    Die App bleibt bewusst durchgehend dunkel - das war schon vorher so und
-    passt zu einer Sport-App, die auch abends benutzt wird. Deshalb sind hier
-    die Dark-Scheme-Werte hinterlegt: helle Grundfarben auf dunklen Flaechen.
+    Die dunkle Fassung steht unter demselben Namen in values-night/colors.xml.
+    Weil alle Bildschirme ihre Farben ueber diese Rollen beziehen und nie ueber
+    feste Werte, genuegen die beiden Dateien - kein Layout muss doppelt
+    vorliegen.
 
-    Die Markenfarben bleiben erhalten: Indigo als Primaerfarbe, Smaragdgruen
-    fuer Erfolge und Fortschritt.
+    Dieselben Marken, gespiegelte Helligkeit: was dunkel als helles Pastell auf
+    schwarzer Flaeche steht, ist hier der satte Ton auf weisser. Ein Pastell auf
+    Weiss waere kaum zu sehen.
 -->
 <resources>
 
     <!-- === Primaer: Indigo, traegt die Hauptaktionen === -->
-    <color name="md_primary">#AEB6FF</color>
-    <color name="md_on_primary">#1B1B5C</color>
-    <color name="md_primary_container">#3A3F9E</color>
-    <color name="md_on_primary_container">#E0E3FF</color>
+    <color name="md_primary">#4A51B8</color>
+    <color name="md_on_primary">#FFFFFF</color>
+    <color name="md_primary_container">#E0E3FF</color>
+    <color name="md_on_primary_container">#050B63</color>
 
     <!-- === Sekundaer: Smaragd, steht fuer Fortschritt und Erfolg === -->
-    <color name="md_secondary">#6FE7B7</color>
-    <color name="md_on_secondary">#00382A</color>
-    <color name="md_secondary_container">#00513E</color>
-    <color name="md_on_secondary_container">#8CFFD1</color>
+    <color name="md_secondary">#00795A</color>
+    <color name="md_on_secondary">#FFFFFF</color>
+    <color name="md_secondary_container">#8CFFD1</color>
+    <color name="md_on_secondary_container">#002018</color>
 
     <!-- === Tertiaer: warmer Akzent fuer Auszeichnungen === -->
-    <color name="md_tertiary">#FFB77C</color>
-    <color name="md_on_tertiary">#4A2800</color>
-    <color name="md_tertiary_container">#6A3B00</color>
-    <color name="md_on_tertiary_container">#FFDCC2</color>
+    <color name="md_tertiary">#8C5000</color>
+    <color name="md_on_tertiary">#FFFFFF</color>
+    <color name="md_tertiary_container">#FFDCC2</color>
+    <color name="md_on_tertiary_container">#2E1500</color>
 
     <!-- === Fehler === -->
-    <color name="md_error">#FFB4AB</color>
-    <color name="md_on_error">#690005</color>
-    <color name="md_error_container">#93000A</color>
-    <color name="md_on_error_container">#FFDAD6</color>
+    <color name="md_error">#BA1A1A</color>
+    <color name="md_on_error">#FFFFFF</color>
+    <color name="md_error_container">#FFDAD6</color>
+    <color name="md_on_error_container">#410002</color>
 
-    <!-- === Flaechen, von der tiefsten zur hoechsten Ebene === -->
-    <color name="md_surface">#101319</color>
-    <color name="md_on_surface">#E3E2E9</color>
-    <color name="md_surface_variant">#45464F</color>
-    <color name="md_on_surface_variant">#C6C6D0</color>
+    <!-- === Flaechen, von der tiefsten zur hoechsten Ebene ===
+         Hell laeuft die Reihe andersherum als dunkel: die "hoehere" Ebene ist
+         hier die dunklere, weil sie sich von der weissen Grundflaeche abheben
+         muss statt von einer schwarzen. -->
+    <color name="md_surface">#FBF8FF</color>
+    <color name="md_on_surface">#1A1B21</color>
+    <color name="md_surface_variant">#E2E1EC</color>
+    <color name="md_on_surface_variant">#45464F</color>
 
-    <color name="md_surface_container_lowest">#0B0E13</color>
-    <color name="md_surface_container_low">#181B21</color>
-    <color name="md_surface_container">#1C1F26</color>
-    <color name="md_surface_container_high">#272A31</color>
-    <color name="md_surface_container_highest">#32353C</color>
+    <color name="md_surface_container_lowest">#FFFFFF</color>
+    <color name="md_surface_container_low">#F5F2FA</color>
+    <color name="md_surface_container">#EFEDF4</color>
+    <color name="md_surface_container_high">#E9E7EF</color>
+    <color name="md_surface_container_highest">#E3E1E9</color>
 
-    <color name="md_outline">#90909A</color>
-    <color name="md_outline_variant">#45464F</color>
+    <color name="md_outline">#767680</color>
+    <color name="md_outline_variant">#C7C5D0</color>
 
-    <color name="md_inverse_surface">#E3E2E9</color>
-    <color name="md_inverse_on_surface">#2E3036</color>
+    <color name="md_inverse_surface">#2F3036</color>
+    <color name="md_inverse_on_surface">#F2F0F7</color>
     <color name="md_scrim">#000000</color>
 
     <!--
         Altnamen aus der Zeit vor Material 3. Sie werden noch aus dem
         Kotlin-Code heraus verwendet (etwa fuer den Marker auf der Karte) und
-        zeigen deshalb auf die neuen Rollen, statt eigene Werte zu haben.
+        zeigen deshalb auf die neuen Rollen, statt eigene Werte zu haben. Damit
+        folgen sie dem Modus von selbst mit.
     -->
     <color name="primary">@color/md_primary</color>
     <color name="primary_dark">@color/md_primary_container</color>
@@ -79,7 +85,8 @@
         Podest der Crew Top 3. Gold, Silber und Bronze sind hier bewusst keine
         Rollen des Farbsystems: sie bedeuten ueberall dasselbe und sollen sich
         gerade nicht mitverschieben, wenn die Markenfarben angepasst werden.
-        Aufgehellte Toene, damit die dunkle Ziffer darauf lesbar bleibt.
+        Aus demselben Grund sind sie in beiden Modi gleich - ein Podest hat
+        seine Farben, egal wie hell der Bildschirm ist.
     -->
     <color name="podium_first">#F5C851</color>
     <color name="podium_second">#C3C8D2</color>
@@ -104,7 +111,8 @@
     <!--
         Medaillen. Jede hat ihre eigene Farbe, damit sie sich im Profil schon
         von weitem unterscheiden lassen - der Rand ist jeweils die dunklere
-        Fassung, das Motiv sitzt darauf.
+        Fassung, das Motiv sitzt darauf. Wie das Podest in beiden Modi gleich:
+        eine goldene Medaille ist golden.
     -->
     <color name="medal_bronze">#D9955C</color>
     <color name="medal_bronze_dark">#A66535</color>
@@ -128,17 +136,21 @@
         Herkunft der Punkte in der Rangliste und im Ring der Sportarten.
         Deutlich voneinander unterscheidbar, auch fuer Rot-Gruen-Schwaeche:
         die Reihenfolge geht ueber Helligkeit, nicht nur ueber den Farbton.
-    -->
-    <color name="split_workouts">#AEB6FF</color>
-    <color name="split_challenges">#FFB77C</color>
-    <color name="split_steps">#6FE7B7</color>
 
-    <color name="chart_sport_1">#AEB6FF</color>
-    <color name="chart_sport_2">#6FE7B7</color>
-    <color name="chart_sport_3">#FFB77C</color>
-    <color name="chart_sport_4">#8FC4FF</color>
-    <color name="chart_sport_5">#F5C851</color>
-    <color name="chart_sport_6">#E08FC4</color>
+        Hier die satten Toene: die pastelligen aus dem dunklen Modus waeren auf
+        weissem Grund kaum vom Hintergrund zu unterscheiden. Es sind dieselben
+        Werte wie die dunklen Raender der Medaillen.
+    -->
+    <color name="split_workouts">#5A63C4</color>
+    <color name="split_challenges">#C4703A</color>
+    <color name="split_steps">#2E9C74</color>
+
+    <color name="chart_sport_1">#5A63C4</color>
+    <color name="chart_sport_2">#2E9C74</color>
+    <color name="chart_sport_3">#C4703A</color>
+    <color name="chart_sport_4">#3D77C4</color>
+    <color name="chart_sport_5">#C79420</color>
+    <color name="chart_sport_6">#B4568F</color>
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Ob die Symbole in der Statusleiste dunkel gezeichnet werden. Hell:
+        ja, denn dahinter liegt eine helle Flaeche. Die dunkle Fassung steht in
+        values-night.
+
+        Als Bool und nicht als zweite Theme-Datei: sonst muesste das ganze Theme
+        ein zweites Mal dastehen, nur um diese eine Zeile zu drehen.
+    -->
+    <bool name="window_light_status_bar">true</bool>
+</resources>

@@ -51,6 +51,9 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvSettingsVersion).text =
             getString(R.string.settings_version, BuildConfig.VERSION_NAME)
 
+        showThemeChoice()
+        findViewById<View>(R.id.llTheme).setOnClickListener { askForTheme() }
+
         findViewById<View>(R.id.llSettingsAccount).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -60,6 +63,41 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.llHealthConnect).setOnClickListener { onHealthConnectTapped() }
         findViewById<View>(R.id.llLogout).setOnClickListener { logout() }
         findViewById<View>(R.id.llDeleteProfile).setOnClickListener { confirmDeletion() }
+    }
+
+    private fun showThemeChoice() {
+        findViewById<TextView>(R.id.tvThemeValue).setText(repository.getThemeMode().labelRes)
+    }
+
+    /**
+     * Die Auswahl des Erscheinungsbilds.
+     *
+     * Eine Liste mit drei Punkten und keine Umschalttaste: neben hell und
+     * dunkel gibt es die Einstellung des Geraets, und die ist die
+     * Voreinstellung. Mit einer Taste liesse sie sich nicht mehr zuruecknehmen,
+     * sobald man einmal umgeschaltet hat.
+     *
+     * Das Umsetzen erledigt AppCompat: es baut die sichtbaren Bildschirme neu
+     * auf, sobald der Modus gesetzt ist. Deshalb wird hier nichts von Hand neu
+     * gezeichnet - der Dialog wird nur vorher geschlossen, damit er den Neuaufbau
+     * nicht ueberlebt.
+     */
+    private fun askForTheme() {
+        val modes = ThemeMode.entries
+        val labels = modes.map { getString(it.labelRes) }.toTypedArray()
+        val current = modes.indexOf(repository.getThemeMode())
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.settings_theme)
+            .setSingleChoiceItems(labels, current) { dialog, which ->
+                dialog.dismiss()
+                val chosen = modes[which]
+                repository.setThemeMode(chosen)
+                showThemeChoice()
+                ThemeMode.apply(chosen)
+            }
+            .setNegativeButton(R.string.cancel_btn, null)
+            .show()
     }
 
     /**

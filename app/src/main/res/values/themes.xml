@@ -8,13 +8,17 @@
     selbst zeitgemaess aus, statt in jedem Layout einzeln zurechtgebogen zu
     werden.
 
-    Die App bleibt durchgehend dunkel, deshalb Theme.Material3.Dark statt
-    DayNight. Das war schon die bisherige Absicht ("forced to Dark Mode") und
-    passt zu einer Sport-App fuer den Abend.
+    Das Theme gibt es nur einmal, obwohl die App hell und dunkel kann: jede
+    Zeile hier zeigt auf eine Farbrolle, und die Rollen liegen zweimal vor -
+    values/colors.xml hell, values-night/colors.xml dunkel. Welche gilt,
+    entscheidet der in den Einstellungen gewaehlte Modus (siehe ThemeMode).
+
+    Frueher war die App fest dunkel (Theme.Material3.Dark). Der Wechsel auf
+    DayNight ist der einzige Eingriff, den es dafuer am Theme brauchte.
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Base.Theme.MobileSE" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Base.Theme.MobileSE" parent="Theme.Material3.DayNight.NoActionBar">
 
         <!-- Farbrollen -->
         <item name="colorPrimary">@color/md_primary</item>
@@ -57,7 +61,7 @@
         <!-- Systemleisten fliessen in den Bildschirm ueber -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/md_surface_container</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightStatusBar">@bool/window_light_status_bar</item>
         <item name="android:windowBackground">@color/md_surface</item>
 
         <!-- Formen und Komponentenstile -->

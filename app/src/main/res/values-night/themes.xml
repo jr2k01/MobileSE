@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-    Die App ist durchgehend dunkel gestaltet, das Basis-Theme in values/ ist
-    bereits ein Dark-Theme. Diese Datei existiert nur, damit der Nachtmodus des
-    Systems nichts daran aendert; sie erbt unveraendert.
--->
-<resources>
-    <style name="Theme.MobileSE" parent="Base.Theme.MobileSE" />
-</resources>

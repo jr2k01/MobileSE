@@ -53,6 +53,11 @@
     <!-- === Einstellungen === -->
     <string name="settings_title">Settings</string>
     <string name="settings_desc">Settings</string>
+    <string name="settings_appearance_label">APPEARANCE</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">Follow the device</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
     <string name="settings_steps_label">STEPS</string>
     <string name="settings_health_connect">Health Connect</string>
     <string name="settings_health_connected">Connected. CrewFit reads your step count for today.</string>

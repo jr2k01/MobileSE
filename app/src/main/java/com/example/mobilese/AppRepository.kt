@@ -105,6 +105,7 @@ class AppRepository private constructor(context: Context) {
         private const val PREFS_NAME = "CrewFitDatabase"
         private const val KEY_SESSION_USER = "current_session_user"
         private const val KEY_JOINED_CREW = "user_joined_crew_code"
+        private const val KEY_THEME_MODE = "theme_mode"
 
         @Volatile
         private var instance: AppRepository? = null
@@ -179,6 +180,19 @@ class AppRepository private constructor(context: Context) {
 
     fun setJoinedCrewCode(code: String?) =
         prefs.edit().putString(KEY_JOINED_CREW, code).apply()
+
+    /**
+     * Das gewaehlte Erscheinungsbild.
+     *
+     * Bleibt bewusst lokal und geht nicht in die Datenbank: es beschreibt
+     * dieses Geraet, nicht das Konto. Auf dem Telefon dunkel und auf dem
+     * Tablet hell zu wollen, ist kein Widerspruch, den man aufloesen muesste.
+     * Ein Abmelden loescht es deshalb auch nicht mit.
+     */
+    fun getThemeMode(): ThemeMode = ThemeMode.fromStored(prefs.getString(KEY_THEME_MODE, null))
+
+    fun setThemeMode(mode: ThemeMode) =
+        prefs.edit().putString(KEY_THEME_MODE, mode.storedName).apply()
 
     private fun clearLocalSession() {
         prefs.edit().remove(KEY_SESSION_USER).remove(KEY_JOINED_CREW).apply()

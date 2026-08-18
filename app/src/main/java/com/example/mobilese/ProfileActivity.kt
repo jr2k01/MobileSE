@@ -249,26 +249,21 @@ class ProfileActivity : AppCompatActivity() {
      */
     private fun storeProfilePicture(uri: Uri) {
         lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                val bitmap = ImageLoader.decodeScaled(this@ProfileActivity, uri)
-                    ?: return@withContext null
-                try {
-                    val file = File(filesDir, "profile_${currentUserEmail.replace('@', '_')}.jpg")
-                    FileOutputStream(file).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-                    file.absolutePath to bitmap
-                } catch (e: Exception) {
-                    null
-                }
+            val file = File(filesDir, "profile_${currentUserEmail.replace('@', '_')}.jpg")
+            val bitmap = withContext(Dispatchers.IO) {
+                ImageLoader.saveScaled(this@ProfileActivity, uri, file)
             }
 
-            if (result == null) {
+            if (bitmap == null) {
                 toast(R.string.image_save_failed)
                 return@launch
             }
 
-            val (path, bitmap) = result
             ivProfilePicture.setImageBitmap(bitmap)
-            toast(if (repository.saveUserImage(path)) R.string.image_saved else R.string.image_save_failed)
+            toast(
+                if (repository.saveUserImage(file.absolutePath)) R.string.image_saved
+                else R.string.image_save_failed
+            )
         }
     }
 

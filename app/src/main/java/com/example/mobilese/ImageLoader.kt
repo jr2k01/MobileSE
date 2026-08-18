@@ -142,6 +142,29 @@ object ImageLoader {
     }
 
     /**
+     * Dekodiert ein ausgewaehltes Bild verkleinert und legt es als JPEG in
+     * [target] ab.
+     *
+     * Gibt das Bitmap zurueck, damit der Aufrufer es sofort anzeigen kann, ohne
+     * die eben geschriebene Datei noch einmal zu lesen. Null, wenn sich die
+     * Auswahl nicht als Bild lesen oder nicht schreiben liess.
+     *
+     * Gehoert hierher und nicht in die Bildschirme: Profilbild und Crew-Bild
+     * brauchen beide genau diesen Ablauf, und er lief vorher zweimal fast
+     * gleich.
+     */
+    fun saveScaled(context: Context, uri: Uri, target: File): Bitmap? {
+        val bitmap = decodeScaled(context, uri) ?: return null
+        return try {
+            FileOutputStream(target).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+            bitmap
+        } catch (e: Exception) {
+            Log.e("ImageLoader", "Could not write ${target.name}: ${e.message}")
+            null
+        }
+    }
+
+    /**
      * Bereitet eine lokale Bilddatei fuer den Upload auf: verkleinert und als
      * JPEG neu kodiert. Ein Kamerafoto schrumpft dabei von mehreren Megabyte
      * auf einige zehn Kilobyte - das spart Uploadzeit beim Aufnehmen und

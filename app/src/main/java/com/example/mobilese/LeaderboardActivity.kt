@@ -1,17 +1,27 @@
 package com.example.mobilese
 
+import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Die Rangliste der Crew.
@@ -27,8 +37,17 @@ class LeaderboardActivity : AppCompatActivity() {
     private lateinit var repository: AppRepository
     private lateinit var llLeaderboard: LinearLayout
     private lateinit var crewCode: String
+    private lateinit var memeView: CrewMemeView
 
     private var loadJob: Job? = null
+
+    /** Ob der angemeldete Nutzer gerade fuehrt - nur dann darf er aufhaengen. */
+    private var isLeader = false
+
+    private val pickMemeLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { askForCaption(it) }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +57,87 @@ class LeaderboardActivity : AppCompatActivity() {
         crewCode = repository.getJoinedCrewCode() ?: run { finish(); return }
 
         llLeaderboard = findViewById(R.id.llLeaderboardContainer)
+        memeView = CrewMemeView(
+            findViewById(R.id.crewMeme),
+            onChange = { startPickingMeme() },
+            onRemove = { confirmRemoveMeme() }
+        )
         setUpTopBar(R.string.crew_ranking)
 
         load()
     }
+
+    // --- Bild der Nummer eins ---
+
+    private fun startPickingMeme() {
+        // Zweite Pruefung neben der ausgeblendeten Schaltflaeche: zwischen dem
+        // Laden und dem Antippen kann jemand vorbeigezogen sein.
+        if (!isLeader) {
+            toast(R.string.meme_not_leader)
+            return
+        }
+        pickMemeLauncher.launch("image/*")
+    }
+
+    /** Der Spruch ist freiwillig; leer gelassen zeigt die Karte nur das Bild. */
+    private fun askForCaption(uri: Uri) {
+        val input = EditText(this).apply {
+            setHint(R.string.meme_caption_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        }
+        val container = FrameLayout(this).apply {
+            val padding = resources.getDimensionPixelSize(R.dimen.card_padding)
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.meme_pick_title)
+            .setView(container)
+            .setNegativeButton(R.string.cancel_btn, null)
+            .setPositiveButton(R.string.add_btn) { _, _ ->
+                saveMeme(uri, input.text.toString())
+            }
+            .show()
+    }
+
+    private fun saveMeme(uri: Uri, caption: String) {
+        lifecycleScope.launch {
+            // Dieselbe Verkleinerung wie beim Profilbild: ein Foto aus der
+            // Galerie ist schnell mehrere Megabyte gross und muesste von jedem
+            // Crew-Mitglied heruntergeladen werden.
+            val file = File(cacheDir, "crew_meme.jpg")
+            val written = withContext(Dispatchers.IO) {
+                ImageLoader.saveScaled(this@LeaderboardActivity, uri, file) != null
+            }
+            if (!written) {
+                toast(R.string.meme_save_failed)
+                return@launch
+            }
+
+            val saved = repository.saveCrewMeme(crewCode, file.absolutePath, caption)
+            toast(if (saved) R.string.meme_saved else R.string.meme_save_failed)
+            if (saved) load()
+        }
+    }
+
+    private fun confirmRemoveMeme() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.meme_remove_title)
+            .setMessage(R.string.meme_remove_message)
+            .setNegativeButton(R.string.cancel_btn, null)
+            .setPositiveButton(R.string.meme_remove) { _, _ ->
+                lifecycleScope.launch {
+                    if (repository.deleteCrewMeme(crewCode)) {
+                        toast(R.string.meme_removed)
+                        load()
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun toast(resId: Int) = Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
 
     private fun load() {
         loadJob?.cancel()
@@ -58,7 +154,7 @@ class LeaderboardActivity : AppCompatActivity() {
         }
     }
 
-    private fun showLeaderboard(snapshot: CrewSnapshot) {
+    private suspend fun showLeaderboard(snapshot: CrewSnapshot) {
         CrewChartsView(findViewById(android.R.id.content)).show(snapshot)
 
         llLeaderboard.removeAllViews()
@@ -67,6 +163,8 @@ class LeaderboardActivity : AppCompatActivity() {
         val ranking = Scoreboard.build(snapshot)
         // Massstab fuer die Balkenlaenge: der Punktestand an der Spitze.
         val leaderPoints = ranking.firstOrNull()?.points ?: 0
+
+        showMeme(ranking, snapshot)
 
         ranking.forEachIndexed { index, entry ->
             val view = inflater.inflate(R.layout.item_leaderboard_entry, llLeaderboard, false)
@@ -84,6 +182,26 @@ class LeaderboardActivity : AppCompatActivity() {
             showPointsSplit(view, CrewStats.pointsSplit(entry.userId, snapshot), leaderPoints)
             llLeaderboard.addView(view)
         }
+    }
+
+    /**
+     * Die Karte mit dem Bild der Nummer eins.
+     *
+     * Fuehrend ist, wer in der Rangliste oben steht - bei null Punkten fuer
+     * alle waere das der Erste einer beliebigen Reihenfolge, deshalb zaehlt nur
+     * ein Stand ueber null. Sonst duerfte in einer frischen Crew der
+     * alphabetisch Erste aufhaengen, ohne etwas geleistet zu haben.
+     */
+    private suspend fun showMeme(ranking: List<Scoreboard.Entry>, snapshot: CrewSnapshot) {
+        val leader = ranking.firstOrNull()?.takeIf { it.points > 0 }
+        isLeader = leader != null && leader.userId == repository.currentUserId()
+
+        val meme = repository.getCrewMeme(crewCode)
+        val owner = meme?.let { put ->
+            snapshot.members.firstOrNull { it.id == put.userId }?.let { DisplayName.of(it) }
+        }
+
+        memeView.show(meme, owner, isLeader)
     }
 
     /**

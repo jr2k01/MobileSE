@@ -29,6 +29,13 @@
             android:paddingBottom="24dp">
 
             <include
+                android:id="@+id/crewMeme"
+                layout="@layout/part_crew_meme"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" />
+
+            <include
                 android:id="@+id/crewCharts"
                 layout="@layout/part_crew_charts"
                 android:layout_width="match_parent"

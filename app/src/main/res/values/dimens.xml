@@ -98,6 +98,9 @@
     -->
     <dimen name="leaderboard_score_column">92dp</dimen>
 
+    <!-- Bild der Nummer eins auf dem Ranglisten-Bildschirm -->
+    <dimen name="meme_height">200dp</dimen>
+
     <!-- Auswertung auf dem Ranglisten-Bildschirm -->
     <dimen name="chart_week_height">96dp</dimen>
     <dimen name="chart_bar_width">18dp</dimen>

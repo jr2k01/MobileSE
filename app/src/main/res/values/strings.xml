@@ -133,6 +133,24 @@
     <string name="score_header">SCORE</string>
     <string name="steps_header">STEPS</string>
 
+    <!-- === Bild der Nummer eins === -->
+    <string name="meme_title">%1$s put this up</string>
+    <string name="meme_title_empty">Champion\'s board</string>
+    <string name="meme_change">Change</string>
+    <string name="meme_remove">Remove</string>
+    <string name="meme_image_desc">Picture put up by the crew leader</string>
+    <string name="meme_empty_leader">You are leading. Put something up for the crew.</string>
+    <string name="meme_empty_other">Whoever leads the crew may put a picture up here.</string>
+    <string name="meme_pick_title">Your picture</string>
+    <string name="meme_caption_hint">Something to say? (optional)</string>
+    <string name="meme_pick_image">Choose picture</string>
+    <string name="meme_saved">Picture is up</string>
+    <string name="meme_save_failed">Could not put the picture up</string>
+    <string name="meme_removed">Picture removed</string>
+    <string name="meme_remove_title">Remove picture?</string>
+    <string name="meme_remove_message">The crew will no longer see it.</string>
+    <string name="meme_not_leader">Only the crew leader can change this</string>
+
     <!-- === Auswertung auf dem Ranglisten-Bildschirm === -->
     <string name="chart_week_label">THIS WEEK</string>
     <string name="chart_week_total">%1$s min total</string>

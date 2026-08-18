@@ -562,6 +562,81 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
+    // --- BILD DER NUMMER EINS ---
+
+    /**
+     * Das aktuell aufgehaengte Bild einer Crew, oder null.
+     *
+     * Fehlt die Tabelle noch, bleibt es bei null: der Bildschirm zeigt dann die
+     * leere Flaeche und alles Uebrige funktioniert weiter.
+     */
+    suspend fun getCrewMeme(crewCode: String): CrewMeme? = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["crew_memes"].select {
+                filter { eq("crew_id", crewCode) }
+            }.decodeList<CrewMeme>().firstOrNull()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load the crew picture: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Haengt ein Bild fuer die Crew auf und ersetzt dabei das vorherige.
+     *
+     * Das alte Bild wird erst aus dem Speicher geloescht, nachdem das neue
+     * oben ist - schlaegt der Upload fehl, bleibt lieber das alte haengen als
+     * gar keins.
+     *
+     * Dass nur der Fuehrende hochladen darf, prueft der Bildschirm. In der
+     * Datenbank laesst sich das nicht durchsetzen, weil der Rang aus
+     * Aktivitaeten, Belohnungen und Schritten in der App gerechnet wird und
+     * dort gar nicht bekannt ist. Die Regel in der Datenbank lautet deshalb
+     * nur: schreiben darf jeder ausschliesslich unter seinem eigenen Namen.
+     */
+    suspend fun saveCrewMeme(crewCode: String, localPath: String, caption: String): Boolean {
+        val userId = currentUserId() ?: return false
+
+        return withContext(Dispatchers.IO) {
+            val previous = getCrewMeme(crewCode)
+
+            val url = uploadImage("memes", localPath)
+            if (url.isEmpty()) {
+                Log.e("SupabaseDB", "Uploading the crew picture failed, keeping the old one")
+                return@withContext false
+            }
+
+            try {
+                client.postgrest["crew_memes"].upsert(
+                    CrewMeme(
+                        crewId = crewCode,
+                        userId = userId,
+                        imageUrl = url,
+                        caption = caption.trim()
+                    )
+                )
+                deleteFileByPublicUrl("memes", previous?.imageUrl)
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not save the crew picture: ${e.message}")
+                false
+            }
+        }
+    }
+
+    /** Nimmt das Bild wieder ab, samt Datei. */
+    suspend fun deleteCrewMeme(crewCode: String): Boolean = withContext(Dispatchers.IO) {
+        val existing = getCrewMeme(crewCode)
+        try {
+            client.postgrest["crew_memes"].delete { filter { eq("crew_id", crewCode) } }
+            deleteFileByPublicUrl("memes", existing?.imageUrl)
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not remove the crew picture: ${e.message}")
+            false
+        }
+    }
+
     /** Laedt ein neues Profilbild hoch und hinterlegt dessen URL. */
     suspend fun saveUserImage(localPath: String): Boolean {
         val userId = currentUserId() ?: return false

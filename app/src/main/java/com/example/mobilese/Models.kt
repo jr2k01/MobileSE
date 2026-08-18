@@ -114,6 +114,25 @@ data class StepDay(
     val steps: Int = 0
 )
 
+/**
+ * Das Bild, das die Nummer eins der Crew aufhaengt.
+ *
+ * Eine Zeile je Crew - der Schluessel ist die Crew, nicht der Nutzer. Ein neues
+ * Bild ersetzt damit das alte, ohne dass irgendwo aufgeraeumt werden muss, und
+ * es kann nie zwei gleichzeitig geben.
+ *
+ * Es bleibt haengen, bis der naechste Fuehrende eines hochlaedt. Beim
+ * Rangwechsel zu verschwinden waere strenger, wuerde die Flaeche aber nach
+ * jedem Ueberholen leeren.
+ */
+@Serializable
+data class CrewMeme(
+    @SerialName("crew_id") val crewId: String,
+    @SerialName("user_id") val userId: String,
+    @SerialName("image_url") val imageUrl: String,
+    val caption: String? = null
+)
+
 @Serializable
 data class Challenge(
     val id: String,

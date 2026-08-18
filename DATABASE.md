@@ -56,6 +56,54 @@ create policy "step_days_update_own" on step_days
     for update to authenticated using (auth.uid() = user_id);
 ```
 
+## Tabelle fuer das Bild der Nummer eins
+
+Eine Zeile je Crew - der Schluessel ist die Crew, nicht der Nutzer. Ein neues
+Bild ersetzt damit das alte, und es kann nie zwei gleichzeitig geben.
+
+```sql
+create table if not exists crew_memes (
+    crew_id    text not null,
+    user_id    uuid not null references profiles(id) on delete cascade,
+    image_url  text not null,
+    caption    text,
+    created_at timestamptz not null default now(),
+    primary key (crew_id)
+);
+
+alter table crew_memes enable row level security;
+
+-- Sehen darf es die ganze Crew.
+drop policy if exists "crew_memes_read" on crew_memes;
+create policy "crew_memes_read" on crew_memes
+    for select to authenticated using (true);
+
+-- Aufhaengen und abnehmen nur unter eigenem Namen.
+drop policy if exists "crew_memes_insert_own" on crew_memes;
+create policy "crew_memes_insert_own" on crew_memes
+    for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "crew_memes_update_own" on crew_memes;
+create policy "crew_memes_update_own" on crew_memes
+    for update to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "crew_memes_delete_own" on crew_memes;
+create policy "crew_memes_delete_own" on crew_memes
+    for delete to authenticated using (auth.uid() = user_id);
+```
+
+Dazu einen **oeffentlichen Storage-Bucket namens `memes`** anlegen: Supabase →
+**Storage** → **New bucket**, Name `memes`, "Public bucket" einschalten - wie
+bei `avatars` und `photos`.
+
+**Was die Regeln nicht koennen:** Dass nur der Fuehrende aufhaengen darf, prueft
+die App. In der Datenbank laesst sich das nicht durchsetzen, weil der Rang aus
+Aktivitaeten, Belohnungen und Schritten in der App gerechnet wird und dort gar
+nicht bekannt ist. Die Regeln oben stellen nur sicher, dass niemand unter
+fremdem Namen schreibt. Wer es darauf anlegt, kaeme also vorbei. Sauber waere
+eine Datenbankfunktion, die den Rang serverseitig berechnet - fuer ein
+Kursprojekt mehr Aufwand als Nutzen, aber es ist eine bewusste Entscheidung.
+
 ## Seite nach der Bestaetigung der Mailadresse
 
 Der Link aus der Bestaetigungsmail fuehrt nicht in die App, sondern auf eine

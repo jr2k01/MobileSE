@@ -145,7 +145,6 @@
     <string name="meme_empty_other">Whoever leads the crew may put a picture up here.</string>
     <string name="meme_pick_title">Your picture</string>
     <string name="meme_caption_hint">Something to say? (optional)</string>
-    <string name="meme_pick_image">Choose picture</string>
     <string name="meme_saved">Picture is up</string>
     <string name="meme_save_failed">Could not put the picture up</string>
     <string name="meme_removed">Picture removed</string>
@@ -163,6 +162,19 @@
     <string name="chart_share_percent">%1$d%%</string>
     <string name="chart_no_data">No workouts logged yet</string>
     <string name="chart_donut_center">%1$s h</string>
+    <string name="chart_members_label">WHO TRAINED</string>
+    <string name="chart_member_hours">%1$s h</string>
+    <string name="chart_steps_label">STEPS THIS WEEK</string>
+    <string name="chart_steps_total">%1$s steps</string>
+    <string name="chart_steps_none">No steps recorded yet</string>
+    <string name="chart_highlights_label">HIGHLIGHTS</string>
+    <string name="chart_longest">Longest workout</string>
+    <string name="chart_longest_value">%1$d min · %2$s · %3$s</string>
+    <string name="chart_streak">Days in a row</string>
+    <string name="chart_goal_days">Days the step goal was hit</string>
+    <string name="chart_average">Average workout</string>
+    <string name="chart_minutes_value">%1$d min</string>
+    <string name="chart_days_value">%1$d</string>
 
     <!-- === Medaillen === -->
     <string name="medals_label">MEDALS</string>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ein Tagesbalken der Schrittreihe. Wie bg_week_bar geformt, aber in einer
+    anderen Farbe: die beiden Reihen stehen untereinander und saehen sonst aus
+    wie dasselbe Diagramm zweimal.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/chart_sport_4" />
+    <corners
+        android:topLeftRadius="6dp"
+        android:topRightRadius="6dp" />
+</shape>

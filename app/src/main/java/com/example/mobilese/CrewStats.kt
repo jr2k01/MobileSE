@@ -23,11 +23,42 @@ object CrewStats {
         val goalDays: Int
     )
 
-    /** Ein Balken der Wochenuebersicht. */
-    data class DayBar(val day: LocalDate, val minutes: Int)
+    /**
+     * Ein Balken einer Tagesreihe.
+     *
+     * Der Wert heisst nicht "minutes", weil dieselbe Reihe zweimal gebraucht
+     * wird: einmal fuer Trainingsminuten, einmal fuer Schritte.
+     */
+    data class DayBar(val day: LocalDate, val amount: Int)
 
     /** Ein Stueck der Sportarten-Verteilung. */
     data class SportShare(val sport: String, val minutes: Int)
+
+    /**
+     * Was ein einzelnes Mitglied beigetragen hat.
+     *
+     * Die Rangliste zeigt Punkte, und die verrechnen Training, Challenges und
+     * Schritte miteinander. Hier steht nur das Training - daran laesst sich
+     * ablesen, wer die Stunden gemacht hat.
+     */
+    data class MemberShare(
+        val userId: String,
+        val minutes: Int,
+        val workouts: Int,
+        val kilometres: Double
+    )
+
+    /** Einzelwerte, die als Zahl mehr sagen als in einem Diagramm. */
+    data class Highlights(
+        /** Das laengste einzelne Training, oder null. */
+        val longest: Activity?,
+        /** Tage in Folge mit mindestens einem Training. */
+        val streakDays: Int,
+        /** Tage, an denen irgendwer das Schrittziel erreicht hat. */
+        val goalDays: Int,
+        /** Durchschnittliche Dauer eines Trainings in Minuten. */
+        val averageMinutes: Int
+    )
 
     /**
      * Woraus sich die Punkte eines Mitglieds zusammensetzen.
@@ -67,6 +98,91 @@ object CrewStats {
             val day = today.minusDays(back.toLong())
             DayBar(day, minutesByDay[day.toString()] ?: 0)
         }
+    }
+
+    /**
+     * Die Schritte der ganzen Crew an den letzten sieben Tagen.
+     *
+     * Bisher waren Schritte nur als heutiger Stand zu sehen - ein Wert, der
+     * morgen wieder bei null anfaengt. Als Reihe zeigen sie, ob die Crew
+     * ueberhaupt in Bewegung ist, auch an Tagen ohne Training.
+     *
+     * Summiert ueber die Mitglieder, wie die Minuten: ein Crew-Bildschirm zeigt
+     * die Crew.
+     */
+    fun lastWeekSteps(snapshot: CrewSnapshot, today: LocalDate = LocalDate.now()): List<DayBar> {
+        val stepsByDay = snapshot.stepDays
+            .groupBy { it.day }
+            .mapValues { (_, list) -> list.sumOf { it.steps } }
+
+        return (WEEK_DAYS - 1 downTo 0).map { back ->
+            val day = today.minusDays(back.toLong())
+            DayBar(day, stepsByDay[day.toString()] ?: 0)
+        }
+    }
+
+    /**
+     * Was jedes Mitglied trainiert hat, das meiste zuerst.
+     *
+     * Mitglieder ohne Training bleiben mit null stehen: dass jemand nichts
+     * beigetragen hat, ist eine Aussage - faellt die Zeile weg, sieht es aus,
+     * als gaebe es die Person nicht.
+     */
+    fun memberShares(snapshot: CrewSnapshot): List<MemberShare> {
+        val byUser = snapshot.activities.groupBy { it.userId }
+
+        return snapshot.members
+            .map { member ->
+                val own = byUser[member.id].orEmpty()
+                MemberShare(
+                    userId = member.id,
+                    minutes = own.sumOf { it.duration },
+                    workouts = own.size,
+                    kilometres = own.sumOf { it.distance }
+                )
+            }
+            // Bei Gleichstand die Kennung, damit die Reihenfolge zwischen zwei
+            // Aufrufen dieselbe bleibt.
+            .sortedWith(compareByDescending<MemberShare> { it.minutes }.thenBy { it.userId })
+    }
+
+    fun highlights(snapshot: CrewSnapshot, today: LocalDate = LocalDate.now()): Highlights {
+        val activities = snapshot.activities
+        return Highlights(
+            longest = activities.maxByOrNull { it.duration },
+            streakDays = streakDays(snapshot, today),
+            goalDays = totals(snapshot).goalDays,
+            averageMinutes =
+                if (activities.isEmpty()) 0 else activities.sumOf { it.duration } / activities.size
+        )
+    }
+
+    /**
+     * Tage in Folge, an denen irgendwer in der Crew trainiert hat.
+     *
+     * Gezaehlt wird ab heute rueckwaerts - hat heute noch niemand trainiert, ab
+     * gestern. Sonst stuende die Serie den ganzen Vormittag ueber auf null und
+     * spraenge erst mit dem ersten Training des Tages wieder hoch, obwohl sie
+     * nie unterbrochen war.
+     */
+    private fun streakDays(snapshot: CrewSnapshot, today: LocalDate): Int {
+        val trainedOn = snapshot.activities
+            .map { ActivityTime.dayOf(it.timestamp) }
+            .toSet()
+
+        var start = today
+        if (today.toString() !in trainedOn) {
+            start = today.minusDays(1)
+            if (start.toString() !in trainedOn) return 0
+        }
+
+        var days = 0
+        var day = start
+        while (day.toString() in trainedOn) {
+            days++
+            day = day.minusDays(1)
+        }
+        return days
     }
 
     /**

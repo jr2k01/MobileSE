@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Der Balken einer Mitgliederzeile. An beiden Enden rund, weil er waagerecht
+    liegt und frei im Gleis endet - anders als die Wochenbalken, die unten auf
+    einer Linie stehen.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/split_workouts" />
+    <corners android:radius="5dp" />
+</shape>

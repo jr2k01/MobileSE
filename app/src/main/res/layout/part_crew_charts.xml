@@ -95,6 +95,115 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- === Schritte der letzten sieben Tage === -->
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.CrewFit.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/chart_steps_label" />
+
+                <TextView
+                    android:id="@+id/tvStepsWeekTotal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llStepBars"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/chart_week_height"
+                android:layout_marginTop="14dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="bottom" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- === Wer wie viel trainiert hat === -->
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.CrewFit.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chart_members_label" />
+
+            <!-- Die Zeilen haengt der Code ein: eine je Mitglied. -->
+            <LinearLayout
+                android:id="@+id/llMemberBars"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- === Bestwerte === -->
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.CrewFit.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chart_highlights_label" />
+
+            <LinearLayout
+                android:id="@+id/llHighlights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
     <!-- === Sportarten === -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cvSports"

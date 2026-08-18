@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Eine Zeile der Mitgliederauswertung: wer, wie lange, als Balken.
+
+    Der Balken bekommt seine Laenge ueber Gewichte, nicht ueber Pixel - genauso
+    wie der Punkteherkunfts-Balken in der Rangliste.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:baselineAligned="false"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="7dp"
+    android:paddingBottom="7dp">
+
+    <ImageView
+        android:id="@+id/ivMemberBarAvatar"
+        android:layout_width="@dimen/member_bar_avatar"
+        android:layout_height="@dimen/member_bar_avatar"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/tvMemberBarName"
+        android:layout_width="@dimen/member_bar_name_column"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurface" />
+
+    <!-- Das Gleis: der gefuellte Teil und der Rest bis zum Staerksten. -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="@dimen/member_bar_height"
+        android:layout_weight="1"
+        android:layout_marginStart="10dp"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/vMemberBarFill"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_member_bar" />
+
+        <View
+            android:id="@+id/vMemberBarRest"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvMemberBarValue"
+        android:layout_width="@dimen/member_bar_value_column"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:gravity="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
+</LinearLayout>

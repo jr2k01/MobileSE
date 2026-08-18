@@ -74,15 +74,27 @@
                 android:visibility="gone" />
         </LinearLayout>
 
+        <!--
+            Ganz zu sehen, aber nie hoeher als meme_height.
+
+            Vorher stand hier eine feste Hoehe mit centerCrop: das Bild fuellte
+            die Flaeche und wurde dafuer an den Raendern abgeschnitten - bei
+            einem hochkant aufgenommenen Bild blieb ein Streifen aus der Mitte
+            uebrig. Jetzt bestimmt das Bild seine Hoehe selbst (fitCenter,
+            adjustViewBounds) und maxHeight deckelt sie. Ein breites Bild
+            braucht damit weniger Platz als zuvor, ein hohes hoechstens
+            gleich viel.
+        -->
         <ImageView
             android:id="@+id/ivCrewMeme"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/meme_height"
+            android:layout_height="wrap_content"
+            android:maxHeight="@dimen/meme_height"
             android:layout_marginTop="12dp"
             android:adjustViewBounds="true"
             android:background="?attr/colorSurfaceContainerHighest"
             android:contentDescription="@string/meme_image_desc"
-            android:scaleType="centerCrop"
+            android:scaleType="fitCenter"
             android:visibility="gone" />
 
         <TextView

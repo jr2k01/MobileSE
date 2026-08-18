@@ -98,7 +98,8 @@
     -->
     <dimen name="leaderboard_score_column">92dp</dimen>
 
-    <!-- Bild der Nummer eins auf dem Ranglisten-Bildschirm -->
+    <!-- Bild der Nummer eins: Obergrenze, keine feste Hoehe. Ein breites Bild
+         bleibt darunter. -->
     <dimen name="meme_height">200dp</dimen>
 
     <!-- Auswertung auf dem Ranglisten-Bildschirm -->
@@ -107,6 +108,13 @@
     <dimen name="donut_size">104dp</dimen>
     <dimen name="donut_ring_width">18dp</dimen>
     <dimen name="points_split_height">4dp</dimen>
+
+    <!-- Mitgliederauswertung: feste Spalten links und rechts, damit die Balken
+         dazwischen alle an derselben Stelle beginnen und enden. -->
+    <dimen name="member_bar_avatar">26dp</dimen>
+    <dimen name="member_bar_name_column">72dp</dimen>
+    <dimen name="member_bar_value_column">56dp</dimen>
+    <dimen name="member_bar_height">10dp</dimen>
     <!-- Platz unter den Balken fuer den Wochentag -->
     <dimen name="chart_bar_label_space">24dp</dimen>
     <!-- Stummel fuer einen Tag ohne Training, damit die Reihe nicht abreisst -->

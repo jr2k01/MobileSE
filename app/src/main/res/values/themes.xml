@@ -270,6 +270,37 @@
         <item name="android:letterSpacing">0.08</item>
     </style>
 
+    <!--
+        Eine antippbare Zeile in den Einstellungen.
+
+        Die Mindesthoehe ist kein Schoenheitswert: darunter liegt die Flaeche
+        unter dem, was sich mit dem Daumen sicher treffen laesst.
+    -->
+    <!-- parent="" ist noetig: aus dem Punkt im Namen wuerde Android sonst
+         Widget.CrewFit als Elternstil ableiten, und den gibt es nicht. -->
+    <style name="Widget.CrewFit.SettingsRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <style name="TextAppearance.CrewFit.SettingsTitle" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="TextAppearance.CrewFit.SettingsSubtitle" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/md_on_surface_variant</item>
+    </style>
+
     <!-- Eine Zeile der Passwort-Anforderungen unter dem Eingabefeld. -->
     <style name="PasswordRule" parent="TextAppearance.Material3.BodySmall">
         <item name="android:layout_width">wrap_content</item>

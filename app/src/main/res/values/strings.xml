@@ -49,6 +49,21 @@
     <string name="steps_hint_none_yet">Nothing recorded yet today</string>
     <string name="steps_permission_denied">Without access to Health Connect CrewFit cannot show your steps</string>
     <string name="health_privacy_title">Health data</string>
+
+    <!-- === Einstellungen === -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_desc">Settings</string>
+    <string name="settings_steps_label">STEPS</string>
+    <string name="settings_health_connect">Health Connect</string>
+    <string name="settings_health_connected">Connected. CrewFit reads your step count for today.</string>
+    <string name="settings_health_not_connected">Not connected. Tap to allow access.</string>
+    <string name="settings_steps_privacy">How CrewFit uses your steps</string>
+    <string name="settings_steps_privacy_hint">What is read, and what never leaves your phone</string>
+    <string name="settings_account_label">ACCOUNT</string>
+    <string name="settings_signed_in_as">Signed in as</string>
+    <string name="settings_delete_hint">Removes your workouts, crew membership and files</string>
+    <string name="settings_about_label">ABOUT</string>
+    <string name="settings_version">Version %1$s</string>
     <string name="health_privacy_headline">Why CrewFit reads your steps</string>
     <string name="health_privacy_body">CrewFit shows how many steps you have taken today, and gives you bonus points in the crew ranking on every day you reach 10,000.\n\nThe steps are read from Health Connect, where your phone and any watch or fitness app record them. CrewFit only reads them - it never writes health data, and it reads nothing beyond the step count.\n\nYour daily total is stored on the CrewFit server, and the members of your crew see how far you are towards the daily goal. That is the point of it: the crew pushes each other. Only the number of steps per day leaves your device - no times, no routes, no other health data.\n\nYou can withdraw the access at any time in the Health Connect settings. CrewFit then stops reading and stops updating your number.</string>
     <!-- Ziffern auf den drei Podestbloecken -->

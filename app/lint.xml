@@ -29,6 +29,7 @@
         <ignore path="src/main/res/layout/screen_workout_detail.xml" />
         <ignore path="src/main/res/layout/screen_main_hub.xml" />
         <ignore path="src/main/res/layout/screen_profile.xml" />
+        <ignore path="src/main/res/layout/screen_settings.xml" />
         <ignore path="src/main/res/layout/screen_workout_history.xml" />
     </issue>
 

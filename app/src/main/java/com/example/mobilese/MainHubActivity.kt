@@ -117,6 +117,10 @@ class MainHubActivity : AppCompatActivity() {
             startActivity(Intent(this, WorkoutHistoryActivity::class.java))
         }
 
+        findViewById<View>(R.id.btnSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
         setUpBottomNavigation()
     }
 

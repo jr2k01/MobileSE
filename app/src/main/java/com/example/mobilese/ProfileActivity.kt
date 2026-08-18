@@ -52,7 +52,6 @@ class ProfileActivity : AppCompatActivity() {
         val etHeight = findViewById<EditText>(R.id.etHeight)
         val etWeight = findViewById<EditText>(R.id.etWeight)
         val btnSave = findViewById<Button>(R.id.btnSaveProfile)
-        val btnLogout = findViewById<Button>(R.id.btnLogout)
         ivProfilePicture = findViewById(R.id.ivProfilePicture)
 
         setUpTopBar(R.string.my_profile)
@@ -155,7 +154,7 @@ class ProfileActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            setBusy(true, btnSave, btnLogout)
+            setBusy(true, btnSave)
             lifecycleScope.launch {
                 val saved = repository.saveUserProfile(
                     currentUserEmail,
@@ -169,7 +168,7 @@ class ProfileActivity : AppCompatActivity() {
                     birthDate,
                     displayName
                 )
-                setBusy(false, btnSave, btnLogout)
+                setBusy(false, btnSave)
 
                 if (!saved) {
                     toast(R.string.profile_save_failed)
@@ -184,18 +183,6 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
-        btnLogout.setOnClickListener {
-            // logout() ist suspend, weil es zusaetzlich die Supabase-Sitzung
-            // beendet und nicht nur den lokalen Sitzungsmarker loescht.
-            lifecycleScope.launch {
-                repository.logout()
-                openLogin()
-            }
-        }
-
-        findViewById<Button>(R.id.btnDeleteProfile).setOnClickListener {
-            confirmDeletion()
-        }
     }
 
     /**
@@ -224,21 +211,6 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun confirmDeletion() {
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.delete_profile_title)
-            .setMessage(R.string.delete_profile_message)
-            .setPositiveButton(R.string.delete_profile_confirm) { _, _ ->
-                lifecycleScope.launch {
-                    repository.deleteUserProfile()
-                    Toast.makeText(this@ProfileActivity, R.string.profile_deleted, Toast.LENGTH_LONG).show()
-                    openLogin()
-                }
-            }
-            .setNegativeButton(R.string.cancel_btn, null)
-            .show()
-    }
-
     /**
      * Uebernimmt ein ausgewaehltes Bild als Profilbild.
      *
@@ -265,13 +237,6 @@ class ProfileActivity : AppCompatActivity() {
                 else R.string.image_save_failed
             )
         }
-    }
-
-    private fun openLogin() {
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 
     private fun setBusy(busy: Boolean, vararg views: View) {

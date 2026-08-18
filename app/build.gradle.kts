@@ -31,6 +31,12 @@ android {
             }
         }
     }
+
+    // Fuer BuildConfig.VERSION_NAME, das die Einstellungen unter "About"
+    // anzeigen. Seit AGP 8 wird BuildConfig nur noch auf Verlangen erzeugt.
+    buildFeatures {
+        buildConfig = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

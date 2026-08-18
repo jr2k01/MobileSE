@@ -277,24 +277,9 @@
                 android:layout_marginTop="32dp"
                 android:text="@string/save_profile" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLogout"
-                style="@style/Widget.CrewFit.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/logout_btn"
-                app:icon="@drawable/ic_logout"
-                app:iconGravity="textStart" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDeleteProfile"
-                style="@style/Widget.CrewFit.Button.Text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/delete_profile_btn"
-                android:textColor="?attr/colorError" />
+            <!-- Abmelden und Konto loeschen stehen in den Einstellungen: unter
+                 Groesse und Gewicht sucht sie niemand, und an zwei Stellen
+                 duerfen sie erst recht nicht stehen. -->
 
         </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

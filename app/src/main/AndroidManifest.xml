@@ -60,6 +60,7 @@
         <activity android:name=".CrewChallengesActivity" android:exported="false" />
         <activity android:name=".MemberProfileActivity" android:exported="false" />
         <activity android:name=".WorkoutDetailActivity" android:exported="false" />
+        <activity android:name=".SettingsActivity" android:exported="false" />
 
         <!--
             Ziel des Links aus der Mail zum Zuruecksetzen des Passworts.

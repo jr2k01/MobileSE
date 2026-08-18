@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Zahnrad fuer die Einstellungen.
+
+    Selbst gezeichnet wie die uebrigen Symbole der App. Der Ring entsteht aus
+    zwei Kreisen mit entgegengesetztem Umlaufsinn - der innere stanzt das Loch
+    heraus. Die acht Zaehne sind derselbe Balken, achtmal um die Mitte gedreht;
+    einzeln hingeschriebene Koordinaten waeren nur eine Fehlerquelle mehr.
+
+    Der innere Kreis beginnt unten, nicht oben: bei einem Bogen gegen den
+    Uhrzeigersinn liegt der Mittelpunkt auf der anderen Seite des Startpunkts.
+    Oben begonnen sass das Loch um seinen Durchmesser zu hoch.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,5.2 A6.8,6.8 0 1,1 11.99,5.2 Z M12,15.0 A3.0,3.0 0 1,0 11.99,15.0 Z" />
+
+    <group android:pivotX="12" android:pivotY="12">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="45">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="90">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="135">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="180">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="225">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="270">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+    <group android:pivotX="12" android:pivotY="12" android:rotation="315">
+        <path android:fillColor="@android:color/white" android:pathData="M10.9,2.5 L13.1,2.5 L13.1,6.6 L10.9,6.6 Z" />
+    </group>
+</vector>

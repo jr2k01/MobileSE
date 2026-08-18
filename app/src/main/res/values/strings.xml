@@ -387,6 +387,10 @@
     <string name="scope_crew">Whole crew</string>
     <string name="no_crew_activities_yet">Nobody in the crew has recorded an activity yet.</string>
     <string name="select_sport">Please select a sport</string>
+    <string name="sport_other">Other sport…</string>
+    <string name="sport_custom_title">Which sport?</string>
+    <string name="sport_custom_hint">For example Padel</string>
+    <string name="error_sport_custom_invalid">Please enter a name between %1$d and %2$d characters</string>
     <string name="enter_duration">Please enter a duration in minutes</string>
     <string name="enter_distance">Please enter the kilometers you ran</string>
     <string name="error_photo_required">Please take a photo of your workout</string>

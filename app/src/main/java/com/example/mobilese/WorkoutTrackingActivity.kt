@@ -11,10 +11,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.text.InputType
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -210,25 +212,80 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         tilDistance: TextInputLayout,
         etDistance: EditText
     ) {
-        val choices = Sports.ALL.map { ChoiceAdapter.Entry(it, Sports.iconFor(it)) }
+        // Ganz unten der Weg zur eigenen Sportart. Als letzter Eintrag der
+        // Liste und nicht als zweiter Knopf am Dialog: es ist dieselbe Frage,
+        // nur mit einer Antwort mehr.
+        val choices = Sports.ALL.map { ChoiceAdapter.Entry(it, Sports.iconFor(it)) } +
+                ChoiceAdapter.Entry(getString(R.string.sport_other), R.drawable.ic_sport_other)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.train_question)
             .setAdapter(ChoiceAdapter(this, choices)) { _, index ->
-                val sport = Sports.ALL[index]
-                etSport.setText(sport)
-                selectedSport = sport
-
-                // Die Distanz wird nur bei Sportarten abgefragt, die eine haben.
-                if (Sports.tracksDistance(sport)) {
-                    tilDistance.visibility = View.VISIBLE
-                } else {
-                    tilDistance.visibility = View.GONE
-                    etDistance.setText("")
-                }
+                if (index == Sports.ALL.size) askForCustomSport(etSport, tilDistance, etDistance)
+                else applySport(Sports.ALL[index], etSport, tilDistance, etDistance)
             }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()
+    }
+
+    /**
+     * Fragt nach einer selbst eingetragenen Sportart.
+     *
+     * Punkte gibt es dafuer wie fuer jedes andere Workout: sie haengen an Dauer
+     * und Intensitaet, und eine unbekannte Sportart bekommt die mittlere - siehe
+     * Sports.intensityFor.
+     */
+    private fun askForCustomSport(
+        etSport: EditText,
+        tilDistance: TextInputLayout,
+        etDistance: EditText
+    ) {
+        val input = EditText(this).apply {
+            setHint(R.string.sport_custom_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setText(selectedSport.takeIf { !Sports.isKnown(it) }.orEmpty())
+        }
+        val container = FrameLayout(this).apply {
+            val padding = resources.getDimensionPixelSize(R.dimen.card_padding)
+            setPadding(padding, padding / 2, padding, 0)
+            addView(input)
+        }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.sport_custom_title)
+            .setView(container)
+            .setNegativeButton(R.string.cancel_btn, null)
+            .setPositiveButton(R.string.add_btn) { _, _ ->
+                val sport = Sports.customOrNull(input.text.toString())
+                if (sport == null) {
+                    toastFormatted(
+                        R.string.error_sport_custom_invalid,
+                        Sports.CUSTOM_MIN_LENGTH,
+                        Sports.CUSTOM_MAX_LENGTH
+                    )
+                    return@setPositiveButton
+                }
+                applySport(sport, etSport, tilDistance, etDistance)
+            }
+            .show()
+    }
+
+    private fun applySport(
+        sport: String,
+        etSport: EditText,
+        tilDistance: TextInputLayout,
+        etDistance: EditText
+    ) {
+        etSport.setText(sport)
+        selectedSport = sport
+
+        // Die Distanz wird nur bei Sportarten abgefragt, die eine haben.
+        if (Sports.tracksDistance(sport)) {
+            tilDistance.visibility = View.VISIBLE
+        } else {
+            tilDistance.visibility = View.GONE
+            etDistance.setText("")
+        }
     }
 
     // --- Speichern ---

@@ -77,38 +77,51 @@ senden. Sie darf nicht ins Repository und niemals in die App.
 
 ## 4. Edge Function ausrollen
 
-Die Funktion liegt im Projekt unter `supabase/functions/notify/`.
+Die Funktion liegt im Projekt unter `supabase/functions/notify/index.ts`.
 
-Einmalig die Supabase-CLI einrichten und anmelden:
+### Zuerst der Schluessel als Secret
+
+Supabase → **Project Settings** → **Edge Functions** → **Secrets** → **Add new
+secret**:
+
+| Feld | Wert |
+| --- | --- |
+| Name | `FIREBASE_SERVICE_ACCOUNT` |
+| Value | der **gesamte Inhalt** der JSON-Datei aus Schritt 3 |
+
+Die Datei mit einem Texteditor oeffnen, alles markieren, einfuegen. Die
+Zeilenumbruche darin stoeren nicht.
+
+`SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` setzt Supabase in Edge Functions
+von selbst; die muessen nicht hinterlegt werden.
+
+### Dann die Funktion selbst - im Browser
+
+Ohne Node.js auf dem Rechner ist das der einfachere Weg:
+
+Supabase → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+Als Namen genau `notify` eintragen, den vorhandenen Beispielcode vollstaendig
+loeschen und den Inhalt von `supabase/functions/notify/index.ts` hineinkopieren.
+**Deploy**.
+
+Danach in der Funktion unter **Details** pruefen, dass **Verify JWT** *aus* ist -
+der Aufruf kommt vom Datenbank-Webhook und nicht von einem angemeldeten Nutzer.
+
+### Oder mit der CLI
+
+Wer Node.js hat, kann stattdessen aus dem Projektordner heraus ausrollen:
 
 ```bash
 npx supabase login
 ```
 
-Dann im Projektordner:
-
 ```bash
 npx supabase link --project-ref ghhtaaoedlvhipmnuziu
 ```
 
-Den Dienstkontoschluessel als Secret hinterlegen - der ganze Inhalt der JSON aus
-Schritt 3 als eine Zeile:
-
-```bash
-npx supabase secrets set FIREBASE_SERVICE_ACCOUNT="$(cat pfad/zur/serviceaccount.json)"
-```
-
-Und ausrollen:
-
 ```bash
 npx supabase functions deploy notify --no-verify-jwt
 ```
-
-`--no-verify-jwt` ist noetig, weil der Aufruf vom Datenbank-Webhook kommt und
-nicht von einem angemeldeten Nutzer.
-
-`SUPABASE_URL` und `SUPABASE_SERVICE_ROLE_KEY` setzt Supabase in Edge Functions
-von selbst; die muessen nicht hinterlegt werden.
 
 ---
 

@@ -23,6 +23,12 @@ alter table activities add column if not exists longitude double precision;
 -- mitgespeichert, damit sie spaeter nicht aus der aktuellen Crew-Groesse
 -- rekonstruiert werden muss - die kann sich zwischendurch geaendert haben.
 alter table challenge_rewards add column if not exists points integer not null default 0;
+
+-- Bis wann eine Team-Challenge geschafft sein muss. Leer heisst: ohne
+-- Frist, so wie alle bisherigen. Nach dem Stichtag zaehlt kein Training
+-- mehr auf das Ziel ein - wurde es bis dahin nicht erreicht, gibt es
+-- keine Punkte mehr dafuer.
+alter table challenges add column if not exists deadline date;
 ```
 
 ## Tabelle fuer die Schrittzahl

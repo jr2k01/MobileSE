@@ -98,6 +98,8 @@ class CrewChallengesActivity : AppCompatActivity() {
                 challenge.goal
             )
 
+            showDeadline(view, challenge, done = total >= challenge.goal)
+
             view.findViewById<ImageButton>(R.id.btnDeleteChallenge).setOnClickListener {
                 deleteChallenge(challenge.id)
             }
@@ -123,6 +125,44 @@ class CrewChallengesActivity : AppCompatActivity() {
 
             container.addView(view)
         }
+    }
+
+    /**
+     * Die Zeile mit der Frist.
+     *
+     * Vier Faelle, und die Reihenfolge ist wichtig: erreicht schlaegt
+     * abgelaufen. Wer es rechtzeitig geschafft hat, soll nicht spaeter lesen,
+     * die Frist sei verstrichen - die Punkte sind laengst vergeben.
+     *
+     * Ist die Frist verstrichen, ohne dass das Ziel stand, faerbt sich die
+     * Zeile: von da an kann sich nichts mehr aendern, und das sollte man sehen,
+     * ohne nachzurechnen.
+     */
+    private fun showDeadline(view: View, challenge: Challenge, done: Boolean) {
+        val label = view.findViewById<TextView>(R.id.tvChallengeDeadline)
+        val date = ChallengeDeadline.toDisplay(challenge.deadline)
+
+        if (date.isEmpty()) {
+            label.visibility = View.GONE
+            return
+        }
+        label.visibility = View.VISIBLE
+
+        val over = ChallengeDeadline.isOver(challenge.deadline)
+        val daysLeft = ChallengeDeadline.daysLeft(challenge.deadline) ?: 0L
+
+        label.text = when {
+            done -> getString(R.string.challenge_deadline_made_it, date)
+            over -> getString(R.string.challenge_deadline_over, date)
+            daysLeft <= 0L -> getString(R.string.challenge_deadline_today)
+            else -> getString(R.string.challenge_deadline_days, date, daysLeft.toInt())
+        }
+        label.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (over && !done) R.color.error else R.color.text_secondary
+            )
+        )
     }
 
     private fun showContributions(
@@ -160,6 +200,17 @@ class CrewChallengesActivity : AppCompatActivity() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_challenge_setup, null)
         val rgType = dialogView.findViewById<RadioGroup>(R.id.rgChallengeType)
         val etGoal = dialogView.findViewById<EditText>(R.id.etChallengeGoal)
+        val etDeadline = dialogView.findViewById<EditText>(R.id.etChallengeDeadline)
+
+        // Das Feld haelt die Frist in Anzeigeform; gespeichert wird ISO.
+        // Deshalb steht der gewaehlte Wert daneben und nicht im Text.
+        var deadline: String? = null
+        etDeadline.setOnClickListener {
+            DeadlinePicker.show(this, deadline) { picked ->
+                deadline = picked
+                etDeadline.setText(ChallengeDeadline.toDisplay(picked))
+            }
+        }
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.create_challenge_title)
@@ -182,16 +233,16 @@ class CrewChallengesActivity : AppCompatActivity() {
                     ).show()
                     return@setPositiveButton
                 }
-                addChallenge(type, goal.toDouble())
+                addChallenge(type, goal.toDouble(), deadline)
             }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()
     }
 
-    private fun addChallenge(type: ChallengeType, goal: Double) {
+    private fun addChallenge(type: ChallengeType, goal: Double, deadline: String?) {
         lifecycleScope.launch {
             val reward = ChallengeCalculator.calculateTotalChallengePoints(type, goal)
-            if (repository.addCrewChallenge(crewCode, type.name, goal.toInt(), reward)) {
+            if (repository.addCrewChallenge(crewCode, type.name, goal.toInt(), reward, deadline)) {
                 toast(R.string.challenge_added)
                 load()
             } else {

@@ -53,4 +53,28 @@
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!--
+        Freiwillig: ohne Frist laeuft die Challenge weiter wie bisher. Das Feld
+        nimmt keine Tastatureingabe entgegen (focusable=false), sondern oeffnet
+        den Kalender - ein getipptes Datum muesste sonst geprueft werden und
+        koennte in der Vergangenheit liegen.
+    -->
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.CrewFit.TextField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/challenge_deadline_hint"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_calendar"
+        app:endIconContentDescription="@string/challenge_deadline_title">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etChallengeDeadline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
 </LinearLayout>

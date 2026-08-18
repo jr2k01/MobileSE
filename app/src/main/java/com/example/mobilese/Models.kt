@@ -148,6 +148,29 @@ data class Challenge(
     @SerialName("crew_id") val crewId: String,
     val type: String,
     val goal: Int,
+    val reward: Int = 0,
+    /**
+     * Letzter Tag, an dem noch etwas zaehlt, als ISO-Datum ("2026-08-31").
+     * Null heisst: ohne Frist, die Challenge laeuft weiter.
+     *
+     * Der Standardwert laesst aeltere Zeilen ohne diese Spalte weiterhin lesen.
+     */
+    val deadline: String? = null
+)
+
+/**
+ * Dieselbe Challenge ohne die Frist.
+ *
+ * Aus demselben Grund wie [ActivityWithoutCoordinates]: fehlt die Spalte
+ * deadline in der Datenbank, weist Postgrest ein Insert ab, das sie nennt.
+ * Ohne diese Fassung liesse sich dann gar keine Challenge mehr anlegen.
+ */
+@Serializable
+data class ChallengeWithoutDeadline(
+    val id: String,
+    @SerialName("crew_id") val crewId: String,
+    val type: String,
+    val goal: Int,
     val reward: Int = 0
 )
 

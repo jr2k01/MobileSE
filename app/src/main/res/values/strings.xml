@@ -129,6 +129,13 @@
     <string name="challenge_type_running">Running (Total km)</string>
     <string name="challenge_type_gym">Gym Sessions (Total count)</string>
     <string name="challenge_goal_hint">Goal (km or sessions)</string>
+    <string name="challenge_deadline_hint">Deadline (optional)</string>
+    <string name="challenge_deadline_title">Done by when?</string>
+    <string name="challenge_deadline_until">Until %1$s</string>
+    <string name="challenge_deadline_today">Last day today</string>
+    <string name="challenge_deadline_days">Until %1$s · %2$d days left</string>
+    <string name="challenge_deadline_over">Deadline passed on %1$s · no points</string>
+    <string name="challenge_deadline_made_it">Made it before %1$s</string>
     <string name="add_btn">Add</string>
     <string name="challenge_progress">%1$d / %2$d achieved</string>
     <string name="challenge_completed">Challenge Completed!</string>

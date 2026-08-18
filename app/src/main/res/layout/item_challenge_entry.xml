@@ -46,6 +46,17 @@
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
+        <!-- Nur da, wenn eine Frist gesetzt ist. Die Faerbung setzt der Code:
+             ist sie vorbei, wird aus der Angabe ein Hinweis. -->
+        <TextView
+            android:id="@+id/tvChallengeDeadline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
         <!-- M3-Fortschrittsbalken: abgerundet, mit Abstand zur Spur -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/pbChallenge"

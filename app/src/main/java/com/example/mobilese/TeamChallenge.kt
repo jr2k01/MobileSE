@@ -17,7 +17,13 @@ object ChallengeManager {
      * Grundlage sind die bereits geladenen Aktivitaeten aus dem Snapshot.
      */
     fun progressByMember(challenge: Challenge, snapshot: CrewSnapshot): List<Pair<UserProfile, Int>> {
-        val activitiesByUser = snapshot.activities.groupBy { it.userId }
+        // Nach Ablauf der Frist zaehlt nichts mehr dazu. Damit bleibt ein
+        // Stand, der bis zum Stichtag unter dem Ziel lag, fuer immer darunter -
+        // und die Belohnung wird nie faellig. Genau das ist der Sinn einer
+        // Frist, und sie braucht dafuer keine eigene Pruefung weiter unten.
+        val activitiesByUser = snapshot.activities
+            .filter { ChallengeDeadline.countsTowards(challenge.deadline, it.timestamp) }
+            .groupBy { it.userId }
         return snapshot.members
             .map { member ->
                 member to ChallengeCalculator.progressOf(

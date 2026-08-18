@@ -1055,6 +1055,14 @@ class AppRepository private constructor(context: Context) {
         avatarUrl = avatarUrl
     )
 
+    private fun Challenge.withoutDeadline() = ChallengeWithoutDeadline(
+        id = id,
+        crewId = crewId,
+        type = type,
+        goal = goal,
+        reward = reward
+    )
+
     private fun Activity.withoutCoordinates() = ActivityWithoutCoordinates(
         userId = userId,
         crewId = crewId,
@@ -1089,18 +1097,39 @@ class AppRepository private constructor(context: Context) {
 
     // --- CHALLENGES ---
 
-    suspend fun addCrewChallenge(crewCode: String, type: String, goal: Int, reward: Int): Boolean =
+    /** @param deadline letzter zaehlender Tag als ISO-Datum, oder null ohne Frist. */
+    suspend fun addCrewChallenge(
+        crewCode: String,
+        type: String,
+        goal: Int,
+        reward: Int,
+        deadline: String?
+    ): Boolean =
         withContext(Dispatchers.IO) {
+            val challenge = Challenge(
+                id = System.currentTimeMillis().toString(),
+                crewId = crewCode,
+                type = type,
+                goal = goal,
+                reward = reward,
+                deadline = deadline
+            )
+
             try {
-                client.postgrest["challenges"].insert(
-                    Challenge(
-                        id = System.currentTimeMillis().toString(),
-                        crewId = crewCode,
-                        type = type,
-                        goal = goal,
-                        reward = reward
+                try {
+                    client.postgrest["challenges"].insert(challenge)
+                } catch (e: Exception) {
+                    if (!isMissingColumn(e, "deadline")) throw e
+                    // Die Spalte fehlt in dieser Datenbank. Eine Challenge
+                    // anlegen zu koennen ist wichtiger als die Frist; sie
+                    // laeuft dann eben unbefristet weiter.
+                    Log.w(
+                        "SupabaseDB",
+                        "Saving without the deadline, the deadline column is missing. " +
+                                "See the documentation for the required ALTER TABLE."
                     )
-                )
+                    client.postgrest["challenges"].insert(challenge.withoutDeadline())
+                }
                 true
             } catch (e: Exception) {
                 Log.e("SupabaseDB", "Adding the challenge failed: ${e.message}")

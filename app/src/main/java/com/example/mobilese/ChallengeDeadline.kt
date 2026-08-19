@@ -52,6 +52,17 @@ object ChallengeDeadline {
     }
 
     /**
+     * Wie [countsTowards], aber fuer Daten, die ihren Tag schon als ISO-Datum
+     * tragen - etwa die Schrittzahl. Erspart den Umweg ueber einen
+     * Zeitstempel, den es dort gar nicht gibt.
+     */
+    fun countsOnDay(deadline: String?, day: String): Boolean {
+        val limit = parse(deadline) ?: return true
+        if (day.isEmpty()) return false
+        return day <= limit.toString()
+    }
+
+    /**
      * Ob die Frist abgelaufen ist. Am Stichtag selbst noch nicht - erst am Tag
      * danach.
      */

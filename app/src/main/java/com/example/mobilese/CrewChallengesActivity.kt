@@ -9,7 +9,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -85,18 +85,13 @@ class CrewChallengesActivity : AppCompatActivity() {
 
         for (challenge in snapshot.challenges) {
             val view = inflater.inflate(R.layout.item_challenge_entry, container, false)
-            val isDistance = ChallengeCalculator.isDistanceChallenge(challenge.type)
+            val type = ChallengeType.fromStored(challenge.type)
             val contributions = ChallengeManager.progressByMember(challenge, snapshot)
             val total = contributions.sumOf { it.second }
 
-            view.findViewById<TextView>(R.id.tvChallengeTitle).text = getString(
-                if (isDistance) R.string.challenge_type_running else R.string.challenge_type_gym
-            )
-            view.findViewById<TextView>(R.id.tvChallengeProgress).text = getString(
-                if (isDistance) R.string.progress_km else R.string.progress_sessions,
-                total,
-                challenge.goal
-            )
+            view.findViewById<TextView>(R.id.tvChallengeTitle).setText(type.labelRes)
+            view.findViewById<TextView>(R.id.tvChallengeProgress).text =
+                getString(type.progressRes, total, challenge.goal)
 
             showDeadline(view, challenge, done = total >= challenge.goal)
 
@@ -108,7 +103,7 @@ class CrewChallengesActivity : AppCompatActivity() {
                 view.findViewById(R.id.llContributionsContainer),
                 inflater,
                 contributions,
-                isDistance
+                type
             )
 
             val progressBar = view.findViewById<LinearProgressIndicator>(R.id.pbChallenge)
@@ -169,7 +164,7 @@ class CrewChallengesActivity : AppCompatActivity() {
         container: LinearLayout,
         inflater: LayoutInflater,
         contributions: List<Pair<UserProfile, Int>>,
-        isDistance: Boolean
+        type: ChallengeType
     ) {
         container.removeAllViews()
         for ((member, value) in contributions) {
@@ -177,10 +172,8 @@ class CrewChallengesActivity : AppCompatActivity() {
             val row = inflater.inflate(R.layout.item_challenge_contributor_row, container, false)
             row.findViewById<TextView>(R.id.tvContributorName).text =
                 DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
-            row.findViewById<TextView>(R.id.tvContributorValue).text = getString(
-                if (isDistance) R.string.contribution_km else R.string.contribution_sessions,
-                value
-            )
+            row.findViewById<TextView>(R.id.tvContributorValue).text =
+                getString(type.contributionRes, value)
             container.addView(row)
         }
     }
@@ -198,9 +191,22 @@ class CrewChallengesActivity : AppCompatActivity() {
 
     private fun showAddChallengeDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_challenge_setup, null)
-        val rgType = dialogView.findViewById<RadioGroup>(R.id.rgChallengeType)
+        val etType = dialogView.findViewById<EditText>(R.id.etChallengeType)
+        val tilGoal = dialogView.findViewById<TextInputLayout>(R.id.tilChallengeGoal)
         val etGoal = dialogView.findViewById<EditText>(R.id.etChallengeGoal)
         val etDeadline = dialogView.findViewById<EditText>(R.id.etChallengeDeadline)
+
+        var type = ChallengeType.DISTANCE
+        // Die Beschriftung des Zielfeldes nennt die Einheit und wechselt mit
+        // der Art - sonst stuende bei einer Schritt-Challenge "Ziel in
+        // Kilometern".
+        val applyType: (ChallengeType) -> Unit = { chosen ->
+            type = chosen
+            etType.setText(getString(chosen.labelRes))
+            tilGoal.hint = getString(chosen.goalHintRes)
+        }
+        applyType(type)
+        etType.setOnClickListener { askForChallengeType(applyType) }
 
         // Das Feld haelt die Frist in Anzeigeform; gespeichert wird ISO.
         // Deshalb steht der gewaehlte Wert daneben und nicht im Text.
@@ -216,10 +222,7 @@ class CrewChallengesActivity : AppCompatActivity() {
             .setTitle(R.string.create_challenge_title)
             .setView(dialogView)
             .setPositiveButton(R.string.add_btn) { _, _ ->
-                val type =
-                    if (rgType.checkedRadioButtonId == R.id.rbRunning) ChallengeType.DISTANCE
-                    else ChallengeType.WORKOUT_COUNT
-                val goal = InputRules.challengeGoalOrNull(etGoal.text.toString())
+                val goal = InputRules.challengeGoalOrNull(etGoal.text.toString(), type.maxGoal)
 
                 if (goal == null) {
                     Toast.makeText(
@@ -227,7 +230,7 @@ class CrewChallengesActivity : AppCompatActivity() {
                         getString(
                             R.string.error_challenge_goal_range,
                             InputRules.MIN_CHALLENGE_GOAL,
-                            InputRules.MAX_CHALLENGE_GOAL
+                            type.maxGoal
                         ),
                         Toast.LENGTH_LONG
                     ).show()
@@ -235,6 +238,18 @@ class CrewChallengesActivity : AppCompatActivity() {
                 }
                 addChallenge(type, goal.toDouble(), deadline)
             }
+            .setNegativeButton(R.string.cancel_btn, null)
+            .show()
+    }
+
+    /** Die Auswahl der Art, als Liste mit Symbolen wie bei der Sportart. */
+    private fun askForChallengeType(onChosen: (ChallengeType) -> Unit) {
+        val types = ChallengeType.entries
+        val choices = types.map { ChoiceAdapter.Entry(getString(it.labelRes), it.iconRes) }
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.challenge_type_choose)
+            .setAdapter(ChoiceAdapter(this, choices)) { _, index -> onChosen(types[index]) }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()
     }

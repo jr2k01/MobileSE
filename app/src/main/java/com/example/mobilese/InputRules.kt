@@ -101,8 +101,16 @@ object InputRules {
     fun distanceOrNull(value: String): Double? =
         parseDecimal(value)?.takeIf { it in MIN_DISTANCE_KM..MAX_DISTANCE_KM }
 
-    fun challengeGoalOrNull(value: String): Int? =
-        parseDecimal(value)?.takeIf { it >= MIN_CHALLENGE_GOAL && it <= MAX_CHALLENGE_GOAL }
+    /**
+     * Prueft ein Challenge-Ziel gegen die Obergrenze der jeweiligen Art.
+     *
+     * Die Grenze haengt an der Einheit und steht deshalb am Typ: zwanzig
+     * Trainingstage sind viel, zwanzigtausend Schritte sind ein Nachmittag.
+     * Eine gemeinsame Zahl waere fuer das eine unsinnig eng und fuer das
+     * andere wertlos weit.
+     */
+    fun challengeGoalOrNull(value: String, maxGoal: Int = MAX_CHALLENGE_GOAL): Int? =
+        parseDecimal(value)?.takeIf { it >= MIN_CHALLENGE_GOAL && it <= maxGoal }
             ?.toInt()
 
     /** Akzeptiert Komma wie Punkt als Dezimaltrennzeichen. */

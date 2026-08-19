@@ -22,7 +22,7 @@ class ChallengeProgressTest {
         )
 
         // 2.7 km. Einzeln gekuerzt waeren es 0 + 0 + 0 gewesen.
-        assertEquals(2, ChallengeCalculator.progressOf(ChallengeType.DISTANCE.name, runs))
+        assertEquals(2, ChallengeCalculator.progressOf(ChallengeType.DISTANCE, runs))
     }
 
     @Test
@@ -33,7 +33,7 @@ class ChallengeProgressTest {
             TestData.activity("u1", sport = Sports.RUNNING)
         )
 
-        assertEquals(2, ChallengeCalculator.progressOf(ChallengeType.WORKOUT_COUNT.name, activities))
+        assertEquals(2, ChallengeCalculator.progressOf(ChallengeType.WORKOUT_COUNT, activities))
     }
 
     @Test

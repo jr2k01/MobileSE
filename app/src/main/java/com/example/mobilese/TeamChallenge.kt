@@ -14,9 +14,16 @@ object ChallengeManager {
 
     /**
      * Der Beitrag jedes Crew-Mitglieds zu einer Challenge, absteigend sortiert.
-     * Grundlage sind die bereits geladenen Aktivitaeten aus dem Snapshot.
+     * Grundlage sind die bereits geladenen Daten aus dem Snapshot.
+     *
+     * Gezaehlt wird je Person und danach zusammengezaehlt. Die Summe der
+     * Beitraege ist deshalb immer der Gesamtstand - auch bei Trainingstagen,
+     * wo zwei Mitglieder am selben Tag als zwei Tage zaehlen. Anders liesse
+     * sich der Balken nicht in Beitraege zerlegen.
      */
     fun progressByMember(challenge: Challenge, snapshot: CrewSnapshot): List<Pair<UserProfile, Int>> {
+        val type = ChallengeType.fromStored(challenge.type)
+
         // Nach Ablauf der Frist zaehlt nichts mehr dazu. Damit bleibt ein
         // Stand, der bis zum Stichtag unter dem Ziel lag, fuer immer darunter -
         // und die Belohnung wird nie faellig. Genau das ist der Sinn einer
@@ -24,11 +31,19 @@ object ChallengeManager {
         val activitiesByUser = snapshot.activities
             .filter { ChallengeDeadline.countsTowards(challenge.deadline, it.timestamp) }
             .groupBy { it.userId }
+
+        // Schritte tragen ihren Tag schon als Datum, brauchen also keinen
+        // Umweg ueber den Zeitstempel.
+        val stepsByUser = snapshot.stepDays
+            .filter { day -> ChallengeDeadline.countsOnDay(challenge.deadline, day.day) }
+            .groupBy { it.userId }
+
         return snapshot.members
             .map { member ->
                 member to ChallengeCalculator.progressOf(
-                    challenge.type,
-                    activitiesByUser[member.id].orEmpty()
+                    type,
+                    activitiesByUser[member.id].orEmpty(),
+                    stepsByUser[member.id].orEmpty()
                 )
             }
             .sortedByDescending { it.second }

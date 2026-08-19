@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Anlegen einer Team-Challenge: Art, Ziel und eine freiwillige Frist.
+
+    Die Art wird ueber ein Feld gewaehlt, das eine Liste oeffnet, und nicht mehr
+    ueber Auswahlknoepfe. Bei zwei Arten passten die noch in den Dialog, bei
+    sechs waere er hoeher als der Bildschirm. Dasselbe Muster wie bei der
+    Sportart im Workout.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -9,42 +17,31 @@
     android:paddingTop="20dp"
     android:paddingBottom="8dp">
 
-    <TextView
-        style="@style/TextAppearance.CrewFit.SectionLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/challenge_type_label" />
-
-    <RadioGroup
-        android:id="@+id/rgChallengeType"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp">
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/rbRunning"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="@string/challenge_type_running"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:checked="true" />
-
-        <com.google.android.material.radiobutton.MaterialRadioButton
-            android:id="@+id/rbGym"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:text="@string/challenge_type_gym" />
-    </RadioGroup>
-
     <com.google.android.material.textfield.TextInputLayout
         style="@style/Widget.CrewFit.TextField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/challenge_goal_hint">
+        android:hint="@string/challenge_type_label"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_arrow_drop_down"
+        app:endIconContentDescription="@string/challenge_type_choose">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etChallengeType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Die Beschriftung nennt die Einheit und wechselt mit der Art. -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilChallengeGoal"
+        style="@style/Widget.CrewFit.TextField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="@string/challenge_goal_hint_km">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etChallengeGoal"

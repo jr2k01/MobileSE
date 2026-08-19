@@ -285,6 +285,14 @@
 
     <!-- === Profil eines Crewmitglieds === -->
     <string name="member_profile_title">Crew Member</string>
+    <string name="member_crews_label">CREWS</string>
+    <string name="member_crew_join">Join</string>
+    <string name="member_crew_joined">You are in</string>
+    <string name="follow_btn">Follow</string>
+    <string name="unfollow_btn">Following</string>
+    <string name="follow_failed">Could not be saved</string>
+    <string name="following_label">FOLLOWING</string>
+    <string name="following_empty">Nobody yet. Open a crew member and tap Follow.</string>
     <string name="member_stat_points">Points</string>
     <string name="member_stat_workouts">Workouts</string>
     <string name="member_stat_medals">Medals</string>

@@ -4,12 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.LayoutInflater
 import android.widget.GridLayout
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -45,6 +48,7 @@ class MemberProfileActivity : AppCompatActivity() {
 
         labelStats()
         load(userId)
+        showFollowAndCrews(userId)
     }
 
     /** Die Beschriftungen stehen fest, nur die Zahlen kommen spaeter. */
@@ -100,6 +104,98 @@ class MemberProfileActivity : AppCompatActivity() {
 
         showSteps(entry.todaySteps)
         MedalGrid.fill(findViewById(R.id.glMedals), medals)
+    }
+
+    /**
+     * Folgen-Knopf und die Crews dieser Person.
+     *
+     * Beides haengt nicht an der Crew, ueber die man hierher gekommen ist -
+     * deshalb wird es getrennt vom Snapshot geladen und steht auch dann da,
+     * wenn die Person die Crew inzwischen verlassen hat.
+     */
+    private fun showFollowAndCrews(userId: String) {
+        lifecycleScope.launch {
+            val me = repository.currentUserId()
+            val button = findViewById<MaterialButton>(R.id.btnFollow)
+
+            // Sich selbst zu folgen ergibt keinen Sinn; dann bleibt der Knopf weg.
+            if (me != null && me != userId) {
+                button.visibility = View.VISIBLE
+                showFollowState(button, repository.isFollowing(userId), userId)
+            }
+
+            showCrews(userId)
+        }
+    }
+
+    private fun showFollowState(button: MaterialButton, following: Boolean, userId: String) {
+        button.setText(if (following) R.string.unfollow_btn else R.string.follow_btn)
+        button.setOnClickListener {
+            lifecycleScope.launch {
+                if (repository.setFollowing(userId, !following)) {
+                    showFollowState(button, !following, userId)
+                } else {
+                    Toast.makeText(
+                        this@MemberProfileActivity,
+                        R.string.follow_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private suspend fun showCrews(userId: String) {
+        val crews = repository.getCrewsOf(userId)
+        val container = findViewById<LinearLayout>(R.id.llMemberCrews)
+        container.removeAllViews()
+
+        findViewById<View>(R.id.tvMemberCrewsLabel).visibility =
+            if (crews.isEmpty()) View.GONE else View.VISIBLE
+
+        val mine = repository.getJoinedCrews().map { it.id }.toSet()
+        val inflater = LayoutInflater.from(this)
+
+        for (crew in crews) {
+            val row = inflater.inflate(R.layout.item_member_crew_row, container, false)
+            row.findViewById<TextView>(R.id.tvCrewRowName).text = crew.name
+
+            val alreadyIn = crew.id in mine
+            row.findViewById<View>(R.id.tvCrewRowMember).visibility =
+                if (alreadyIn) View.VISIBLE else View.GONE
+
+            val join = row.findViewById<MaterialButton>(R.id.btnCrewRowJoin)
+            join.visibility = if (alreadyIn) View.GONE else View.VISIBLE
+            join.setOnClickListener { joinCrew(crew) }
+
+            container.addView(row)
+        }
+    }
+
+    /**
+     * Der Crew beitreten, in der die Person ist.
+     *
+     * Danach wird sie zur angezeigten Crew - wer beitritt, will sie sehen.
+     * Zurueck auf den Startbildschirm statt hier zu bleiben, weil sich mit der
+     * Crew alles andere auch aendert.
+     */
+    private fun joinCrew(crew: Crew) {
+        lifecycleScope.launch {
+            if (!repository.joinCrew(crew.id)) {
+                Toast.makeText(this@MemberProfileActivity, R.string.invalid_crew_code, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            Toast.makeText(
+                this@MemberProfileActivity,
+                getString(R.string.joined_crew, crew.name),
+                Toast.LENGTH_SHORT
+            ).show()
+
+            val intent = Intent(this@MemberProfileActivity, MainHubActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun setStat(containerId: Int, value: Int) {

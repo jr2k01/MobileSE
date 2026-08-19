@@ -7,7 +7,9 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.view.LayoutInflater
 import android.widget.GridLayout
+import android.widget.LinearLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -77,6 +79,7 @@ class ProfileActivity : AppCompatActivity() {
         BirthDatePicker.reattach(this, applyPickedDate)
 
         showMedals()
+        showFollowing()
 
         // Beim Drehen des Geraets wird die Activity neu erzeugt. Die Textfelder
         // stellt Android dabei selbst wieder her - sie danach erneut aus der
@@ -183,6 +186,42 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+
+    /**
+     * Wem man folgt.
+     *
+     * Antippen fuehrt auf das Profil der Person - dort stehen ihre Crews und
+     * der Weg hinein. Das ist der eigentliche Zweck der Liste: nicht zu
+     * sammeln, sondern von hier aus weiterzukommen.
+     */
+    private fun showFollowing() {
+        val container = findViewById<LinearLayout>(R.id.llFollowing)
+        val empty = findViewById<TextView>(R.id.tvFollowingEmpty)
+
+        lifecycleScope.launch {
+            val people = repository.getFollowing()
+            container.removeAllViews()
+            empty.visibility = if (people.isEmpty()) View.VISIBLE else View.GONE
+
+            val inflater = LayoutInflater.from(this@ProfileActivity)
+            for (person in people) {
+                val row = inflater.inflate(R.layout.item_crew_member_row, container, false)
+                row.findViewById<TextView>(R.id.tvMemberName).text =
+                    DisplayName.of(person).ifEmpty { getString(R.string.unknown_member) }
+                ImageLoader.into(
+                    row.findViewById<ImageView>(R.id.ivMemberPhoto),
+                    person.avatarUrl,
+                    circular = true,
+                    placeholder = android.R.drawable.ic_menu_gallery
+                )
+                row.setOnClickListener {
+                    startActivity(MemberProfileActivity.intent(this@ProfileActivity, person.id))
+                }
+                container.addView(row)
+            }
+        }
     }
 
     /**

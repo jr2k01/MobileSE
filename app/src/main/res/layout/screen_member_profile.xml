@@ -142,6 +142,42 @@
                         android:layout_marginStart="10dp" />
                 </LinearLayout>
 
+
+                <!--
+                    Folgen. Steht unter dem Namen und nicht neben ihm: der Knopf
+                    wechselt seine Beschriftung, und daneben wuerde die
+                    Ueberschrift bei jedem Wechsel springen.
+                -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFollow"
+                    style="@style/Widget.CrewFit.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:visibility="gone" />
+
+                <!--
+                    Die Crews dieser Person. Aus einer, in der man selbst nicht
+                    ist, fuehrt ein Knopf hinein - das ist der Weg, ueber einen
+                    Bekannten zu einer Crew zu kommen, ohne einen Code zu
+                    brauchen.
+                -->
+                <TextView
+                    android:id="@+id/tvMemberCrewsLabel"
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:text="@string/member_crews_label"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/llMemberCrews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
                 <TextView
                     style="@style/TextAppearance.CrewFit.SectionLabel"
                     android:layout_width="wrap_content"

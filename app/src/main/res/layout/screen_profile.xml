@@ -175,6 +175,36 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
+
+            <!--
+                Wem man folgt. Steht im eigenen Profil, weil es die eigene
+                Auswahl ist - und weil man von hier aus zu den Crews der
+                anderen kommt.
+            -->
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/following_label" />
+
+            <TextView
+                android:id="@+id/tvFollowingEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/following_empty"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/llFollowing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical" />
+
                 <TextView
                     style="@style/TextAppearance.CrewFit.SectionLabel"
                     android:layout_width="0dp"

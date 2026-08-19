@@ -67,6 +67,40 @@ create policy "step_days_update_own" on step_days
     for update to authenticated using (auth.uid() = user_id);
 ```
 
+## Tabelle fuer das Folgen
+
+Wer wem folgt. Gerichtet und ohne Bestaetigung: Folgen ist keine Freundschaft,
+die beide Seiten eingehen, sondern ein Lesezeichen auf eine Person.
+
+```sql
+create table if not exists follows (
+    follower_id uuid not null references profiles(id) on delete cascade,
+    followee_id uuid not null references profiles(id) on delete cascade,
+    created_at  timestamptz not null default now(),
+    primary key (follower_id, followee_id)
+);
+
+alter table follows enable row level security;
+
+-- Jeder sieht nur, wem er selbst folgt. Absichtlich nicht "alles lesbar":
+-- sonst koennte jeder Angemeldete das ganze Beziehungsgeflecht abfragen.
+drop policy if exists "follows_read_own" on follows;
+create policy "follows_read_own" on follows
+    for select to authenticated using (auth.uid() = follower_id);
+
+-- Folgen und entfolgen nur im eigenen Namen.
+drop policy if exists "follows_insert_own" on follows;
+create policy "follows_insert_own" on follows
+    for insert to authenticated with check (auth.uid() = follower_id);
+
+drop policy if exists "follows_delete_own" on follows;
+create policy "follows_delete_own" on follows
+    for delete to authenticated using (auth.uid() = follower_id);
+```
+
+Die Leseregel ist wie bei `device_tokens` nicht optional: die App schreibt per
+Upsert, und dafuer muss Postgres die kollidierende Zeile lesen duerfen.
+
 ## Tabelle fuer das Bild der Nummer eins
 
 Eine Zeile je Crew - der Schluessel ist die Crew, nicht der Nutzer. Ein neues

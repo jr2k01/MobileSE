@@ -555,7 +555,7 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
-    private suspend fun getProfileById(userId: String): UserProfile? = withContext(Dispatchers.IO) {
+    suspend fun getProfileById(userId: String): UserProfile? = withContext(Dispatchers.IO) {
         try {
             client.postgrest["profiles"].select {
                 filter { eq("id", userId) }
@@ -1069,6 +1069,96 @@ class AppRepository private constructor(context: Context) {
             setJoinedCrewCode(codes.firstOrNull())
         } catch (e: Exception) {
             Log.e("SupabaseDB", "Could not determine crew membership: ${e.message}")
+        }
+    }
+
+    // --- FOLGEN ---
+
+    /** Ob der angemeldete Nutzer dieser Person folgt. */
+    suspend fun isFollowing(userId: String): Boolean = withContext(Dispatchers.IO) {
+        val me = currentUserId() ?: return@withContext false
+        try {
+            client.postgrest["follows"].select {
+                filter {
+                    eq("follower_id", me)
+                    eq("followee_id", userId)
+                }
+                limit(1)
+            }.decodeList<Follow>().isNotEmpty()
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not check the follow: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Folgt einer Person, oder beendet es.
+     *
+     * Sich selbst zu folgen wird abgewiesen - es waere kein Fehler, aber die
+     * eigene Person in der eigenen Liste zu fuehren hat keinen Sinn.
+     */
+    suspend fun setFollowing(userId: String, follow: Boolean): Boolean =
+        withContext(Dispatchers.IO) {
+            val me = currentUserId() ?: return@withContext false
+            if (me == userId) return@withContext false
+
+            try {
+                if (follow) {
+                    client.postgrest["follows"].upsert(Follow(followerId = me, followeeId = userId))
+                } else {
+                    client.postgrest["follows"].delete {
+                        filter {
+                            eq("follower_id", me)
+                            eq("followee_id", userId)
+                        }
+                    }
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not change the follow: ${e.message}")
+                false
+            }
+        }
+
+    /** Die Profile derer, denen der angemeldete Nutzer folgt, nach Namen sortiert. */
+    suspend fun getFollowing(): List<UserProfile> = withContext(Dispatchers.IO) {
+        val me = currentUserId() ?: return@withContext emptyList()
+        try {
+            val ids = client.postgrest["follows"].select {
+                filter { eq("follower_id", me) }
+            }.decodeList<Follow>().map { it.followeeId }
+
+            if (ids.isEmpty()) return@withContext emptyList()
+
+            client.postgrest["profiles"].select {
+                filter { isIn("id", ids) }
+            }.decodeList<UserProfile>().sortedBy { DisplayName.of(it).lowercase() }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load who is followed: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Die Crews, in denen eine Person ist.
+     *
+     * Grundlage dafuer, ueber jemanden einer Crew beizutreten: man sieht, wo
+     * die Person mitmacht, und kann von dort aus dazukommen.
+     */
+    suspend fun getCrewsOf(userId: String): List<Crew> = withContext(Dispatchers.IO) {
+        try {
+            val codes = client.postgrest["crew_members"].select {
+                filter { eq("user_id", userId) }
+            }.decodeList<CrewMember>().map { it.crewId }
+
+            if (codes.isEmpty()) return@withContext emptyList()
+
+            client.postgrest["crews"].select {
+                filter { isIn("id", codes) }
+            }.decodeList<Crew>().sortedBy { it.name.lowercase() }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load the crews of a member: ${e.message}")
+            emptyList()
         }
     }
 

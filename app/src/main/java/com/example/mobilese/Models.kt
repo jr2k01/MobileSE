@@ -226,3 +226,16 @@ data class DeviceToken(
     val token: String,
     @SerialName("user_id") val userId: String
 )
+
+/**
+ * Wer wem folgt.
+ *
+ * Bewusst gerichtet und ohne Bestaetigung: Folgen ist keine Freundschaft, die
+ * beide Seiten eingehen, sondern ein Lesezeichen auf eine Person. Wer zurueck
+ * folgen will, tut es seinerseits.
+ */
+@Serializable
+data class Follow(
+    @SerialName("follower_id") val followerId: String,
+    @SerialName("followee_id") val followeeId: String
+)

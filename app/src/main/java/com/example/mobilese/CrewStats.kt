@@ -221,22 +221,31 @@ object CrewStats {
 
     /** Die Punkte eines Mitglieds nach Herkunft. */
     fun pointsSplit(userId: String, snapshot: CrewSnapshot): PointsSplit {
-        val workoutPoints = snapshot.activities
-            .filter { it.userId == userId }
-            .sumOf {
-                PointsCalculator.calculateWorkoutPoints(
-                    it.duration,
-                    WorkoutIntensity.fromName(it.intensity)
-                )
-            }
+        val own = snapshot.activities.filter { it.userId == userId }
+        val ownSteps = snapshot.stepDays.filter { it.userId == userId }
+
+        // Muss so rechnen wie Scoreboard.build, samt Aufschlag der Serie -
+        // sonst summierte sich der Balken nicht mehr zu dem Punktestand, der
+        // in derselben Zeile steht.
+        val activeDays = Streak.activeDays(userId, own, ownSteps)
+        val workoutPoints = own.sumOf { activity ->
+            val base = PointsCalculator.calculateWorkoutPoints(
+                activity.duration,
+                WorkoutIntensity.fromName(activity.intensity)
+            )
+            val day = ActivityTime.dayOf(activity.timestamp)
+            if (day.isEmpty()) base
+            else Streak.applyMultiplier(
+                base,
+                Streak.multiplierFor(Streak.endingOn(activeDays, LocalDate.parse(day)))
+            )
+        }
 
         val challengePoints = snapshot.rewards
             .filter { it.userId == userId }
             .sumOf { it.points }
 
-        val stepPoints = StepGoal.bonusPoints(
-            snapshot.stepDays.filter { it.userId == userId }.map { it.steps }
-        )
+        val stepPoints = StepGoal.bonusPoints(ownSteps.map { it.steps })
 
         return PointsSplit(workoutPoints, challengePoints, stepPoints)
     }

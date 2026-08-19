@@ -281,10 +281,48 @@ class MainHubActivity : AppCompatActivity() {
 
             tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
             showMembers(snapshot)
+            showStreak(snapshot)
             showTopThree(snapshot)
             showLatestActivities(snapshot)
         }
     }
+    /**
+     * Die eigene Serie und der Aufschlag, den sie gerade bringt.
+     *
+     * Der Hinweis nennt nicht den Stand, sondern was der naechste Schritt
+     * bringt - das ist der Grund, heute noch loszugehen. Auf der hoechsten
+     * Stufe entfaellt er.
+     */
+    private suspend fun showStreak(snapshot: CrewSnapshot) {
+        val userId = repository.currentUserId() ?: return
+        val card = findViewById<View>(R.id.streakCard)
+        val days = Streak.current(Streak.activeDays(userId, snapshot.activities, snapshot.stepDays))
+        val multiplier = Streak.multiplierFor(days)
+
+        card.findViewById<TextView>(R.id.tvStreakTitle).text =
+            if (days <= 0) getString(R.string.streak_title_none)
+            else resources.getQuantityString(R.plurals.streak_title, days, days)
+
+        val toNext = Streak.daysToNextTier(days)
+        card.findViewById<TextView>(R.id.tvStreakHint).text = when {
+            days <= 0 -> getString(R.string.streak_hint_start)
+            toNext == null -> getString(R.string.streak_hint_top)
+            else -> resources.getQuantityString(
+                R.plurals.streak_hint_next,
+                toNext,
+                toNext,
+                decimal(Streak.multiplierFor(days + toNext))
+            )
+        }
+
+        card.findViewById<TextView>(R.id.tvStreakMultiplier).text =
+            getString(R.string.streak_multiplier, decimal(multiplier))
+    }
+
+    /** "1,1" statt "1.1000000000000001". */
+    private fun decimal(value: Double): String =
+        NumberFormat.getNumberInstance().apply { maximumFractionDigits = 2 }.format(value)
+
 
     private fun showMembers(snapshot: CrewSnapshot) {
         llMembers.removeAllViews()

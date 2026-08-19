@@ -35,6 +35,23 @@
     <string name="last_name_hint">Last Name</string>
     <string name="display_name_hint">Short Name</string>
 
+
+    <!-- === Serie === -->
+    <string name="streak_title_none">No streak yet</string>
+
+    <!-- Mehrzahl, damit nicht "1 days in a row" dasteht. -->
+    <plurals name="streak_title">
+        <item quantity="one">%1$d day in a row</item>
+        <item quantity="other">%1$d days in a row</item>
+    </plurals>
+
+    <plurals name="streak_hint_next">
+        <item quantity="one">%1$d more day for x%2$s</item>
+        <item quantity="other">%1$d more days for x%2$s</item>
+    </plurals>
+    <string name="streak_hint_start">A workout or your step goal starts one</string>
+    <string name="streak_hint_top">Highest level reached</string>
+    <string name="streak_multiplier">x%1$s</string>
     <!-- Schritte aus Health Connect -->
     <string name="steps_today_label">Steps today</string>
     <string name="steps_connect">Connect</string>

@@ -254,7 +254,7 @@ das, weil der Rang in der App aus Aktivitaeten, Belohnungen und Schritten
 entsteht und die Datenbank ihn nicht kennt - dieselbe Lage wie beim Bild der
 Nummer eins.
 
-**Aendert sich die Punkteregel in `PointsCalculator`, `StepGoal` oder
+**Aendert sich die Punkteregel in `PointsCalculator`, `StepGoal`, `Streak` oder
 `Scoreboard`, muss sie in `supabase/functions/notify/index.ts` nachgezogen
 werden.** Sonst behauptet eine Benachrichtigung einen Rangwechsel, den die App
 nicht zeigt. Sauberer waere eine Datenbankfunktion als einzige Quelle beider

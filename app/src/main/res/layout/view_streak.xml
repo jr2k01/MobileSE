@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die eigene Serie und der Aufschlag, den sie gerade bringt.
+
+    Wie die Schrittzeile aufgebaut, mit der sie zusammen steht: links das
+    Zeichen, in der Mitte die Erklaerung, rechts die Zahl, um die es geht.
+
+    Der Aufschlag steht als eigene Marke daneben und nicht im Fliesstext - er
+    ist der Grund, warum die Serie ueberhaupt interessiert, und soll auf einen
+    Blick zu finden sein.
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cvStreak"
+    style="@style/Widget.CrewFit.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/card_padding"
+        android:paddingEnd="@dimen/card_padding"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_streak"
+            app:tint="?attr/colorTertiary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvStreakTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
+
+            <!-- Sagt, was der naechste Schritt bringt, statt nur den Stand. -->
+            <TextView
+                android:id="@+id/tvStreakHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvStreakMultiplier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/bg_multiplier"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnTertiaryContainer" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

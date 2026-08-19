@@ -15,10 +15,10 @@
 // ACHTUNG - bewusste Doppelung: die Punkte werden hier ein zweites Mal
 // gerechnet, weil der Rang in der App aus Aktivitaeten, Belohnungen und
 // Schritten entsteht und die Datenbank ihn nicht kennt. Aendert sich die Regel
-// in PointsCalculator, StepGoal oder Scoreboard, muss sie hier nachgezogen
-// werden. Sauberer waere eine Datenbankfunktion als einzige Quelle - fuer ein
-// Kursprojekt mehr Aufwand als Nutzen, aber es ist eine Entscheidung und kein
-// Versehen.
+// in PointsCalculator, StepGoal, Streak oder Scoreboard, muss sie hier
+// nachgezogen werden. Sauberer waere eine Datenbankfunktion als einzige Quelle -
+// fuer ein Kursprojekt mehr Aufwand als Nutzen, aber es ist eine Entscheidung
+// und kein Versehen.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -35,11 +35,64 @@ function workoutPoints(duration: number, intensity: string): number {
   return Math.round((duration / 10) * multiplier + 5);
 }
 
-/** Entspricht Scoreboard.build: Training, Belohnungen und Schrittbonus. */
+/** Entspricht Streak.TIERS, laengste Stufe zuerst. */
+const STREAK_TIERS: Array<[number, number]> = [
+  [30, 1.5],
+  [20, 1.3],
+  [10, 1.2],
+  [5, 1.1],
+];
+
+/** Entspricht Streak.multiplierFor. */
+function streakMultiplier(days: number): number {
+  for (const [from, multiplier] of STREAK_TIERS) {
+    if (days >= from) return multiplier;
+  }
+  return 1.0;
+}
+
+/** Entspricht Streak.activeDays: Tage mit Workout oder erreichtem Schrittziel. */
+function activeDays(userId: string, activities: any[], stepDays: any[]): Set<string> {
+  const days = new Set<string>();
+  for (const a of activities) {
+    if (a.user_id !== userId) continue;
+    const day = (a.timestamp ?? "").slice(0, 10);
+    if (day.length === 10) days.add(day);
+  }
+  for (const s of stepDays) {
+    if (s.user_id === userId && (s.steps ?? 0) >= DAILY_STEPS) days.add(s.day);
+  }
+  return days;
+}
+
+/** Entspricht Streak.endingOn: Laenge der Serie, die an diesem Tag endet. */
+function streakEndingOn(days: Set<string>, day: string): number {
+  let length = 0;
+  const current = new Date(`${day}T00:00:00Z`);
+  while (days.has(current.toISOString().slice(0, 10))) {
+    length++;
+    current.setUTCDate(current.getUTCDate() - 1);
+  }
+  return length;
+}
+
+/**
+ * Entspricht Scoreboard.build: Training, Belohnungen und Schrittbonus.
+ *
+ * Der Aufschlag der Serie gilt je Tag mit dem Stand von damals - deshalb wird
+ * je Aktivitaet gerechnet und nicht auf die Summe.
+ */
 function pointsOf(userId: string, activities: any[], rewards: any[], stepDays: any[]): number {
+  const days = activeDays(userId, activities, stepDays);
+
   const training = activities
     .filter((a) => a.user_id === userId)
-    .reduce((sum, a) => sum + workoutPoints(a.duration ?? 0, a.intensity), 0);
+    .reduce((sum, a) => {
+      const base = workoutPoints(a.duration ?? 0, a.intensity);
+      const day = (a.timestamp ?? "").slice(0, 10);
+      if (day.length !== 10) return sum + base;
+      return sum + Math.round(base * streakMultiplier(streakEndingOn(days, day)));
+    }, 0);
 
   const challenges = rewards
     .filter((r) => r.user_id === userId)
@@ -174,7 +227,7 @@ Deno.serve(async (request) => {
       supabase.from("profiles").select("id, name, display_name").in("id", memberIds),
       supabase
         .from("activities")
-        .select("id, user_id, duration, intensity")
+        .select("id, user_id, duration, intensity, timestamp")
         .eq("crew_id", activity.crew_id),
       supabase.from("challenge_rewards").select("user_id, points").in("user_id", memberIds),
       supabase.from("step_days").select("user_id, steps").in("user_id", memberIds),

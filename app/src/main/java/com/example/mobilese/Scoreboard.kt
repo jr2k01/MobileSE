@@ -46,10 +46,27 @@ object Scoreboard {
             .associate { it.userId to it.steps }
 
         return snapshot.members.map { profile ->
-            val workoutPoints = activitiesByUser[profile.id].orEmpty().sumOf { activity ->
-                PointsCalculator.calculateWorkoutPoints(
+            val ownActivities = activitiesByUser[profile.id].orEmpty()
+
+            // Der Aufschlag der Serie gilt je Tag mit dem Stand von damals.
+            // Deshalb wird je Aktivitaet gerechnet und nicht auf die Summe:
+            // Punkte vom Dienstag werden nicht mehr, weil die Serie bis
+            // Freitag weitergelaufen ist.
+            val activeDays = Streak.activeDays(
+                profile.id,
+                ownActivities,
+                stepDaysByUser[profile.id].orEmpty()
+            )
+            val workoutPoints = ownActivities.sumOf { activity ->
+                val base = PointsCalculator.calculateWorkoutPoints(
                     activity.duration,
                     WorkoutIntensity.fromName(activity.intensity)
+                )
+                val day = ActivityTime.dayOf(activity.timestamp)
+                if (day.isEmpty()) base
+                else Streak.applyMultiplier(
+                    base,
+                    Streak.multiplierFor(Streak.endingOn(activeDays, LocalDate.parse(day)))
                 )
             }
             val stepBonus = StepGoal.bonusPoints(

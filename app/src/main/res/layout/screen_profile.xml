@@ -166,14 +166,6 @@
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Medaillen: verdiente in Farbe, offene abgeblendet daneben -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
-                android:baselineAligned="false"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
 
 
             <!--
@@ -205,6 +197,14 @@
                 android:layout_marginTop="4dp"
                 android:orientation="vertical" />
 
+            <!-- Medaillen: verdiente in Farbe, offene abgeblendet daneben -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
                 <TextView
                     style="@style/TextAppearance.CrewFit.SectionLabel"
                     android:layout_width="0dp"

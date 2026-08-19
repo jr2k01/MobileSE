@@ -133,6 +133,17 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="10dp" />
+
+                    <!-- Nur da, wenn eine Uhr Puls aufgezeichnet hat. Wird im
+                         Code ein- oder ausgeblendet. -->
+                    <include
+                        android:id="@+id/statHeartRate"
+                        layout="@layout/part_member_stat"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="10dp"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <!-- Zeitpunkt -->

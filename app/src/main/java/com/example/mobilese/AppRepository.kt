@@ -1083,7 +1083,9 @@ class AppRepository private constructor(context: Context) {
         distance: String = "0",
         intensity: String = WorkoutIntensity.MEDIUM.name,
         latitude: Double? = null,
-        longitude: Double? = null
+        longitude: Double? = null,
+        avgHeartRate: Int? = null,
+        maxHeartRate: Int? = null
     ): Boolean {
         val userId = currentUserId() ?: return false
         val crewId = getJoinedCrewCode() ?: "no_crew"
@@ -1111,12 +1113,26 @@ class AppRepository private constructor(context: Context) {
                     // chronologischen Reihenfolge entspricht.
                     timestamp = ActivityTime.now(),
                     latitude = latitude,
-                    longitude = longitude
+                    longitude = longitude,
+                    avgHeartRate = avgHeartRate,
+                    maxHeartRate = maxHeartRate
                 )
 
                 try {
                     client.postgrest["activities"].insert(activity)
                 } catch (e: Exception) {
+                    if (isMissingColumn(e, "heart_rate")) {
+                        // Die Pulsspalten fehlen in dieser Datenbank. Wie bei
+                        // den Koordinaten: das Workout ist wichtiger als die
+                        // Beigabe.
+                        Log.w(
+                            "SupabaseDB",
+                            "Saving without the heart rate, the avg/max_heart_rate columns " +
+                                    "are missing. See the documentation for the required ALTER TABLE."
+                        )
+                        client.postgrest["activities"].insert(activity.withoutHeartRate())
+                        return@withContext true
+                    }
                     if (!isMissingColumn(e, "latitude", "longitude")) throw e
                     // Die Koordinatenspalten fehlen in dieser Datenbank. Das
                     // Workout selbst darf daran nicht scheitern - es wird ohne
@@ -1161,6 +1177,21 @@ class AppRepository private constructor(context: Context) {
         type = type,
         goal = goal,
         reward = reward
+    )
+
+    private fun Activity.withoutHeartRate() = ActivityWithoutHeartRate(
+        userId = userId,
+        crewId = crewId,
+        sport = sport,
+        duration = duration,
+        distance = distance,
+        location = location,
+        voiceUrl = voiceUrl,
+        photoUrl = photoUrl,
+        intensity = intensity,
+        timestamp = timestamp,
+        latitude = latitude,
+        longitude = longitude
     )
 
     private fun Activity.withoutCoordinates() = ActivityWithoutCoordinates(

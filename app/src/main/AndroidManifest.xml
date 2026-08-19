@@ -20,6 +20,10 @@
     -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
 
+    <!-- Der Puls, den eine Uhr nach Health Connect schreibt. Wird beim
+         Speichern eines Workouts fuer dessen Zeitraum gelesen. -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 

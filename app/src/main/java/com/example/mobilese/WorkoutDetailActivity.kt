@@ -108,6 +108,22 @@ class WorkoutDetailActivity : AppCompatActivity() {
             ).toString(),
             R.string.detail_stat_points
         )
+
+        // Puls nur, wenn eine Uhr etwas aufgezeichnet hat. Eine leere Kachel
+        // mit Strich wuerde behaupten, der Wert fehle - dabei war schlicht
+        // keine Uhr dabei.
+        val heartRate = activity.avgHeartRate
+        val heartRateTile = findViewById<View>(R.id.statHeartRate)
+        heartRateTile.visibility = if (heartRate == null) View.GONE else View.VISIBLE
+        if (heartRate != null) {
+            setStat(R.id.statHeartRate, heartRate.toString(), R.string.detail_stat_heart_rate)
+            // Der Hoechstwert steht nicht als eigene Kachel da - dafuer ist er
+            // zu beilaeufig -, sondern nur fuer die Sprachausgabe.
+            activity.maxHeartRate?.let { max ->
+                heartRateTile.contentDescription =
+                    getString(R.string.detail_heart_rate_desc, heartRate, max)
+            }
+        }
     }
 
     private fun setStat(containerId: Int, value: String, labelRes: Int) {

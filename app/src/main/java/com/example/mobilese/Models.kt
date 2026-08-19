@@ -71,6 +71,36 @@ data class Activity(
     // Standardwerte sorgen dafuer, dass aeltere Zeilen ohne diese Spalten
     // weiterhin gelesen werden koennen.
     val latitude: Double? = null,
+    val longitude: Double? = null,
+    // Puls aus Health Connect fuer den Zeitraum des Workouts, also das, was
+    // eine Uhr aufgezeichnet hat. Null, wenn keine getragen wurde oder der
+    // Zugriff nicht erlaubt ist.
+    @SerialName("avg_heart_rate") val avgHeartRate: Int? = null,
+    @SerialName("max_heart_rate") val maxHeartRate: Int? = null
+)
+
+/**
+ * Dieselbe Aktivitaet ohne die Pulswerte.
+ *
+ * Aus demselben Grund wie [ActivityWithoutCoordinates]: fehlen die Spalten in
+ * der Datenbank, weist Postgrest einen Insert ab, der sie nennt. Ein Workout
+ * darf daran nicht scheitern - es wird dann ohne Puls gespeichert.
+ *
+ * Sobald die Spalten ueberall angelegt sind, kann diese Klasse entfallen.
+ */
+@Serializable
+data class ActivityWithoutHeartRate(
+    @SerialName("user_id") val userId: String,
+    @SerialName("crew_id") val crewId: String,
+    val sport: String,
+    val duration: Int,
+    val distance: Double = 0.0,
+    val location: String? = null,
+    @SerialName("voice_url") val voiceUrl: String? = null,
+    @SerialName("photo_url") val photoUrl: String? = null,
+    val intensity: String,
+    val timestamp: String,
+    val latitude: Double? = null,
     val longitude: Double? = null
 )
 

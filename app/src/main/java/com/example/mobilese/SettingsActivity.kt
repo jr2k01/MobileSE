@@ -38,7 +38,7 @@ class SettingsActivity : AppCompatActivity() {
      */
     private val requestHealthPermissions =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) { granted ->
-            if (!granted.containsAll(HealthSteps.PERMISSIONS)) {
+            if (granted.none { it in HealthAccess.ALL }) {
                 Toast.makeText(this, R.string.steps_permission_denied, Toast.LENGTH_LONG).show()
             }
             showHealthStatus()
@@ -179,7 +179,7 @@ class SettingsActivity : AppCompatActivity() {
         row.alpha = 1f
         lifecycleScope.launch {
             status.setText(
-                if (HealthSteps.isAllowed(this@SettingsActivity)) R.string.settings_health_connected
+                if (HealthAccess.anyGranted(this@SettingsActivity)) R.string.settings_health_connected
                 else R.string.settings_health_not_connected
             )
         }
@@ -192,10 +192,10 @@ class SettingsActivity : AppCompatActivity() {
      */
     private fun onHealthConnectTapped() {
         lifecycleScope.launch {
-            if (HealthSteps.isAllowed(this@SettingsActivity)) {
+            if (HealthAccess.anyGranted(this@SettingsActivity)) {
                 openHealthConnectSettings()
             } else {
-                requestHealthPermissions.launch(HealthSteps.PERMISSIONS)
+                requestHealthPermissions.launch(HealthAccess.ALL)
             }
         }
     }

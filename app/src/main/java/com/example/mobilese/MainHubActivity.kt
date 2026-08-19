@@ -80,7 +80,7 @@ class MainHubActivity : AppCompatActivity() {
     private val requestHealthPermissions =
         registerForActivityResult(PermissionController.createRequestPermissionResultContract()) {
             granted ->
-            if (!granted.containsAll(HealthSteps.PERMISSIONS)) {
+            if (granted.none { it in HealthAccess.ALL }) {
                 toast(R.string.steps_permission_denied)
             }
             showStepsToday()
@@ -109,7 +109,7 @@ class MainHubActivity : AppCompatActivity() {
         piStepsGoal = findViewById(R.id.piStepsGoal)
         ivStepsGoalReached = findViewById(R.id.ivStepsGoalReached)
         btnConnectHealth.setOnClickListener {
-            requestHealthPermissions.launch(HealthSteps.PERMISSIONS)
+            requestHealthPermissions.launch(HealthAccess.ALL)
         }
 
         // Steht unter der Liste der letzten Aktivitaeten statt in der

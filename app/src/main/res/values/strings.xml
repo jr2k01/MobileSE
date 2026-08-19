@@ -276,6 +276,8 @@
     <string name="detail_stat_duration">Duration</string>
     <string name="detail_stat_distance">Distance</string>
     <string name="detail_stat_points">Points</string>
+    <string name="detail_stat_heart_rate">Avg bpm</string>
+    <string name="detail_heart_rate_desc">Average %1$d, maximum %2$d beats per minute</string>
     <string name="value_none">–</string>
     <string name="detail_distance_km">%1$s km</string>
     <!-- Wer und wann in einer Zeile der Uebersicht -->

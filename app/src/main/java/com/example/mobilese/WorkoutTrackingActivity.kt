@@ -31,6 +31,8 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 class WorkoutTrackingActivity : AppCompatActivity() {
@@ -340,6 +342,17 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         btnSave.isEnabled = false
         lifecycleScope.launch {
+            // Der Puls fuer den Zeitraum des Workouts, den eine Uhr nach Health
+            // Connect geschrieben hat. Das Ende ist jetzt, der Anfang liegt die
+            // eingetragene Dauer davor - genauer geht es nicht, solange die
+            // Dauer von Hand eingegeben wird und nicht mitlaeuft.
+            val end = Instant.now()
+            val beats = HealthHeartRate.forWindow(
+                this@WorkoutTrackingActivity,
+                end.minus(minutes.toLong(), ChronoUnit.MINUTES),
+                end
+            )
+
             val saved = repository.addActivity(
                 sport = sport,
                 photoPath = photoPath,
@@ -350,7 +363,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 intensity = Sports.intensityFor(sport).name,
                 // Fuer die Kartenvorschau in der Historie.
                 latitude = pickedLatitude,
-                longitude = pickedLongitude
+                longitude = pickedLongitude,
+                avgHeartRate = beats?.average,
+                maxHeartRate = beats?.max
             )
 
             if (saved) {

@@ -70,6 +70,13 @@
     <!-- === Einstellungen === -->
     <string name="settings_title">Settings</string>
     <string name="settings_desc">Settings</string>
+    <string name="search_desc">Search</string>
+    <string name="search_title">Search</string>
+    <string name="search_hint">Name of a person or crew</string>
+    <string name="search_empty">Type at least two characters.</string>
+    <string name="search_no_results">Nothing found for that.</string>
+    <string name="search_people_label">PEOPLE</string>
+    <string name="search_crews_label">CREWS</string>
     <string name="settings_appearance_label">APPEARANCE</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_theme_system">Follow the device</string>

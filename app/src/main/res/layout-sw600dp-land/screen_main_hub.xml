@@ -87,7 +87,7 @@
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintBottom_toBottomOf="@id/cvHomeLogoContainer"
             app:layout_constraintStart_toEndOf="@id/cvHomeLogoContainer"
-            app:layout_constraintEnd_toStartOf="@id/btnSettings">
+            app:layout_constraintEnd_toStartOf="@id/btnSearch">
 
             <TextView
                 android:id="@+id/tvHomeCrewName"
@@ -111,14 +111,14 @@
 
         <!-- Muss hier stehen, nicht nur in layout/: die Activity sucht die
              Schaltflaeche in jeder Fassung, und ohne sie waere es kein
-             fehlendes Zahnrad, sondern ein Absturz beim Oeffnen. -->
+             fehlender Knopf, sondern ein Absturz beim Oeffnen. -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettings"
+            android:id="@+id/btnSearch"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="@string/settings_desc"
-            app:icon="@drawable/ic_settings"
+            android:contentDescription="@string/search_desc"
+            app:icon="@drawable/ic_search"
             app:iconTint="?attr/colorOnSurface"
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintBottom_toBottomOf="@id/cvHomeLogoContainer"

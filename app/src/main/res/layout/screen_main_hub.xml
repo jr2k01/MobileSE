@@ -60,7 +60,7 @@
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintBottom_toBottomOf="@id/cvHomeLogoContainer"
             app:layout_constraintStart_toEndOf="@id/cvHomeLogoContainer"
-            app:layout_constraintEnd_toStartOf="@id/btnSettings">
+            app:layout_constraintEnd_toStartOf="@id/btnSearch">
 
             <TextView
                 android:id="@+id/tvHomeCrewName"
@@ -83,18 +83,18 @@
         </LinearLayout>
 
         <!--
-            Der Weg zu den Einstellungen, nur hier. Auf jedem Unterbildschirm
-            noch einmal waere es doppelt: von dort fuehrt der Zurueck-Pfeil in
-            zwei Schritten hierher, und auf den Einstellungen selbst haette das
-            Zahnrad ohnehin nichts zu suchen.
+            Die Suche nach Leuten und Crews. Hier oben, weil sie der Weg nach
+            draussen ist - alles andere auf diesem Bildschirm zeigt die eigene
+            Crew. Die Einstellungen sind ins Profil gewandert; sie gehoeren zur
+            eigenen Person und nicht zur Crew.
         -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettings"
+            android:id="@+id/btnSearch"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="@string/settings_desc"
-            app:icon="@drawable/ic_settings"
+            android:contentDescription="@string/search_desc"
+            app:icon="@drawable/ic_search"
             app:iconTint="?attr/colorOnSurface"
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintBottom_toBottomOf="@id/cvHomeLogoContainer"

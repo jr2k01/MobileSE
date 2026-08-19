@@ -99,6 +99,10 @@ class AppRepository private constructor(context: Context) {
          * Regeln noch einmal gebraucht. Der Ordner unterscheidet sie - was
          * darin liegt, gehoert keiner Crew und wird nie geloescht.
          */
+        /** Ab wie vielen Zeichen gesucht wird - kuerzer traefe fast alles. */
+        const val SEARCH_MIN_LENGTH = 2
+        private const val SEARCH_LIMIT = 25L
+
         const val MEME_BUCKET = "memes"
         const val MEME_PRESET_FOLDER = "presets"
 
@@ -1069,6 +1073,68 @@ class AppRepository private constructor(context: Context) {
             setJoinedCrewCode(codes.firstOrNull())
         } catch (e: Exception) {
             Log.e("SupabaseDB", "Could not determine crew membership: ${e.message}")
+        }
+    }
+
+    // --- SUCHE ---
+
+    /**
+     * Sucht Personen nach Kuerzel oder Name.
+     *
+     * Gesucht wird ohne Ruecksicht auf Gross- und Kleinschreibung und an
+     * beliebiger Stelle im Namen - wer jemanden sucht, weiss selten, wie der
+     * Eintrag genau geschrieben ist. Die eigene Person faellt heraus: sich
+     * selbst zu finden hilft nicht weiter.
+     */
+    suspend fun searchPeople(query: String): List<UserProfile> = withContext(Dispatchers.IO) {
+        val term = query.trim()
+        if (term.length < SEARCH_MIN_LENGTH) return@withContext emptyList()
+        val me = currentUserId()
+
+        try {
+            val pattern = "%$term%"
+            client.postgrest["profiles"].select {
+                filter {
+                    or {
+                        ilike("display_name", pattern)
+                        ilike("name", pattern)
+                    }
+                }
+                limit(SEARCH_LIMIT)
+            }.decodeList<UserProfile>()
+                .filter { it.id != me }
+                .sortedBy { DisplayName.of(it).lowercase() }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not search for people: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Sucht Crews nach Namen oder Code.
+     *
+     * Der Code ist mit aufgenommen, weil er auf QR-Codes und in Nachrichten
+     * herumgereicht wird - wer ihn hat, soll ihn hier eintippen koennen, statt
+     * den Umweg ueber den Beitrittsbildschirm zu nehmen.
+     */
+    suspend fun searchCrews(query: String): List<Crew> = withContext(Dispatchers.IO) {
+        val term = query.trim()
+        if (term.length < SEARCH_MIN_LENGTH) return@withContext emptyList()
+
+        try {
+            val pattern = "%$term%"
+            client.postgrest["crews"].select {
+                filter {
+                    or {
+                        ilike("name", pattern)
+                        ilike("id", pattern)
+                    }
+                }
+                limit(SEARCH_LIMIT)
+            }.decodeList<Crew>().sortedBy { it.name.lowercase() }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not search for crews: ${e.message}")
+            emptyList()
         }
     }
 

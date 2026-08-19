@@ -25,18 +25,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!--
+        Platz fuer eine Aktion rechts, etwa das Zahnrad im Profil. Standardmaessig
+        weg: die meisten Unterseiten haben keine.
+    -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnTopBarAction"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="12dp"
+        android:visibility="gone"
+        app:iconTint="?attr/colorOnSurface"
+        app:layout_constraintTop_toTopOf="@id/btnTopBarBack"
+        app:layout_constraintBottom_toBottomOf="@id/btnTopBarBack"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <TextView
         android:id="@+id/tvTopBarTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginEnd="@dimen/screen_padding_horizontal"
+        android:layout_marginEnd="8dp"
         android:maxLines="1"
         android:ellipsize="end"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textColor="?attr/colorOnSurface"
         app:layout_constraintBottom_toBottomOf="@id/btnTopBarBack"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnTopBarAction"
         app:layout_constraintStart_toEndOf="@id/btnTopBarBack"
         app:layout_constraintTop_toTopOf="@id/btnTopBarBack" />
 </androidx.constraintlayout.widget.ConstraintLayout>

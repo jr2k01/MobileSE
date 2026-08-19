@@ -56,7 +56,13 @@ class ProfileActivity : AppCompatActivity() {
         val btnSave = findViewById<Button>(R.id.btnSaveProfile)
         ivProfilePicture = findViewById(R.id.ivProfilePicture)
 
-        setUpTopBar(R.string.my_profile)
+        setUpTopBar(
+            R.string.my_profile,
+            actionIcon = R.drawable.ic_settings,
+            actionDescription = R.string.settings_desc
+        ) {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
         ivProfilePicture.setOnClickListener { pickImageLauncher.launch("image/*") }
 
         etEmail.setText(currentUserEmail)

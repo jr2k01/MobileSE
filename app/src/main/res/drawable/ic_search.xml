@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Lupe. Selbst gezeichnet wie die uebrigen Symbole: ein Ring aus zwei Kreisen
+    mit entgegengesetztem Umlaufsinn und ein schraeger Griff.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+
+    <!-- Glas: aussen im Uhrzeigersinn, innen dagegen - das stanzt die Mitte aus -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M10.5,3.2 A7.3,7.3 0 1,1 10.49,3.2 Z M10.5,15.6 A5.1,5.1 0 1,0 10.49,15.6 Z" />
+
+    <!-- Griff -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M15.3,16.9 L16.9,15.3 L21.6,20.0 L20.0,21.6 Z" />
+</vector>

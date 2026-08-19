@@ -118,8 +118,8 @@ class MainHubActivity : AppCompatActivity() {
             startActivity(Intent(this, WorkoutHistoryActivity::class.java))
         }
 
-        findViewById<View>(R.id.btnSettings).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
+        findViewById<View>(R.id.btnSearch).setOnClickListener {
+            startActivity(Intent(this, SearchActivity::class.java))
         }
 
         findViewById<View>(R.id.llCrewSwitch).setOnClickListener { showCrewSwitcher() }

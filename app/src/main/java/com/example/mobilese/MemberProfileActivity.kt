@@ -61,18 +61,31 @@ class MemberProfileActivity : AppCompatActivity() {
             .findViewById<TextView>(R.id.tvStatLabel).setText(R.string.member_stat_medals)
     }
 
+    /**
+     * Zahlen und Medaillen stammen aus der Crew, die gerade angezeigt wird.
+     *
+     * Wer nicht darin ist - jemand aus der Suche oder aus der Folgen-Liste -
+     * hat hier keine Zahlen. Dann bleiben Name und Bild stehen, und die
+     * crewbezogenen Bereiche verschwinden. Vorher schloss sich der Bildschirm
+     * in dem Fall sofort wieder, was aus der Suche heraus wie ein Absturz
+     * aussah.
+     */
     private fun load(userId: String) {
-        val crewCode = repository.getJoinedCrewCode() ?: run {
-            finish()
-            return
-        }
-
         lifecycleScope.launch {
-            val snapshot = repository.loadCrewSnapshot(crewCode)
-            val entry = Scoreboard.build(snapshot).firstOrNull { it.userId == userId }
-            if (entry == null) {
-                // Das Mitglied hat die Crew verlassen, waehrend der Bildschirm
-                // geoeffnet wurde - dann gibt es hier nichts mehr zu zeigen.
+            val crewCode = repository.getJoinedCrewCode()
+            val snapshot = crewCode?.let { repository.loadCrewSnapshot(it) }
+            val entry = snapshot?.let { snap ->
+                Scoreboard.build(snap).firstOrNull { it.userId == userId }
+            }
+
+            if (entry != null && snapshot != null) {
+                showCrewMember(entry, snapshot)
+                return@launch
+            }
+
+            // Nur das Profil selbst - die Person ist nicht in dieser Crew.
+            val profile = repository.getProfileById(userId)
+            if (profile == null) {
                 Toast.makeText(
                     this@MemberProfileActivity,
                     R.string.member_not_found,
@@ -81,12 +94,28 @@ class MemberProfileActivity : AppCompatActivity() {
                 finish()
                 return@launch
             }
-
-            showMember(entry, snapshot)
+            showStranger(profile)
         }
     }
 
-    private fun showMember(entry: Scoreboard.Entry, snapshot: CrewSnapshot) {
+    /** Blendet aus, was ohne gemeinsame Crew keinen Wert haette. */
+    private fun showStranger(profile: UserProfile) {
+        findViewById<TextView>(R.id.tvMemberName).text =
+            DisplayName.of(profile).ifEmpty { getString(R.string.unknown_member) }
+        ImageLoader.into(
+            findViewById(R.id.ivMemberPhoto),
+            profile.avatarUrl,
+            circular = true,
+            placeholder = android.R.drawable.ic_menu_gallery
+        )
+
+        findViewById<View>(R.id.llMemberSteps).visibility = View.GONE
+        findViewById<View>(R.id.llMemberStats).visibility = View.GONE
+        findViewById<View>(R.id.tvMemberMedalsLabel).visibility = View.GONE
+        findViewById<View>(R.id.glMedals).visibility = View.GONE
+    }
+
+    private fun showCrewMember(entry: Scoreboard.Entry, snapshot: CrewSnapshot) {
         findViewById<TextView>(R.id.tvMemberName).text = entry.name
         ImageLoader.into(
             findViewById(R.id.ivMemberPhoto),

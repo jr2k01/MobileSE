@@ -51,13 +51,35 @@ function streakMultiplier(days: number): number {
   return 1.0;
 }
 
+/**
+ * Entspricht ActivityTime.dayOf: der Tag eines Zeitstempels als ISO-Datum.
+ *
+ * Beide Formate, weil in der Datenbank beide stehen: neuere Eintraege in ISO,
+ * aeltere im deutschen Format aus einer frueheren Fassung der App. Die ersten
+ * zehn Zeichen abzuschneiden genuegt nicht - "10.08.2026" ist ebenfalls zehn
+ * Zeichen lang und ergibt als Datum gelesen Unsinn.
+ *
+ * Leer, wenn sich nichts lesen laesst; der Eintrag zaehlt dann zu keinem Tag.
+ */
+function dayOf(timestamp: string | null | undefined): string {
+  const value = (timestamp ?? "").trim();
+
+  const iso = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  const legacy = value.match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+  if (legacy) return `${legacy[3]}-${legacy[2]}-${legacy[1]}`;
+
+  return "";
+}
+
 /** Entspricht Streak.activeDays: Tage mit Workout oder erreichtem Schrittziel. */
 function activeDays(userId: string, activities: any[], stepDays: any[]): Set<string> {
   const days = new Set<string>();
   for (const a of activities) {
     if (a.user_id !== userId) continue;
-    const day = (a.timestamp ?? "").slice(0, 10);
-    if (day.length === 10) days.add(day);
+    const day = dayOf(a.timestamp);
+    if (day) days.add(day);
   }
   for (const s of stepDays) {
     if (s.user_id === userId && (s.steps ?? 0) >= DAILY_STEPS) days.add(s.day);
@@ -67,8 +89,13 @@ function activeDays(userId: string, activities: any[], stepDays: any[]): Set<str
 
 /** Entspricht Streak.endingOn: Laenge der Serie, die an diesem Tag endet. */
 function streakEndingOn(days: Set<string>, day: string): number {
-  let length = 0;
   const current = new Date(`${day}T00:00:00Z`);
+  // Ein unlesbares Datum darf die Funktion nicht zum Absturz bringen:
+  // toISOString wirft bei einem ungueltigen Date, und ein Absturz hier haette
+  // alle Benachrichtigungen der Crew verschluckt.
+  if (Number.isNaN(current.getTime())) return 0;
+
+  let length = 0;
   while (days.has(current.toISOString().slice(0, 10))) {
     length++;
     current.setUTCDate(current.getUTCDate() - 1);
@@ -89,8 +116,8 @@ function pointsOf(userId: string, activities: any[], rewards: any[], stepDays: a
     .filter((a) => a.user_id === userId)
     .reduce((sum, a) => {
       const base = workoutPoints(a.duration ?? 0, a.intensity);
-      const day = (a.timestamp ?? "").slice(0, 10);
-      if (day.length !== 10) return sum + base;
+      const day = dayOf(a.timestamp);
+      if (!day) return sum + base;
       return sum + Math.round(base * streakMultiplier(streakEndingOn(days, day)));
     }, 0);
 

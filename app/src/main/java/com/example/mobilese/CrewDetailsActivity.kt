@@ -94,7 +94,14 @@ class CrewDetailsActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
 
-            val intent = Intent(this@CrewDetailsActivity, CrewLandingActivity::class.java)
+            // Wer noch in einer anderen Crew ist, wird dorthin gebracht -
+            // leaveCrew hat sie bereits zur angezeigten gemacht. Nur ohne jede
+            // Crew fuehrt der Weg auf die Beitrittsseite.
+            val target =
+                if (repository.getJoinedCrewCode() != null) MainHubActivity::class.java
+                else CrewLandingActivity::class.java
+
+            val intent = Intent(this@CrewDetailsActivity, target)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()

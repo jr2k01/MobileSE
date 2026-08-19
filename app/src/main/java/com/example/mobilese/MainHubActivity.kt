@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.Job
@@ -120,6 +121,8 @@ class MainHubActivity : AppCompatActivity() {
         findViewById<View>(R.id.btnSettings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        findViewById<View>(R.id.llCrewSwitch).setOnClickListener { showCrewSwitcher() }
 
         setUpBottomNavigation()
     }
@@ -286,6 +289,46 @@ class MainHubActivity : AppCompatActivity() {
             showLatestActivities(snapshot)
         }
     }
+
+    /**
+     * Die Auswahl der angezeigten Crew.
+     *
+     * Der Wechsel aendert nur, welche Crew gerade gezeigt wird - Mitglied
+     * bleibt man in allen. Deshalb wird danach schlicht neu geladen und nicht
+     * etwa zum Startbildschirm zurueckgesetzt.
+     *
+     * Steht am Ende der Liste auch der Weg zu einer weiteren Crew: wer
+     * umschalten will, will manchmal auch beitreten, und ein zweiter Knopf im
+     * Kopfbereich waere dafuer zu viel.
+     */
+    private fun showCrewSwitcher() {
+        lifecycleScope.launch {
+            val crews = repository.getJoinedCrews()
+            val active = repository.getJoinedCrewCode()
+
+            val entries = crews.map {
+                ChoiceAdapter.Entry(it.name, R.drawable.ic_group)
+            } + ChoiceAdapter.Entry(getString(R.string.crew_switch_join), R.drawable.ic_add)
+
+            MaterialAlertDialogBuilder(this@MainHubActivity)
+                .setTitle(R.string.crew_switch_title)
+                .setAdapter(ChoiceAdapter(this@MainHubActivity, entries)) { _, index ->
+                    if (index == crews.size) {
+                        startActivity(Intent(this@MainHubActivity, CrewLandingActivity::class.java))
+                        return@setAdapter
+                    }
+                    val chosen = crews[index]
+                    if (chosen.id == active) return@setAdapter
+
+                    repository.setJoinedCrewCode(chosen.id)
+                    toastFormatted(R.string.crew_switched, chosen.name)
+                    refresh()
+                }
+                .setNegativeButton(R.string.cancel_btn, null)
+                .show()
+        }
+    }
+
     /**
      * Die eigene Serie und der Aufschlag, den sie gerade bringt.
      *
@@ -433,6 +476,9 @@ class MainHubActivity : AppCompatActivity() {
 
     private fun toast(resId: Int) =
         Toast.makeText(this, resId, Toast.LENGTH_SHORT).show()
+
+    private fun toastFormatted(resId: Int, vararg args: Any) =
+        Toast.makeText(this, getString(resId, *args), Toast.LENGTH_SHORT).show()
 
     private companion object {
         /** Deckkraft eines noch unbesetzten Podestplatzes. */

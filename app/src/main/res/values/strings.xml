@@ -120,6 +120,11 @@
 
     <!-- Home -->
     <string name="your_crew_prefix">Your Crew: %s</string>
+    <string name="crew_switch_desc">Switch crew</string>
+    <string name="crew_switch_title">Your crews</string>
+    <string name="crew_switch_join">Join another crew</string>
+    <string name="crew_switch_only_one">You are only in this crew</string>
+    <string name="crew_switched">Now showing %1$s</string>
     <string name="members_label">Members</string>
     <string name="top_3_label">Crew Top 3</string>
     <string name="latest_activities_label">Latest Activities</string>

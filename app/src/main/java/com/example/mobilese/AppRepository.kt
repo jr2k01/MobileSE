@@ -813,7 +813,15 @@ class AppRepository private constructor(context: Context) {
                 return@withContext false
             }
             try {
-                client.postgrest["crew_members"].insert(CrewMember(crewId = code, userId = userId))
+                // Wer schon Mitglied ist, soll nicht an einer doppelten Zeile
+                // scheitern - der Code kann aus einem alten QR-Code stammen
+                // oder aus einer Nachricht, die zweimal geoeffnet wurde. In dem
+                // Fall genuegt es, die Crew zur angezeigten zu machen.
+                if (!isMemberOf(code, userId)) {
+                    client.postgrest["crew_members"].insert(
+                        CrewMember(crewId = code, userId = userId)
+                    )
+                }
                 setJoinedCrewCode(code)
                 true
             } catch (e: Exception) {
@@ -823,6 +831,18 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
+    private suspend fun isMemberOf(code: String, userId: String): Boolean = try {
+        client.postgrest["crew_members"].select {
+            filter {
+                eq("crew_id", code)
+                eq("user_id", userId)
+            }
+            limit(1)
+        }.decodeList<CrewMember>().isNotEmpty()
+    } catch (e: Exception) {
+        false
+    }
+
     private suspend fun crewExists(code: String): Boolean = try {
         client.postgrest["crews"].select {
             filter { eq("id", code) }
@@ -830,6 +850,31 @@ class AppRepository private constructor(context: Context) {
         }.decodeList<Crew>().isNotEmpty()
     } catch (e: Exception) {
         false
+    }
+
+    /**
+     * Alle Crews, in denen der Nutzer ist - nach Namen sortiert.
+     *
+     * Die Datenbank konnte das von Anfang an: crew_members ist eine Zuordnung
+     * ohne Beschraenkung auf eine Zeile je Nutzer. Nur die App ging bisher von
+     * genau einer aus.
+     */
+    suspend fun getJoinedCrews(): List<Crew> = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext emptyList()
+        try {
+            val codes = client.postgrest["crew_members"].select {
+                filter { eq("user_id", userId) }
+            }.decodeList<CrewMember>().map { it.crewId }
+
+            if (codes.isEmpty()) return@withContext emptyList()
+
+            client.postgrest["crews"].select {
+                filter { isIn("id", codes) }
+            }.decodeList<Crew>().sortedBy { it.name.lowercase() }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Could not load the crews: ${e.message}")
+            emptyList()
+        }
     }
 
     suspend fun getCrewName(code: String): String = withContext(Dispatchers.IO) {
@@ -853,7 +898,10 @@ class AppRepository private constructor(context: Context) {
                         eq("user_id", userId)
                     }
                 }
-                setJoinedCrewCode(null)
+                // Wer in weiteren Crews ist, soll nicht auf dem Startbildschirm
+                // fuer "keine Crew" landen - dann waere die naechste Crew zwar
+                // vorhanden, aber erst nach erneutem Beitreten wieder zu sehen.
+                setJoinedCrewCode(getJoinedCrews().firstOrNull()?.id)
                 true
             } catch (e: Exception) {
                 Log.e("SupabaseDB", "Leaving the crew failed: ${e.message}")
@@ -1002,13 +1050,23 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
+    /**
+     * Gleicht nach der Anmeldung ab, welche Crew angezeigt wird.
+     *
+     * Eine bereits gewaehlte bleibt stehen, solange sie noch eine Mitgliedschaft
+     * ist - sonst spraenge die App bei jedem Start auf eine andere Crew, sobald
+     * jemand in mehreren ist. Nur wenn sie nicht mehr gilt oder noch keine
+     * gewaehlt war, wird die erste genommen.
+     */
     private suspend fun cacheJoinedCrew(userId: String) {
         try {
-            val membership = client.postgrest["crew_members"].select {
+            val codes = client.postgrest["crew_members"].select {
                 filter { eq("user_id", userId) }
-                limit(1)
-            }.decodeList<CrewMember>().firstOrNull()
-            setJoinedCrewCode(membership?.crewId)
+            }.decodeList<CrewMember>().map { it.crewId }
+
+            val active = getJoinedCrewCode()
+            if (active != null && active in codes) return
+            setJoinedCrewCode(codes.firstOrNull())
         } catch (e: Exception) {
             Log.e("SupabaseDB", "Could not determine crew membership: ${e.message}")
         }

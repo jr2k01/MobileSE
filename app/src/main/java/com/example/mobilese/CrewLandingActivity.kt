@@ -14,6 +14,14 @@ import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 
+/**
+ * Einer Crew beitreten oder eine gruenden.
+ *
+ * Erreichbar auf zwei Wegen: nach der Anmeldung, solange man in keiner Crew
+ * ist, und spaeter jederzeit ueber die Crew-Auswahl im Kopf des
+ * Startbildschirms. Deshalb wird hier nicht mehr weitergeleitet, wenn schon
+ * eine Crew da ist - man kann in mehreren sein.
+ */
 class CrewLandingActivity : AppCompatActivity() {
 
     private lateinit var repository: AppRepository
@@ -32,12 +40,6 @@ class CrewLandingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         repository = AppRepository.get(this)
-
-        if (repository.getJoinedCrewCode() != null) {
-            startActivity(Intent(this, MainHubActivity::class.java))
-            finish()
-            return
-        }
 
         setContentView(R.layout.screen_crew_landing)
 

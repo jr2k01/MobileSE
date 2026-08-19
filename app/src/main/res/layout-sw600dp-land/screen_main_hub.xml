@@ -70,21 +70,44 @@
                 android:scaleType="centerCrop" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Neben dem Logo mittig, seit die Uhrzeit darunter entfallen ist -->
-        <TextView
-            android:id="@+id/tvHomeCrewName"
+        <!-- Wie in layout/: der Name ist zugleich die Crew-Auswahl. -->
+        <LinearLayout
+            android:id="@+id/llCrewSwitch"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textColor="?attr/colorOnSurface"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:layout_marginStart="18dp"
-            android:layout_marginEnd="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="4dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:background="?attr/selectableItemBackground"
             app:layout_constraintTop_toTopOf="@id/cvHomeLogoContainer"
             app:layout_constraintBottom_toBottomOf="@id/cvHomeLogoContainer"
             app:layout_constraintStart_toEndOf="@id/cvHomeLogoContainer"
-            app:layout_constraintEnd_toStartOf="@id/btnSettings" />
+            app:layout_constraintEnd_toStartOf="@id/btnSettings">
+
+            <TextView
+                android:id="@+id/tvHomeCrewName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:maxLines="2"
+                android:ellipsize="end" />
+
+            <ImageView
+                android:id="@+id/ivCrewSwitch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/crew_switch_desc"
+                android:src="@drawable/ic_arrow_drop_down"
+                app:tint="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
 
         <!-- Muss hier stehen, nicht nur in layout/: die Activity sucht die
              Schaltflaeche in jeder Fassung, und ohne sie waere es kein

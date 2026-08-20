@@ -80,6 +80,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraintlayout)
+    // Zum Herunterziehen und Aktualisieren. Es gibt dafuer nichts im
+    // Framework - die Geste lebt seit jeher in der Support-Bibliothek.
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
 

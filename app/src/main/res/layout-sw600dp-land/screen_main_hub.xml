@@ -125,15 +125,21 @@
             app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ScrollView
+    <!-- Wie im Hochformat: Herunterziehen laedt die Crew neu. -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        android:clipToPadding="false"
         app:layout_constraintStart_toEndOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/clHeader"
         app:layout_constraintBottom_toTopOf="@id/btnAllActivities">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false">
 
         <!-- Zwei Spalten nebeneinander, oben ausgerichtet -->
         <LinearLayout
@@ -243,6 +249,7 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!--
         Ausserhalb der ScrollView und am unteren Rand verankert, damit er

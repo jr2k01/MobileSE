@@ -46,6 +46,7 @@ class CrewChallengesActivity : AppCompatActivity() {
         container = findViewById(R.id.llChallengesContainer)
 
         setUpTopBar(R.string.crew_challenges_title)
+        setUpPullToRefresh { load() }
         findViewById<Button>(R.id.btnLaunchChallenge).setOnClickListener { showAddChallengeDialog() }
 
         load()
@@ -54,14 +55,18 @@ class CrewChallengesActivity : AppCompatActivity() {
     private fun load() {
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {
-            val snapshot = repository.loadCrewSnapshot(crewCode)
+            try {
+                val snapshot = repository.loadCrewSnapshot(crewCode)
 
-            // Erst faellige Belohnungen schreiben, dann zeichnen - sonst zeigte
-            // die Rangliste beim naechsten Oeffnen noch die alten Punktstaende.
-            if (repository.awardCompletedChallenges(snapshot)) {
-                showChallenges(repository.loadCrewSnapshot(crewCode))
-            } else {
-                showChallenges(snapshot)
+                // Erst faellige Belohnungen schreiben, dann zeichnen - sonst zeigte
+                // die Rangliste beim naechsten Oeffnen noch die alten Punktstaende.
+                if (repository.awardCompletedChallenges(snapshot)) {
+                    showChallenges(repository.loadCrewSnapshot(crewCode))
+                } else {
+                    showChallenges(snapshot)
+                }
+            } finally {
+                finishRefreshing()
             }
         }
     }

@@ -48,6 +48,7 @@ class CrewDetailsActivity : AppCompatActivity() {
         }
 
         setUpTopBar(R.string.your_crew)
+        setUpPullToRefresh { load() }
         findViewById<TextView>(R.id.tvOverviewCrewCode).text = crewCode
         findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener { leaveCrew() }
 
@@ -61,35 +62,39 @@ class CrewDetailsActivity : AppCompatActivity() {
      */
     private fun load() {
         lifecycleScope.launch {
-            coroutineScope {
-                // Alle Abfragen werden angestossen, bevor auf die erste
-                // gewartet wird - sie haengen nicht voneinander ab und laufen
-                // deshalb nebeneinander.
-                val nameAsync = async { repository.getCrewName(crewCode) }
-                val membersAsync = async { repository.getCrewMembers(crewCode) }
-                val qrAsync = async { QrCodes.generate(crewCode) }
-                val creatorAsync = async { repository.isCrewCreator(crewCode) }
-                val imageAsync = async { repository.getCrewImageUrl(crewCode) }
+            try {
+                coroutineScope {
+                    // Alle Abfragen werden angestossen, bevor auf die erste
+                    // gewartet wird - sie haengen nicht voneinander ab und laufen
+                    // deshalb nebeneinander.
+                    val nameAsync = async { repository.getCrewName(crewCode) }
+                    val membersAsync = async { repository.getCrewMembers(crewCode) }
+                    val qrAsync = async { QrCodes.generate(crewCode) }
+                    val creatorAsync = async { repository.isCrewCreator(crewCode) }
+                    val imageAsync = async { repository.getCrewImageUrl(crewCode) }
 
-                crewName = nameAsync.await()
-                isCreator = creatorAsync.await()
+                    crewName = nameAsync.await()
+                    isCreator = creatorAsync.await()
 
-                findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
-                showMembers(membersAsync.await())
-                showCrewImage(imageAsync.await())
+                    findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
+                    showMembers(membersAsync.await())
+                    showCrewImage(imageAsync.await())
 
-                val qr = qrAsync.await()
-                if (qr == null) {
-                    Toast.makeText(this@CrewDetailsActivity, R.string.qr_generation_failed, Toast.LENGTH_SHORT).show()
-                } else {
-                    findViewById<ImageView>(R.id.ivOverviewQrCode).setImageBitmap(qr)
+                    val qr = qrAsync.await()
+                    if (qr == null) {
+                        Toast.makeText(this@CrewDetailsActivity, R.string.qr_generation_failed, Toast.LENGTH_SHORT).show()
+                    } else {
+                        findViewById<ImageView>(R.id.ivOverviewQrCode).setImageBitmap(qr)
+                    }
                 }
-            }
 
-            // Erst nach isCreator: wer die Crew nicht gegruendet hat, bekommt
-            // die Anfragen gar nicht erst zu sehen, und die Datenbank gibt sie
-            // ihm auch nicht heraus.
-            if (isCreator) showJoinRequests(repository.getJoinRequests(crewCode))
+                // Erst nach isCreator: wer die Crew nicht gegruendet hat, bekommt
+                // die Anfragen gar nicht erst zu sehen, und die Datenbank gibt sie
+                // ihm auch nicht heraus.
+                if (isCreator) showJoinRequests(repository.getJoinRequests(crewCode))
+            } finally {
+                finishRefreshing()
+            }
         }
     }
 

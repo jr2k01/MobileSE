@@ -92,6 +92,14 @@ class MainHubActivity : AppCompatActivity() {
 
         repository = AppRepository.get(this)
 
+        // Herunterziehen holt Crew und Schritte neu. Beides, weil beim
+        // Zurueckkommen ebenfalls beides geholt wird - was die Geste tut, soll
+        // sich nicht davon unterscheiden.
+        setUpPullToRefresh {
+            refresh()
+            showStepsToday()
+        }
+
         tvCrewName = findViewById(R.id.tvHomeCrewName)
         llMembers = findViewById(R.id.llMembersContainer)
         llLatestActivities = findViewById(R.id.llLatestActivitiesContainer)
@@ -265,6 +273,9 @@ class MainHubActivity : AppCompatActivity() {
             llMembers.removeAllViews()
             clearPodium()
             llLatestActivities.removeAllViews()
+            // Auch hier: ohne Crew gibt es nichts zu laden, aber der Kreis
+            // dreht sich sonst weiter und behauptet das Gegenteil.
+            finishRefreshing()
             return
         }
 
@@ -276,18 +287,25 @@ class MainHubActivity : AppCompatActivity() {
 
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {
-            val (crewName, snapshot) = coroutineScope {
-                val nameAsync = async { repository.getCrewName(crewCode) }
-                val snapshotAsync = async { repository.loadCrewSnapshot(crewCode) }
-                nameAsync.await() to snapshotAsync.await()
-            }
+            // finally und nicht am Ende des Blocks: geht eine Abfrage schief
+            // oder wird der Auftrag abgebrochen, weil inzwischen neu geladen
+            // wird, drehte sich der Kreis sonst bis zum Verlassen weiter.
+            try {
+                val (crewName, snapshot) = coroutineScope {
+                    val nameAsync = async { repository.getCrewName(crewCode) }
+                    val snapshotAsync = async { repository.loadCrewSnapshot(crewCode) }
+                    nameAsync.await() to snapshotAsync.await()
+                }
 
-            tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
-            showCrewLogo(snapshot.crewImageUrl)
-            showMembers(snapshot)
-            showStreak(snapshot)
-            showTopThree(snapshot)
-            showLatestActivities(snapshot)
+                tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
+                showCrewLogo(snapshot.crewImageUrl)
+                showMembers(snapshot)
+                showStreak(snapshot)
+                showTopThree(snapshot)
+                showLatestActivities(snapshot)
+            } finally {
+                finishRefreshing()
+            }
         }
     }
 

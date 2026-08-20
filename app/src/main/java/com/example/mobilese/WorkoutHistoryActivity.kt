@@ -43,6 +43,7 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         container = findViewById(R.id.llActivitiesContainer)
 
         setUpTopBar(R.string.latest_activities_label)
+        setUpPullToRefresh { load() }
 
         val toggle = findViewById<MaterialButtonToggleGroup>(R.id.tgActivityScope)
         toggle.check(R.id.btnScopeMine)
@@ -65,30 +66,36 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         container.removeAllViews()
 
         loadJob = lifecycleScope.launch {
-            when (scope) {
-                Scope.MINE -> showActivities(
-                    repository.getOwnActivities().map { it to null },
-                    R.string.no_activities_yet
-                )
+            // finally: auch der Weg ueber return@launch - keine Crew - und ein
+            // Abbruch beim erneuten Laden muessen den Kreis anhalten.
+            try {
+                when (scope) {
+                    Scope.MINE -> showActivities(
+                        repository.getOwnActivities().map { it to null },
+                        R.string.no_activities_yet
+                    )
 
-                Scope.CREW -> {
-                    val crewCode = repository.getJoinedCrewCode() ?: return@launch
-                    val snapshot = repository.loadCrewSnapshot(crewCode)
-                    val nameById = snapshot.members.associate { it.id to DisplayName.of(it) }
+                    Scope.CREW -> {
+                        val crewCode = repository.getJoinedCrewCode() ?: return@launch
+                        val snapshot = repository.loadCrewSnapshot(crewCode)
+                        val nameById = snapshot.members.associate { it.id to DisplayName.of(it) }
 
-                    val entries = snapshot.activities
-                        // Eintraege ehemaliger Mitglieder bleiben in der
-                        // Datenbank stehen, gehoeren aber zu niemandem mehr.
-                        .filter { it.userId in nameById }
-                        .sortedByDescending { ActivityTime.sortKey(it.timestamp) }
-                        .map { activity ->
-                            val name = nameById[activity.userId]?.takeIf { it.isNotBlank() }
-                                ?: getString(R.string.unknown_member)
-                            activity to name
-                        }
+                        val entries = snapshot.activities
+                            // Eintraege ehemaliger Mitglieder bleiben in der
+                            // Datenbank stehen, gehoeren aber zu niemandem mehr.
+                            .filter { it.userId in nameById }
+                            .sortedByDescending { ActivityTime.sortKey(it.timestamp) }
+                            .map { activity ->
+                                val name = nameById[activity.userId]?.takeIf { it.isNotBlank() }
+                                    ?: getString(R.string.unknown_member)
+                                activity to name
+                            }
 
-                    showActivities(entries, R.string.no_crew_activities_yet)
+                        showActivities(entries, R.string.no_crew_activities_yet)
+                    }
                 }
+            } finally {
+                finishRefreshing()
             }
         }
     }

@@ -74,6 +74,7 @@ class LeaderboardActivity : AppCompatActivity() {
             onRemove = { confirmRemoveMeme() }
         )
         setUpTopBar(R.string.crew_ranking)
+        setUpPullToRefresh { load() }
         setUpTabs(savedInstanceState)
 
         load()
@@ -250,15 +251,19 @@ class LeaderboardActivity : AppCompatActivity() {
     private fun load() {
         loadJob?.cancel()
         loadJob = lifecycleScope.launch {
-            val snapshot = repository.loadCrewSnapshot(crewCode)
+            try {
+                val snapshot = repository.loadCrewSnapshot(crewCode)
 
-            // Wurde etwas gutgeschrieben, ist der Snapshot veraltet und die
-            // Rangliste wuerde ohne Neuladen die alten Punktstaende zeigen.
-            val current =
-                if (repository.awardCompletedChallenges(snapshot)) repository.loadCrewSnapshot(crewCode)
-                else snapshot
+                // Wurde etwas gutgeschrieben, ist der Snapshot veraltet und die
+                // Rangliste wuerde ohne Neuladen die alten Punktstaende zeigen.
+                val current =
+                    if (repository.awardCompletedChallenges(snapshot)) repository.loadCrewSnapshot(crewCode)
+                    else snapshot
 
-            showLeaderboard(current)
+                showLeaderboard(current)
+            } finally {
+                finishRefreshing()
+            }
         }
     }
 

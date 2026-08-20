@@ -19,4 +19,9 @@
     <dimen name="profile_photo_radius">44dp</dimen>
     <dimen name="photo_card_height">180dp</dimen>
     <dimen name="map_preview_height">160dp</dimen>
+
+    <!-- Quer bleibt vom Bildschirm so wenig Hoehe, dass ein Bild in voller
+         Groesse allein schon mehr als die halbe Flaeche einnaehme. -->
+    <dimen name="meme_height">150dp</dimen>
+    <dimen name="chart_week_height">80dp</dimen>
 </resources>

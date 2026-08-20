@@ -293,7 +293,6 @@
     <!-- === Profil eines Crewmitglieds === -->
     <string name="member_profile_title">Crew Member</string>
     <string name="member_crews_label">CREWS</string>
-    <string name="member_crew_join">Join</string>
     <string name="member_crew_joined">You are in</string>
 
     <!--

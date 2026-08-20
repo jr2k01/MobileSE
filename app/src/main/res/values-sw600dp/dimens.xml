@@ -51,4 +51,38 @@
 
     <dimen name="medal_size">76dp</dimen>
     <dimen name="medal_label_width">104dp</dimen>
+
+    <!--
+        Bild der Nummer eins und die Auswahl dazu.
+
+        Kamen erst nach dem Tablet-Durchgang dazu und blieben deshalb in
+        Telefongroesse stehen, waehrend alles um sie herum mitwuchs. Bei drei
+        Kacheln nebeneinander (siehe integers) passen 168dp auch quer noch in
+        die begrenzte Inhaltsbreite.
+    -->
+    <dimen name="meme_height">280dp</dimen>
+    <dimen name="meme_preset_width">168dp</dimen>
+    <dimen name="meme_preset_height">136dp</dimen>
+
+    <!--
+        Auswertung auf dem Ranglisten-Bildschirm. Aus demselben Grund
+        nachgetragen: Wochenbalken, Sportring und Mitgliederbalken standen auf
+        dem Tablet in einer Groesse da, die neben den gewachsenen Karten
+        ringsum verloren wirkte.
+
+        Die Spaltenbreiten wachsen mit den Balken, sonst beginnen und enden
+        diese nicht mehr an derselben Stelle.
+    -->
+    <dimen name="chart_week_height">136dp</dimen>
+    <dimen name="chart_bar_width">26dp</dimen>
+    <dimen name="chart_bar_label_space">30dp</dimen>
+    <dimen name="chart_bar_empty_height">4dp</dimen>
+    <dimen name="donut_size">148dp</dimen>
+    <dimen name="donut_ring_width">26dp</dimen>
+    <dimen name="points_split_height">6dp</dimen>
+
+    <dimen name="member_bar_avatar">36dp</dimen>
+    <dimen name="member_bar_name_column">100dp</dimen>
+    <dimen name="member_bar_value_column">78dp</dimen>
+    <dimen name="member_bar_height">14dp</dimen>
 </resources>

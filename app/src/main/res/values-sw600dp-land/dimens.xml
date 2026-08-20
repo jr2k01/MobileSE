@@ -20,4 +20,14 @@
     <dimen name="photo_card_height">240dp</dimen>
     <dimen name="activity_photo_height">220dp</dimen>
     <dimen name="map_preview_height">190dp</dimen>
+
+    <!--
+        Auch hier gilt: was vor allem Hoehe kostet, faellt kleiner aus als im
+        Hochformat. Die Wochenbalken und der Sportring stehen sonst so hoch,
+        dass unter ihnen nichts mehr ins Bild passt.
+    -->
+    <dimen name="meme_height">220dp</dimen>
+    <dimen name="chart_week_height">112dp</dimen>
+    <dimen name="donut_size">124dp</dimen>
+    <dimen name="donut_ring_width">22dp</dimen>
 </resources>

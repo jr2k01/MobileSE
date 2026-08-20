@@ -42,6 +42,6 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:minWidth="0dp"
-        android:text="@string/member_crew_join" />
+        android:text="@string/member_crew_request" />
 
 </LinearLayout>

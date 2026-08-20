@@ -1,10 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="?attr/colorSurface">
+
+    <!--
+        Dieselbe Kopfzeile wie auf allen anderen Unterseiten. Vorher trug der
+        Bildschirm nur eine grosse Ueberschrift, und zurueck kam man allein
+        ueber "Abbrechen" ganz unten - man musste also erst durch das ganze
+        Formular scrollen. Ausserhalb der ScrollView bleibt der Pfeil stehen.
+    -->
+    <include
+        android:id="@+id/topBar"
+        layout="@layout/part_top_bar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toBottomOf="parent">
 
     <!-- ContentColumnWrapper: haelt die volle Breite, damit die
          Inhaltsspalte darin zentriert begrenzt werden kann. -->
@@ -19,21 +36,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:paddingTop="56dp"
+        android:paddingTop="8dp"
         android:paddingStart="@dimen/screen_padding_horizontal"
         android:paddingEnd="@dimen/screen_padding_horizontal"
         android:paddingBottom="32dp">
-
-        <TextView
-            android:id="@+id/tvAddTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="@string/track_workout"
-            android:textAppearance="?attr/textAppearanceDisplaySmall"
-            android:textColor="?attr/colorOnSurface"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
 
         <!--
             Kein ExposedDropdownMenu mehr: dessen Popup oeffnete sich zwar in
@@ -47,12 +53,12 @@
             style="@style/Widget.CrewFit.TextField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="8dp"
             android:hint="@string/train_question"
             app:endIconMode="custom"
             app:endIconDrawable="@drawable/ic_arrow_drop_down"
             app:endIconTint="?attr/colorOnSurfaceVariant"
-            app:layout_constraintTop_toBottomOf="@id/tvAddTitle">
+            app:layout_constraintTop_toTopOf="parent">
 
             <!--
                 focusable=false: das Feld wird nicht getippt, sondern
@@ -309,4 +315,5 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

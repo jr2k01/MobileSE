@@ -111,6 +111,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_tracking)
 
+        setUpTopBar(R.string.track_workout)
+
         repository = AppRepository.get(this)
 
         val etSport = findViewById<EditText>(R.id.etSport)

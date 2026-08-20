@@ -315,6 +315,18 @@
     <string name="unknown_crew">Unknown Crew</string>
 
     <!--
+        Level und Prestige. Die Punkte zaehlen ueber alle Crews zusammen -
+        sie gehoeren der Person, nicht der Crew.
+    -->
+    <string name="level_label">LEVEL</string>
+    <string name="level_value">Level %d</string>
+    <string name="level_prestige">Prestige %d</string>
+    <string name="level_total_points_label">TOTAL POINTS</string>
+    <string name="level_progress">%1$d of %2$d points to level %3$d</string>
+    <string name="level_progress_max">%1$d of %2$d points to prestige %3$d</string>
+    <string name="level_desc">Level %1$d, %2$d percent to the next</string>
+
+    <!--
         Reaktionen und Kommentare unter einem Workout.
     -->
     <string name="reactions_label">REACTIONS</string>

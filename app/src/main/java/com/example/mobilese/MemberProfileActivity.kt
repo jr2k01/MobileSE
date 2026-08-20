@@ -71,6 +71,13 @@ class MemberProfileActivity : AppCompatActivity() {
      * aussah.
      */
     private fun load(userId: String) {
+        // Eigener Auftrag: Level und Gesamtpunktzahl haengen nicht an der
+        // gemeinsamen Crew und sollen auch dann stehen, wenn es keine gibt -
+        // die Zahlen darueber kommen dann gar nicht erst.
+        lifecycleScope.launch {
+            LevelCardView(findViewById(R.id.levelCard)).show(repository.getTotalPoints(userId))
+        }
+
         lifecycleScope.launch {
             val crewCode = repository.getJoinedCrewCode()
             val snapshot = crewCode?.let { repository.loadCrewSnapshot(it) }

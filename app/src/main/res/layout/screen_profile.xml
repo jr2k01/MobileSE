@@ -61,6 +61,22 @@
                 style="@style/TextAppearance.CrewFit.SectionLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/level_label" />
+
+            <!-- Fuellt LevelCardView; steht ebenso im Kurzprofil eines
+                 Crew-Mitglieds. -->
+            <include
+                android:id="@+id/levelCard"
+                layout="@layout/part_level_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="28dp" />
+
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:text="@string/personal_info" />
 

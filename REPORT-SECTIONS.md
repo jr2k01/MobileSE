@@ -4,8 +4,8 @@ Written to match `_report_template_v1.0`. Facts (dependency versions, dates,
 counts) are taken from the repository, not from memory. Places where you have to
 fill something in yourself are marked **[FILL IN]**.
 
-State of the repository this describes: 100 commits, 63 Kotlin files (~10,500
-lines), 22 test classes with 197 unit tests, 17 Activities, `minSdk 26`,
+State of the repository this describes: 101 commits, 66 Kotlin files (~11,200
+lines), 22 test classes with 209 unit tests, 17 Activities, `minSdk 26`,
 `targetSdk 36`, Android Gradle Plugin 9.1.1.
 
 ---
@@ -55,7 +55,7 @@ several devices can share one crew — which is the entire point of the app.
 
 | Library | Version | Purpose |
 | --- | --- | --- |
-| `junit` | 4.13.2 | 197 unit tests over the pure logic (points, medals, step goal, statistics, names, dates, input rules) |
+| `junit` | 4.13.2 | 209 unit tests over the pure logic (points, medals, step goal, statistics, names, dates, input rules) |
 | `androidx.test.ext:junit`, `espresso-core` | 1.1.5 / 3.5.1 | Instrumentation test scaffolding (default template) |
 
 ### Deliberately not used
@@ -113,6 +113,7 @@ Dates are the commit dates in the Git repository.
 | 12.9 | 2026-08-20 | Pull down to reload, on the five screens that read from the backend | A screen left lying open can be brought up to date without leaving it | Costs one AndroidX dependency; the alternative was re-implementing a Google widget by hand. This is the answer to dropping Realtime in 5.0: no permanent connection, but a way to ask |
 | 12.10 | 2026-08-20 | The join requests section stays visible for the captain even with nothing pending; the crew's founder is labelled "Captain" in the member list | A captain who has never had a request still knows the section exists and where it will appear | Name, founder and picture were three queries against the same row; folded into one `getCrew()` |
 | 12.11 | 2026-08-20 | Crew members can react to a workout with one of five emoji and leave comments — five ready-made ones that post on a tap, or their own text | A workout is no longer a number in a list that nobody answers | Needs two tables. The comment time is text written by the app: as `timestamptz` PostgREST returns an offset the app's formatter does not read, and the time would have been hours out |
+| 12.12 | 2026-08-20 | Levels 1–100 with prestige, from the points earned across all crews; level and total shown in one's own profile and in every member's | A goal beyond the current crew's weekly ranking | The per-person point calculation was pulled out of `Scoreboard` so ranking and level cannot drift apart. No new table: the total is derived from data that already exists |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from

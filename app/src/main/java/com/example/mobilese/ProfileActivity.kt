@@ -96,6 +96,12 @@ class ProfileActivity : AppCompatActivity() {
         // Abfragen fuer sechs Felder.
         lifecycleScope.launch {
             val profile = repository.getProfile(currentUserEmail) ?: return@launch
+
+            // Level und Gesamtpunktzahl ueber alle Crews. Braucht die Kennung
+            // aus dem eben geladenen Profil und steht deshalb hier und nicht
+            // in einem eigenen Auftrag.
+            LevelCardView(findViewById(R.id.levelCard)).show(repository.getTotalPoints(profile.id))
+
             if (isFirstStart) {
                 // In der Datenbank steht ein Feld; hier wird es auf die beiden
                 // Eingaben verteilt.

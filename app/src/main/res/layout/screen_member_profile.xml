@@ -159,6 +159,27 @@
                     android:visibility="gone" />
 
                 <!--
+                    Level und Gesamtpunktzahl dieser Person - dieselbe Karte
+                    wie im eigenen Profil, gefuellt von LevelCardView. Die
+                    Punkte zaehlen ueber alle Crews, nicht nur die gemeinsame:
+                    sonst saehe man von jemandem, der noch woanders trainiert,
+                    nur die Haelfte.
+                -->
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/level_label" />
+
+                <include
+                    android:id="@+id/levelCard"
+                    layout="@layout/part_level_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <!--
                     Die Crews dieser Person. Aus einer, in der man selbst nicht
                     ist, fuehrt ein Knopf hinein - das ist der Weg, ueber einen
                     Bekannten zu einer Crew zu kommen, ohne einen Code zu

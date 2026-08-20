@@ -46,42 +46,61 @@ object Scoreboard {
             .associate { it.userId to it.steps }
 
         return snapshot.members.map { profile ->
-            val ownActivities = activitiesByUser[profile.id].orEmpty()
-
-            // Der Aufschlag der Serie gilt je Tag mit dem Stand von damals.
-            // Deshalb wird je Aktivitaet gerechnet und nicht auf die Summe:
-            // Punkte vom Dienstag werden nicht mehr, weil die Serie bis
-            // Freitag weitergelaufen ist.
-            val activeDays = Streak.activeDays(
-                profile.id,
-                ownActivities,
-                stepDaysByUser[profile.id].orEmpty()
-            )
-            val workoutPoints = ownActivities.sumOf { activity ->
-                val base = PointsCalculator.calculateWorkoutPoints(
-                    activity.duration,
-                    WorkoutIntensity.fromName(activity.intensity)
-                )
-                val day = ActivityTime.dayOf(activity.timestamp)
-                if (day.isEmpty()) base
-                else Streak.applyMultiplier(
-                    base,
-                    Streak.multiplierFor(Streak.endingOn(activeDays, LocalDate.parse(day)))
-                )
-            }
-            val stepBonus = StepGoal.bonusPoints(
-                stepDaysByUser[profile.id].orEmpty().map { it.steps }
-            )
-
             Entry(
                 userId = profile.id,
                 email = profile.email.orEmpty(),
                 // In der Rangliste steht das im Profil gewaehlte Kuerzel.
                 name = DisplayName.of(profile).ifEmpty { "Unknown" },
                 avatarUrl = profile.avatarUrl,
-                points = workoutPoints + (rewardsByUser[profile.id] ?: 0) + stepBonus,
+                points = pointsFor(
+                    userId = profile.id,
+                    activities = activitiesByUser[profile.id].orEmpty(),
+                    stepDays = stepDaysByUser[profile.id].orEmpty(),
+                    rewardPoints = rewardsByUser[profile.id] ?: 0
+                ),
                 todaySteps = todayStepsByUser[profile.id] ?: 0
             )
         }.sortedWith(compareByDescending<Entry> { it.points }.thenBy { it.name })
+    }
+
+    /**
+     * Der Punktestand einer Person aus ihren eigenen Daten.
+     *
+     * Steht fuer sich, weil es zwei Aufrufer gibt: die Rangliste einer Crew
+     * und die Gesamtpunktzahl ueber alle Crews, aus der sich das Level ergibt.
+     * Als zweite Rechnung waeren beide irgendwann auseinandergelaufen, und ein
+     * Level, das nicht zur Rangliste passt, ist schlimmer als keines.
+     *
+     * @param activities Nur die dieser Person. Fremde wuerden mitgezaehlt.
+     * @param stepDays Ebenso - sie ergeben Bonuspunkte und zaehlen zugleich
+     *        als aktiver Tag fuer die Serie.
+     * @param rewardPoints Bereits gutgeschriebene Challenge-Belohnungen.
+     */
+    fun pointsFor(
+        userId: String,
+        activities: List<Activity>,
+        stepDays: List<StepDay>,
+        rewardPoints: Int
+    ): Int {
+        // Der Aufschlag der Serie gilt je Tag mit dem Stand von damals.
+        // Deshalb wird je Aktivitaet gerechnet und nicht auf die Summe:
+        // Punkte vom Dienstag werden nicht mehr, weil die Serie bis
+        // Freitag weitergelaufen ist.
+        val activeDays = Streak.activeDays(userId, activities, stepDays)
+
+        val workoutPoints = activities.sumOf { activity ->
+            val base = PointsCalculator.calculateWorkoutPoints(
+                activity.duration,
+                WorkoutIntensity.fromName(activity.intensity)
+            )
+            val day = ActivityTime.dayOf(activity.timestamp)
+            if (day.isEmpty()) base
+            else Streak.applyMultiplier(
+                base,
+                Streak.multiplierFor(Streak.endingOn(activeDays, LocalDate.parse(day)))
+            )
+        }
+
+        return workoutPoints + rewardPoints + StepGoal.bonusPoints(stepDays.map { it.steps })
     }
 }

@@ -1375,6 +1375,55 @@ class AppRepository private constructor(context: Context) {
     /** Die Adresse des Crew-Bilds, oder null wenn keines gesetzt ist. */
     suspend fun getCrewImageUrl(crewCode: String): String? = getCrew(crewCode)?.imageUrl
 
+    // --- GESAMTPUNKTZAHL UND LEVEL ---
+
+    /**
+     * Die Punkte einer Person ueber **alle** Crews hinweg.
+     *
+     * Punkte gehoeren der Person, nicht der Crew: wer in zwei Crews trainiert,
+     * soll nicht zweimal getrennt sammeln, und der Wechsel in eine neue Crew
+     * darf kein Rueckschritt sein.
+     *
+     * Gerechnet wird mit [Scoreboard.pointsFor] - derselben Funktion, aus der
+     * auch die Rangliste entsteht. Eine zweite Rechnung waere irgendwann
+     * auseinandergelaufen, und ein Level, das nicht zur Rangliste passt, ist
+     * schlimmer als keines.
+     */
+    suspend fun getTotalPoints(userId: String): Int = withContext(Dispatchers.IO) {
+        coroutineScope {
+            val activitiesAsync = async { selectActivitiesOf(userId) }
+            val stepDaysAsync = async { selectStepDays(listOf(userId)) }
+            val rewardsAsync = async { selectRewardsOf(userId) }
+
+            Scoreboard.pointsFor(
+                userId = userId,
+                activities = activitiesAsync.await(),
+                stepDays = stepDaysAsync.await(),
+                rewardPoints = rewardsAsync.await()
+            )
+        }
+    }
+
+    /** Alle Aktivitaeten einer Person, ohne Ruecksicht auf die Crew. */
+    private suspend fun selectActivitiesOf(userId: String): List<Activity> = try {
+        client.postgrest["activities"].select {
+            filter { eq("user_id", userId) }
+        }.decodeList<Activity>()
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not load the activities of $userId: ${e.message}")
+        emptyList()
+    }
+
+    /** Die Summe der Challenge-Belohnungen einer Person, ueber alle Crews. */
+    private suspend fun selectRewardsOf(userId: String): Int = try {
+        client.postgrest["challenge_rewards"].select {
+            filter { eq("user_id", userId) }
+        }.decodeList<ChallengeReward>().sumOf { it.points }
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not load the rewards of $userId: ${e.message}")
+        0
+    }
+
     // --- REAKTIONEN UND KOMMENTARE ---
 
     /**

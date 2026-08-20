@@ -209,6 +209,42 @@ class MainHubActivity : AppCompatActivity() {
         card.setOnClickListener {
             startActivity(WorkoutTrackingActivity.intent(this, workout))
         }
+        card.setOnLongClickListener {
+            askToDiscard(workout)
+            true
+        }
+    }
+
+    /**
+     * Bietet an, ein Workout von der Uhr wegzuwerfen.
+     *
+     * Ohne diesen Weg gab es nur einen einzigen: eintragen. Wer die Uhr aus
+     * Versehen gestartet oder das Training abgebrochen hat, waere die Karte
+     * nicht mehr losgeworden - ausser durch ein Workout, das es nie gab.
+     *
+     * Auf langen Druck und nicht als eigener Knopf: das Eintragen ist der
+     * Regelfall, das Wegwerfen die Ausnahme, und ein zweiter Knopf auf der
+     * Karte machte den ersten kleiner. Mit Rueckfrage, weil es nicht rueckgaengig
+     * zu machen ist - die Uhr hat den Datensatz nach dem Uebertragen abgegeben.
+     */
+    private fun askToDiscard(workout: PendingWorkout) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.pending_discard_title)
+            .setMessage(
+                resources.getQuantityString(
+                    R.plurals.pending_discard_message,
+                    workout.minutes,
+                    workout.sport,
+                    workout.minutes
+                )
+            )
+            .setNegativeButton(R.string.cancel_btn, null)
+            .setPositiveButton(R.string.discard_btn) { _, _ ->
+                PendingWorkouts.remove(this, workout.endedAt)
+                showPendingWorkout()
+                toast(R.string.pending_discarded)
+            }
+            .show()
     }
 
     /**

@@ -94,3 +94,8 @@ nachtraeglich zusammengesucht.
 Ein Workout verschwindet erst dann aus der Warteschlange, wenn es wirklich
 gespeichert ist. Bricht man das Formular ab oder scheitert der Upload, steht die
 Karte beim naechsten Blick wieder da.
+
+Wer die Uhr aus Versehen gestartet oder das Training abgebrochen hat, wird das
+Workout ueber einen **langen Druck auf die Karte** wieder los. Es kommt eine
+Rueckfrage, denn rueckgaengig geht das nicht: die Uhr hat den Datensatz nach dem
+Uebertragen abgegeben.

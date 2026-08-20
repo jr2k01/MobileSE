@@ -56,6 +56,13 @@
     <string name="pending_workout_title">Waiting from your watch</string>
     <string name="pending_workout_details">%1$s · %2$d min · tap to log it</string>
     <string name="pending_workout_details_pulse">%1$s · %2$d min · %3$d bpm · tap to log it</string>
+    <string name="pending_discard_title">Discard this workout?</string>
+    <plurals name="pending_discard_message">
+        <item quantity="one">%1$s, %2$d minute from your watch will be gone. Nothing is logged in the crew.</item>
+        <item quantity="other">%1$s, %2$d minutes from your watch will be gone. Nothing is logged in the crew.</item>
+    </plurals>
+    <string name="discard_btn">Discard</string>
+    <string name="pending_discarded">Workout discarded</string>
     <plurals name="watch_notice">
         <item quantity="one">Recorded on your watch: %1$d minute. Photo and location are still missing.</item>
         <item quantity="other">Recorded on your watch: %1$d minutes. Photo and location are still missing.</item>

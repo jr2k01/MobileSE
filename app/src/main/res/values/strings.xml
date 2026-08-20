@@ -358,6 +358,25 @@
     <string name="settings_notifications_off">Off. Tap to allow notifications.</string>
 
     <!--
+        Berechtigungen. Der Name steht in der Zeile, der Zweck darunter: wer
+        entscheiden soll, ob er die Kamera freigibt, muss wissen, wofuer die App
+        sie will. Der Stand kommt aus AppPermission und wird bei jedem
+        Zurueckkommen neu geholt.
+    -->
+    <string name="settings_permissions_label">PERMISSIONS</string>
+    <string name="permission_camera">Camera</string>
+    <string name="permission_camera_purpose">For the photo you attach to a workout</string>
+    <string name="permission_microphone">Microphone</string>
+    <string name="permission_microphone_purpose">For the voice note on a workout</string>
+    <string name="permission_location">Location</string>
+    <string name="permission_location_purpose">To name the place where you trained</string>
+    <string name="permission_gallery">Photos</string>
+    <string name="permission_gallery_purpose">To pick a profile, crew or meme picture</string>
+    <string name="permission_status_granted">Allowed. Tap to manage in the system settings.</string>
+    <string name="permission_status_denied">Not allowed. Tap to allow.</string>
+    <string name="gallery_permission_denied">CrewFit needs access to your photos to pick a picture</string>
+
+    <!--
         Rueckmeldungen an den Nutzer. Diese Texte standen vorher fest im
         Kotlin-Code. Als Ressourcen sind sie an einer Stelle gebuendelt und
         koennen uebersetzt werden, ohne die Activities anzufassen.

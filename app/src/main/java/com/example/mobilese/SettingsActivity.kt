@@ -3,14 +3,18 @@ package com.example.mobilese
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
@@ -59,6 +63,8 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.llTheme).setOnClickListener { askForTheme() }
 
         findViewById<View>(R.id.llNotifications).setOnClickListener { onNotificationsTapped() }
+
+        buildPermissionRows()
 
         findViewById<View>(R.id.llSettingsAccount).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -117,6 +123,94 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Die Berechtigung, auf die gerade getippt wurde.
+     *
+     * Der Vertrag fuer die Abfrage muss vor onCreate feststehen und kann
+     * deshalb nicht wissen, welche Zeile ihn ausgeloest hat. Gemerkt wird sie
+     * hier - immer nur eine, weil immer nur eine Zeile antippbar ist.
+     */
+    private var pendingPermission: AppPermission? = null
+
+    /** Die eingehaengten Zeilen, um beim Zurueckkommen den Stand aufzufrischen. */
+    private val permissionRows = mutableMapOf<AppPermission, View>()
+
+    private val requestPermission =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            val asked = pendingPermission
+            pendingPermission = null
+            showPermissionStatus()
+
+            if (asked == null || asked.isGranted(this)) return@registerForActivityResult
+
+            // Zweimal abgelehnt heisst "nicht mehr fragen": ab da zeigt Android
+            // keinen Dialog mehr, und ein weiterer Antipper bliebe wirkungslos.
+            // Dann bleibt nur der Weg in die Systemeinstellungen.
+            val mayAskAgain = asked.manifestNames.any {
+                ActivityCompat.shouldShowRequestPermissionRationale(this, it)
+            }
+            if (mayAskAgain) {
+                Toast.makeText(this, asked.purposeRes, Toast.LENGTH_LONG).show()
+            } else {
+                openAppSettings()
+            }
+        }
+
+    /**
+     * Baut die Berechtigungsliste aus [AppPermission].
+     *
+     * Aus dem Enum und nicht aus dem Layout: eine neue Berechtigung braucht
+     * dann nur einen Eintrag dort, und die Einstellungen zeigen sie mit.
+     */
+    private fun buildPermissionRows() {
+        val container = findViewById<LinearLayout>(R.id.llPermissions)
+        val inflater = LayoutInflater.from(this)
+
+        AppPermission.entries.forEach { permission ->
+            val row = inflater.inflate(R.layout.part_permission_row, container, false)
+            row.findViewById<TextView>(R.id.tvPermissionTitle).setText(permission.labelRes)
+            row.findViewById<TextView>(R.id.tvPermissionPurpose).setText(permission.purposeRes)
+            row.setOnClickListener { onPermissionTapped(permission) }
+            container.addView(row)
+            permissionRows[permission] = row
+        }
+        showPermissionStatus()
+    }
+
+    private fun showPermissionStatus() {
+        permissionRows.forEach { (permission, row) ->
+            row.findViewById<TextView>(R.id.tvPermissionStatus).setText(
+                if (permission.isGranted(this)) R.string.permission_status_granted
+                else R.string.permission_status_denied
+            )
+        }
+    }
+
+    /**
+     * Steht die Erlaubnis schon, fuehrt der Weg in die Systemeinstellungen:
+     * eine App kann sich ihre eigene Erlaubnis nicht entziehen, zuruecknehmen
+     * laesst sie sich nur dort. Fehlt sie, wird gefragt.
+     */
+    private fun onPermissionTapped(permission: AppPermission) {
+        if (permission.isGranted(this)) {
+            openAppSettings()
+            return
+        }
+        pendingPermission = permission
+        requestPermission.launch(permission.manifestNames)
+    }
+
+    private fun openAppSettings() {
+        try {
+            startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    .setData(Uri.fromParts("package", packageName, null))
+            )
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(this, R.string.permission_status_denied, Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun showThemeChoice() {
         findViewById<TextView>(R.id.tvThemeValue).setText(repository.getThemeMode().labelRes)
     }
@@ -161,6 +255,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onResume()
         showHealthStatus()
         showNotificationStatus()
+        showPermissionStatus()
     }
 
     private fun showHealthStatus() {

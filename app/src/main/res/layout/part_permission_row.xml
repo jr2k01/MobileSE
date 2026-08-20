@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Eine Zeile in der Berechtigungsliste der Einstellungen.
+
+    Wird nicht eingebunden, sondern je Eintrag von AppPermission einmal
+    aufgeblasen. Vier fast gleiche Bloecke im Bildschirmlayout waeren dieselbe
+    Zeile viermal - und beim Hinzufuegen einer fuenften Berechtigung muesste man
+    daran denken, sie auch dort einzutragen. So genuegt der neue Enum-Eintrag.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.CrewFit.SettingsRow"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp">
+
+    <TextView
+        android:id="@+id/tvPermissionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+    <!-- Wofuer die App sie will. Ohne diese Zeile bleibt die Entscheidung
+         eine Ja-Nein-Frage ohne Grundlage. -->
+    <TextView
+        android:id="@+id/tvPermissionPurpose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+
+    <!-- Der Stand. Wird bei jedem Zurueckkommen neu gesetzt: die Erlaubnis kann
+         in den Systemeinstellungen zurueckgenommen worden sein, und davon
+         erfaehrt die App nicht von selbst. -->
+    <TextView
+        android:id="@+id/tvPermissionStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+</LinearLayout>

@@ -15,7 +15,6 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -57,10 +56,9 @@ class LeaderboardActivity : AppCompatActivity() {
     /** Ob der angemeldete Nutzer gerade fuehrt - nur dann darf er aufhaengen. */
     private var isLeader = false
 
-    private val pickMemeLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { picked -> askForCaption { caption -> saveMeme(picked, caption) } }
-        }
+    private val pickMemeLauncher = GalleryPicker(this) { picked ->
+        askForCaption { caption -> saveMeme(picked, caption) }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,7 +149,7 @@ class LeaderboardActivity : AppCompatActivity() {
                 .setView(view)
                 .setNegativeButton(R.string.cancel_btn, null)
                 .setNeutralButton(R.string.meme_from_gallery) { _, _ ->
-                    pickMemeLauncher.launch("image/*")
+                    pickMemeLauncher.open()
                 }
                 .show()
 

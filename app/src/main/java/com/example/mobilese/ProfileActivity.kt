@@ -14,7 +14,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
@@ -30,10 +29,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var ivProfilePicture: ImageView
     private var currentUserEmail: String = ""
 
-    private val pickImageLauncher =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.let { storeProfilePicture(it) }
-        }
+    private val pickImageLauncher = GalleryPicker(this) { uri -> storeProfilePicture(uri) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +59,7 @@ class ProfileActivity : AppCompatActivity() {
         ) {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        ivProfilePicture.setOnClickListener { pickImageLauncher.launch("image/*") }
+        ivProfilePicture.setOnClickListener { pickImageLauncher.open() }
 
         etEmail.setText(currentUserEmail)
 

@@ -111,6 +111,34 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- === Berechtigungen === -->
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/settings_permissions_label" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+                <!--
+                    Leer im Layout: die Zeilen kommen aus AppPermission und
+                    werden in der Activity eingehaengt. Was die App anfragt,
+                    steht damit an einer Stelle statt an zweien.
+                -->
+                <LinearLayout
+                    android:id="@+id/llPermissions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- === Schritte === -->
             <TextView
                 style="@style/TextAppearance.CrewFit.SectionLabel"

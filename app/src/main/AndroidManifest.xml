@@ -9,6 +9,25 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!--
+        Die Galerie, fuer Profil-, Crew- und Meme-Bild.
+
+        Drei Namen fuer dieselbe Sache, weil Android sie zweimal umbenannt hat.
+        READ_EXTERNAL_STORAGE endet bei Android 12: ab 13 waere es wirkungslos,
+        und maxSdkVersion haelt es aus den Berechtigungen neuerer Geraete
+        heraus, statt dort einen Eintrag zu zeigen, den niemand braucht.
+
+        READ_MEDIA_VISUAL_USER_SELECTED gibt es ab Android 14. Ohne diesen
+        Eintrag bietet der Systemdialog dort nur "alle Bilder" oder "keines" an -
+        mit ihm koennen einzelne Bilder freigegeben werden, und genau das
+        genuegt der App.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+
     <!-- Ab Android 13 muss um das Anzeigen von Benachrichtigungen gebeten
          werden; davor genuegte das Manifest. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

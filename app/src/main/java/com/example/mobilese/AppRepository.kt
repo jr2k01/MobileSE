@@ -16,6 +16,7 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -1085,29 +1086,42 @@ class AppRepository private constructor(context: Context) {
      * beliebiger Stelle im Namen - wer jemanden sucht, weiss selten, wie der
      * Eintrag genau geschrieben ist. Die eigene Person faellt heraus: sich
      * selbst zu finden hilft nicht weiter.
+     *
+     * Private Profile bleiben draussen. Das Aussieben macht die Datenbank und
+     * nicht die App: ein Profil, das nicht gefunden werden will, soll auch
+     * nicht uebertragen werden.
      */
     suspend fun searchPeople(query: String): List<UserProfile> = withContext(Dispatchers.IO) {
         val term = query.trim()
         if (term.length < SEARCH_MIN_LENGTH) return@withContext emptyList()
         val me = currentUserId()
 
-        try {
-            val pattern = "%$term%"
-            client.postgrest["profiles"].select {
-                filter {
-                    or {
-                        ilike("display_name", pattern)
-                        ilike("name", pattern)
-                    }
+        // Fehlt die Spalte is_public im Projekt, weist Postgrest die Abfrage ab,
+        // die sie nennt. Dann wird ohne sie gesucht - ohne diesen Rueckfall
+        // faende die Suche in einem solchen Projekt ueberhaupt niemanden mehr.
+        val found = searchProfiles(term, onlyPublic = true)
+            ?: searchProfiles(term, onlyPublic = false)
+            ?: return@withContext emptyList()
+
+        found.filter { it.id != me }.sortedBy { DisplayName.of(it).lowercase() }
+    }
+
+    /** Null bedeutet: die Abfrage ist gescheitert, nicht "nichts gefunden". */
+    private suspend fun searchProfiles(term: String, onlyPublic: Boolean): List<UserProfile>? = try {
+        val pattern = "%$term%"
+        client.postgrest["profiles"].select {
+            filter {
+                or {
+                    ilike("display_name", pattern)
+                    ilike("name", pattern)
                 }
-                limit(SEARCH_LIMIT)
-            }.decodeList<UserProfile>()
-                .filter { it.id != me }
-                .sortedBy { DisplayName.of(it).lowercase() }
-        } catch (e: Exception) {
-            Log.e("SupabaseDB", "Could not search for people: ${e.message}")
-            emptyList()
-        }
+                if (onlyPublic) eq("is_public", true)
+            }
+            limit(SEARCH_LIMIT)
+        }.decodeList<UserProfile>()
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Could not search for people: ${e.message}")
+        null
     }
 
     /**
@@ -1135,6 +1149,212 @@ class AppRepository private constructor(context: Context) {
         } catch (e: Exception) {
             Log.e("SupabaseDB", "Could not search for crews: ${e.message}")
             emptyList()
+        }
+    }
+
+    // --- SICHTBARKEIT DES PROFILS ---
+
+    /**
+     * Ob das eigene Profil in der Suche auftaucht.
+     *
+     * Bei Zweifeln oeffentlich: das ist die Voreinstellung der Spalte, und ein
+     * Lesefehler darf nicht dazu fuehren, dass die Einstellungen einen anderen
+     * Stand anzeigen als die Datenbank tatsaechlich hat.
+     */
+    suspend fun isProfilePublic(): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext true
+        try {
+            client.postgrest["profiles"].select(Columns.list("id", "is_public")) {
+                filter { eq("id", userId) }
+                limit(1)
+            }.decodeSingleOrNull<ProfileVisibility>()?.isPublic ?: true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Reading the profile visibility failed: ${e.message}")
+            true
+        }
+    }
+
+    /**
+     * Setzt die Sichtbarkeit. Nur diese eine Spalte, nicht das ganze Profil:
+     * ein Upsert wuerde jedes Feld mitschicken und koennte dabei ueberschreiben,
+     * was gerade auf einem anderen Geraet geaendert wurde.
+     */
+    suspend fun setProfilePublic(isPublic: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext false
+        try {
+            client.postgrest["profiles"].update({
+                ProfileVisibility::isPublic setTo isPublic
+            }) {
+                filter { eq("id", userId) }
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Saving the profile visibility failed: ${e.message}")
+            false
+        }
+    }
+
+    // --- BEITRITTSANFRAGEN ---
+
+    /**
+     * Ob der angemeldete Nutzer diese Crew gegruendet hat.
+     *
+     * Nicht zu verwechseln mit dem Fuehrenden der Rangliste: dieser hier darf
+     * ueber Anfragen entscheiden, jener hat nur die meisten Punkte.
+     */
+    suspend fun isCrewCreator(crewCode: String): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext false
+        try {
+            client.postgrest["crews"].select {
+                filter { eq("id", crewCode) }
+                limit(1)
+            }.decodeSingleOrNull<Crew>()?.creatorId == userId
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Bittet um Aufnahme in eine Crew.
+     *
+     * Wer schon Mitglied ist, fragt nicht an - das kann passieren, wenn ein
+     * Suchergebnis noch von vor dem Beitritt stammt. Eine zweite Anfrage
+     * derselben Person scheitert am Schluessel, deshalb wird vorher geprueft.
+     */
+    suspend fun requestToJoinCrew(crewCode: String): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext false
+        if (isMemberOf(crewCode, userId)) return@withContext false
+
+        try {
+            if (!hasRequestedToJoin(crewCode)) {
+                client.postgrest["crew_join_requests"].insert(
+                    CrewJoinRequest(crewId = crewCode, userId = userId)
+                )
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Requesting to join failed: ${e.message}")
+            false
+        }
+    }
+
+    /** Ob fuer diese Crew schon eine eigene Anfrage offen ist. */
+    suspend fun hasRequestedToJoin(crewCode: String): Boolean = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext false
+        try {
+            client.postgrest["crew_join_requests"].select {
+                filter {
+                    eq("crew_id", crewCode)
+                    eq("user_id", userId)
+                }
+                limit(1)
+            }.decodeList<CrewJoinRequest>().isNotEmpty()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Die offenen Anfragen an eine Crew, als Profile.
+     *
+     * Leer, solange die Tabelle im Projekt fehlt - dann zeigt der
+     * Crew-Bildschirm den Abschnitt schlicht nicht an, statt eine Fehlermeldung
+     * zu bringen fuer etwas, das niemand ausgeloest hat.
+     */
+    suspend fun getJoinRequests(crewCode: String): List<UserProfile> = withContext(Dispatchers.IO) {
+        val ids = try {
+            client.postgrest["crew_join_requests"].select {
+                filter { eq("crew_id", crewCode) }
+            }.decodeList<CrewJoinRequest>().map { it.userId }
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Reading the join requests failed: ${e.message}")
+            emptyList()
+        }
+
+        if (ids.isEmpty()) emptyList() else selectProfiles(ids)
+    }
+
+    /**
+     * Nimmt eine Anfrage an: Mitglied eintragen, Anfrage loeschen.
+     *
+     * In dieser Reihenfolge. Bricht es dazwischen ab, ist die Person Mitglied
+     * und die Anfrage steht noch - das faellt auf und laesst sich mit einem
+     * zweiten Antippen beheben. Andersherum waere die Anfrage weg und niemand
+     * wuesste mehr, dass sie bestand.
+     */
+    suspend fun acceptJoinRequest(crewCode: String, userId: String): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                if (!isMemberOf(crewCode, userId)) {
+                    client.postgrest["crew_members"].insert(
+                        CrewMember(crewId = crewCode, userId = userId)
+                    )
+                }
+                deleteJoinRequest(crewCode, userId)
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Accepting the join request failed: ${e.message}")
+                false
+            }
+        }
+
+    /** Lehnt eine Anfrage ab. Die Person kann danach erneut anfragen. */
+    suspend fun rejectJoinRequest(crewCode: String, userId: String): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                deleteJoinRequest(crewCode, userId)
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Rejecting the join request failed: ${e.message}")
+                false
+            }
+        }
+
+    private suspend fun deleteJoinRequest(crewCode: String, userId: String) {
+        client.postgrest["crew_join_requests"].delete {
+            filter {
+                eq("crew_id", crewCode)
+                eq("user_id", userId)
+            }
+        }
+    }
+
+    // --- BILD DER CREW ---
+
+    /**
+     * Laedt das Bild der Crew hoch und traegt seine Adresse ein.
+     *
+     * Derselbe Bucket wie beim Profilbild: die Bilder sind gleich gross, gleich
+     * oeffentlich und werden gleich behandelt - ein zweiter Bucket haette
+     * dieselben Regeln und muesste von Hand angelegt werden.
+     */
+    suspend fun saveCrewImage(crewCode: String, localPath: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val url = uploadImage("avatars", localPath)
+            if (url.isEmpty()) return@withContext false
+
+            try {
+                client.postgrest["crews"].update({
+                    Crew::imageUrl setTo url
+                }) {
+                    filter { eq("id", crewCode) }
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Saving the crew image failed: ${e.message}")
+                false
+            }
+        }
+
+    /** Die Adresse des Crew-Bilds, oder null wenn keines gesetzt ist. */
+    suspend fun getCrewImageUrl(crewCode: String): String? = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["crews"].select {
+                filter { eq("id", crewCode) }
+                limit(1)
+            }.decodeSingleOrNull<Crew>()?.imageUrl
+        } catch (e: Exception) {
+            null
         }
     }
 

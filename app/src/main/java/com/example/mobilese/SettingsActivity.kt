@@ -19,6 +19,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
 
 /**
@@ -65,6 +66,7 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.llNotifications).setOnClickListener { onNotificationsTapped() }
 
         buildPermissionRows()
+        setUpVisibility()
 
         findViewById<View>(R.id.llSettingsAccount).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -120,6 +122,60 @@ class SettingsActivity : AppCompatActivity() {
             )
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, R.string.push_permission_denied, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /**
+     * Der Schalter fuer die Auffindbarkeit in der Suche.
+     *
+     * Der Stand wird geholt, bevor der Zuhoerer haengt: sonst loeste schon das
+     * Setzen des Anfangswerts ein Speichern aus, und wer die Einstellungen nur
+     * oeffnet, schriebe damit in die Datenbank.
+     *
+     * Schlaegt das Speichern fehl, geht der Schalter zurueck. Stehen zu
+     * bleiben waere die schlimmere Antwort - er behauptete dann, das Profil sei
+     * privat, waehrend es weiter gefunden wird.
+     */
+    private fun setUpVisibility() {
+        val switch = findViewById<MaterialSwitch>(R.id.swVisibility)
+        val status = findViewById<TextView>(R.id.tvVisibilityStatus)
+
+        fun showStatus(isPublic: Boolean) {
+            status.setText(
+                if (isPublic) R.string.settings_visibility_public
+                else R.string.settings_visibility_private
+            )
+        }
+
+        switch.isEnabled = false
+        lifecycleScope.launch {
+            val isPublic = repository.isProfilePublic()
+            switch.isChecked = isPublic
+            showStatus(isPublic)
+            switch.isEnabled = true
+
+            switch.setOnCheckedChangeListener { button, checked ->
+                showStatus(checked)
+                lifecycleScope.launch {
+                    button.isEnabled = false
+                    val saved = repository.setProfilePublic(checked)
+                    button.isEnabled = true
+
+                    if (!saved) {
+                        Toast.makeText(
+                            this@SettingsActivity,
+                            R.string.profile_save_failed,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        // Ohne Zuhoerer zuruecksetzen, sonst speichert das
+                        // Zuruecksetzen seinerseits.
+                        button.setOnCheckedChangeListener(null)
+                        switch.isChecked = !checked
+                        showStatus(!checked)
+                        setUpVisibility()
+                    }
+                }
+            }
         }
     }
 

@@ -101,6 +101,119 @@ create policy "follows_delete_own" on follows
 Die Leseregel ist wie bei `device_tokens` nicht optional: die App schreibt per
 Upsert, und dafuer muss Postgres die kollidierende Zeile lesen duerfen.
 
+## Profil oeffentlich oder privat
+
+Ein privates Profil taucht in der Suche nicht auf. Wer schon in derselben Crew
+ist, sieht es weiterhin - die Crew-Uebersicht und die Rangliste fragen die
+Mitglieder ueber `crew_members` ab und nicht ueber die Suche.
+
+Voreinstellung ist oeffentlich: die Suche ist der Weg, auf dem Leute in der App
+ueberhaupt zueinander finden, und bestehende Profile sollen sich durch die neue
+Spalte nicht stillschweigend zurueckziehen.
+
+```sql
+alter table profiles add column if not exists is_public boolean not null default true;
+```
+
+## Tabelle fuer Beitrittsanfragen
+
+Wer eine Crew ueber die Suche oder ueber das Profil einer anderen Person
+findet, tritt ihr nicht mehr direkt bei, sondern fragt an. Der Gruender der
+Crew nimmt an oder lehnt ab.
+
+Ueber Code und QR-Code wird weiterhin direkt beigetreten: wer den Code hat, hat
+ihn von jemandem aus der Crew bekommen - die Einladung ist damit schon
+ausgesprochen.
+
+Eine Zeile je Crew und Person, deshalb kann dieselbe Anfrage nicht zweimal
+offen sein. Angenommene und abgelehnte Anfragen werden geloescht, nicht als
+erledigt markiert: die Tabelle enthaelt nur, was noch offen ist, und niemand
+muss spaeter Alt-Anfragen ausraeumen.
+
+```sql
+create table if not exists crew_join_requests (
+    crew_id    text not null,
+    user_id    uuid not null references profiles(id) on delete cascade,
+    created_at timestamptz not null default now(),
+    primary key (crew_id, user_id)
+);
+
+alter table crew_join_requests enable row level security;
+
+-- Lesen darf man die eigene Anfrage, und der Gruender alle an seine Crew.
+-- Absichtlich nicht "alles lesbar": sonst saehe jeder Angemeldete, wer sich
+-- wo beworben hat.
+drop policy if exists "crew_join_requests_read" on crew_join_requests;
+create policy "crew_join_requests_read" on crew_join_requests
+    for select to authenticated using (
+        auth.uid() = user_id
+        or exists (
+            select 1 from crews c
+            where c.id = crew_join_requests.crew_id
+              and c.creator_id = auth.uid()
+        )
+    );
+
+-- Anfragen nur im eigenen Namen.
+drop policy if exists "crew_join_requests_insert_own" on crew_join_requests;
+create policy "crew_join_requests_insert_own" on crew_join_requests
+    for insert to authenticated with check (auth.uid() = user_id);
+
+-- Loeschen heisst hier dreierlei: zuruecknehmen durch den Anfragenden,
+-- ablehnen und annehmen durch den Gruender. Alle drei enden damit, dass die
+-- Zeile weg ist, deshalb genuegt eine Regel.
+drop policy if exists "crew_join_requests_delete" on crew_join_requests;
+create policy "crew_join_requests_delete" on crew_join_requests
+    for delete to authenticated using (
+        auth.uid() = user_id
+        or exists (
+            select 1 from crews c
+            where c.id = crew_join_requests.crew_id
+              and c.creator_id = auth.uid()
+        )
+    );
+```
+
+Dazu eine Regel auf `crew_members`. Beim Annehmen traegt der Gruender jemand
+**anderen** in seine Crew ein, und das erlaubt eine Regel, die nur eigene
+Zeilen zulaesst, nicht. Regeln in Postgres werden mit ODER verknuepft, die
+bestehende bleibt also gueltig - diese kommt daneben:
+
+```sql
+drop policy if exists "crew_members_insert_by_creator" on crew_members;
+create policy "crew_members_insert_by_creator" on crew_members
+    for insert to authenticated with check (
+        auth.uid() = user_id
+        or exists (
+            select 1 from crews c
+            where c.id = crew_members.crew_id
+              and c.creator_id = auth.uid()
+        )
+    );
+```
+
+Falls auf `crew_members` bisher gar keine Row Level Security eingeschaltet war,
+aendert diese Regel nichts und schadet auch nichts.
+
+## Bild einer Crew
+
+Das Gegenstueck zum Profilbild, nur fuer die Crew. Es liegt im schon
+vorhandenen oeffentlichen Bucket `avatars` - ein eigener Bucket haette
+dieselben Regeln und waere ein weiterer Schritt, den jemand von Hand anlegen
+muesste.
+
+Aendern darf es der Gruender. Ohne diese Regel koennte niemand die Zeile
+anfassen, denn `crews` wird sonst nur gelesen und einmal beim Anlegen
+geschrieben.
+
+```sql
+alter table crews add column if not exists image_url text;
+
+drop policy if exists "crews_update_by_creator" on crews;
+create policy "crews_update_by_creator" on crews
+    for update to authenticated using (auth.uid() = creator_id);
+```
+
 ## Tabelle fuer das Bild der Nummer eins
 
 Eine Zeile je Crew - der Schluessel ist die Crew, nicht der Nutzer. Ein neues

@@ -26,10 +26,49 @@
             style="@style/ContentColumn"
             android:paddingBottom="32dp">
 
+            <!--
+                Das Bild der Crew, aufgebaut wie das Profilbild: gleiche
+                Groesse, gleicher Rand, angetippt waehlt man ein neues. Nur der
+                Gruender darf es aendern, deshalb setzt die Activity das
+                Antippen auch nur fuer ihn.
+            -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvCrewImage"
+                android:layout_width="@dimen/profile_photo_size"
+                android:layout_height="@dimen/profile_photo_size"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="@dimen/profile_photo_radius"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="2dp"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh">
+
+                <ImageView
+                    android:id="@+id/ivCrewImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/crew_image_desc"
+                    android:src="@drawable/ic_group" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvCrewImageHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:visibility="gone"
+                android:text="@string/crew_image_hint"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
             <TextView
                 android:id="@+id/tvCrewNameDisplay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:textAppearance="?attr/textAppearanceDisplaySmall"
                 android:textColor="?attr/colorOnSurface" />
@@ -114,6 +153,38 @@
                 -->
                 <LinearLayout
                     android:id="@+id/llMembersList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!--
+                Offene Beitrittsanfragen. Nur der Gruender sieht diesen
+                Abschnitt, und auch er nur, solange etwas offen ist - eine
+                dauerhaft leere Ueberschrift waere ein Versprechen auf etwas,
+                das nie kommt. Die Activity blendet beides zusammen ein.
+            -->
+            <TextView
+                android:id="@+id/tvJoinRequestsLabel"
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:text="@string/join_requests_caps"
+                android:layout_marginTop="32dp" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvJoinRequests"
+                style="@style/Widget.CrewFit.Card.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginTop="10dp">
+
+                <LinearLayout
+                    android:id="@+id/llJoinRequests"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"

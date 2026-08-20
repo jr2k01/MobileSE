@@ -190,40 +190,64 @@ class MemberProfileActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.tvCrewRowName).text = crew.name
 
             val alreadyIn = crew.id in mine
-            row.findViewById<View>(R.id.tvCrewRowMember).visibility =
-                if (alreadyIn) View.VISIBLE else View.GONE
+            val requested = !alreadyIn && repository.hasRequestedToJoin(crew.id)
 
+            val note = row.findViewById<TextView>(R.id.tvCrewRowMember)
             val join = row.findViewById<MaterialButton>(R.id.btnCrewRowJoin)
-            join.visibility = if (alreadyIn) View.GONE else View.VISIBLE
-            join.setOnClickListener { joinCrew(crew) }
+
+            when {
+                alreadyIn -> {
+                    note.setText(R.string.member_crew_joined)
+                    note.visibility = View.VISIBLE
+                    join.visibility = View.GONE
+                }
+                requested -> {
+                    note.setText(R.string.member_crew_requested)
+                    note.visibility = View.VISIBLE
+                    join.visibility = View.GONE
+                }
+                else -> {
+                    note.visibility = View.GONE
+                    join.visibility = View.VISIBLE
+                    join.setText(R.string.member_crew_request)
+                    join.setOnClickListener { askToJoin(crew, note, join) }
+                }
+            }
 
             container.addView(row)
         }
     }
 
     /**
-     * Der Crew beitreten, in der die Person ist.
+     * Um Aufnahme in die Crew bitten, in der die Person ist.
      *
-     * Danach wird sie zur angezeigten Crew - wer beitritt, will sie sehen.
-     * Zurueck auf den Startbildschirm statt hier zu bleiben, weil sich mit der
-     * Crew alles andere auch aendert.
+     * Frueher trat man hier direkt bei und landete auf dem Startbildschirm.
+     * Das geht nicht mehr: ueber die Crew entscheidet, wer sie gegruendet hat.
+     * Man bleibt also auf dem Profil, und die Zeile zeigt an, dass die Bitte
+     * draussen ist.
      */
-    private fun joinCrew(crew: Crew) {
+    private fun askToJoin(crew: Crew, note: TextView, join: MaterialButton) {
         lifecycleScope.launch {
-            if (!repository.joinCrew(crew.id)) {
-                Toast.makeText(this@MemberProfileActivity, R.string.invalid_crew_code, Toast.LENGTH_SHORT).show()
+            join.isEnabled = false
+            if (!repository.requestToJoinCrew(crew.id)) {
+                join.isEnabled = true
+                Toast.makeText(
+                    this@MemberProfileActivity,
+                    R.string.crew_request_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@launch
             }
+
+            note.setText(R.string.member_crew_requested)
+            note.visibility = View.VISIBLE
+            join.visibility = View.GONE
+
             Toast.makeText(
                 this@MemberProfileActivity,
-                getString(R.string.joined_crew, crew.name),
+                getString(R.string.crew_request_sent, crew.name),
                 Toast.LENGTH_SHORT
             ).show()
-
-            val intent = Intent(this@MemberProfileActivity, MainHubActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
         }
     }
 

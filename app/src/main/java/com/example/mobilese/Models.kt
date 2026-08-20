@@ -45,7 +45,44 @@ data class UserProfileWithoutDisplayName(
 data class Crew(
     val id: String,
     val name: String,
-    @SerialName("creator_id") val creatorId: String
+    @SerialName("creator_id") val creatorId: String,
+    /**
+     * Das Bild der Crew, das Gegenstueck zum Profilbild.
+     *
+     * Der Standardwert laesst aeltere Zeilen ohne diese Spalte weiterhin lesen.
+     * Beim Anlegen einer Crew steht hier null, und weil kotlinx mit
+     * `encodeDefaults = false` arbeitet, wird die Spalte dann gar nicht erst
+     * mitgeschickt - ein Projekt ohne sie kann also weiterhin Crews anlegen.
+     */
+    @SerialName("image_url") val imageUrl: String? = null
+)
+
+/**
+ * Ob ein Profil in der Suche auftaucht.
+ *
+ * Eigenes Modell und nicht ein Feld in [UserProfile]: das Profil wird per
+ * Upsert als Ganzes geschrieben, und ein `false` waere von seinem Standardwert
+ * verschieden und wuerde deshalb mitgeschickt. In einem Projekt ohne die Spalte
+ * liesse sich das Profil dann gar nicht mehr speichern. So beruehrt die
+ * Sichtbarkeit nur ihre eigene Spalte.
+ */
+@Serializable
+data class ProfileVisibility(
+    val id: String,
+    @SerialName("is_public") val isPublic: Boolean = true
+)
+
+/**
+ * Eine offene Bitte, in eine Crew aufgenommen zu werden.
+ *
+ * Eine Zeile je Crew und Person, deshalb kann dieselbe Anfrage nicht zweimal
+ * offen sein. Angenommene und abgelehnte Anfragen werden geloescht statt als
+ * erledigt markiert: die Tabelle enthaelt damit nur, was noch offen ist.
+ */
+@Serializable
+data class CrewJoinRequest(
+    @SerialName("crew_id") val crewId: String,
+    @SerialName("user_id") val userId: String
 )
 
 @Serializable

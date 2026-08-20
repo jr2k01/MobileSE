@@ -92,7 +92,10 @@ class SearchActivity : AppCompatActivity() {
         if (crews.isNotEmpty()) {
             addLabel(R.string.search_crews_label)
             val mine = repository.getJoinedCrews().map { it.id }.toSet()
-            crews.forEach { addCrew(inflater, it, it.id in mine) }
+            crews.forEach { crew ->
+                val requested = crew.id !in mine && repository.hasRequestedToJoin(crew.id)
+                addCrew(inflater, crew, crew.id in mine, requested)
+            }
         }
     }
 
@@ -121,40 +124,71 @@ class SearchActivity : AppCompatActivity() {
         results.addView(row)
     }
 
-    private fun addCrew(inflater: LayoutInflater, crew: Crew, alreadyIn: Boolean) {
+    /**
+     * Drei Zustaende: schon drin, schon angefragt, oder der Knopf zum Anfragen.
+     * Der Hinweistext traegt die ersten beiden - ein ausgegrauter Knopf haette
+     * dieselbe Groesse und liesse einen erst hinsehen, warum er nicht geht.
+     */
+    private fun addCrew(
+        inflater: LayoutInflater,
+        crew: Crew,
+        alreadyIn: Boolean,
+        requested: Boolean
+    ) {
         val row = inflater.inflate(R.layout.item_member_crew_row, results, false)
         row.findViewById<TextView>(R.id.tvCrewRowName).text = crew.name
-        row.findViewById<View>(R.id.tvCrewRowMember).visibility =
-            if (alreadyIn) View.VISIBLE else View.GONE
 
+        val note = row.findViewById<TextView>(R.id.tvCrewRowMember)
         val join = row.findViewById<MaterialButton>(R.id.btnCrewRowJoin)
-        join.visibility = if (alreadyIn) View.GONE else View.VISIBLE
-        join.setOnClickListener { joinCrew(crew) }
+
+        when {
+            alreadyIn -> {
+                note.setText(R.string.member_crew_joined)
+                note.visibility = View.VISIBLE
+                join.visibility = View.GONE
+            }
+            requested -> {
+                note.setText(R.string.member_crew_requested)
+                note.visibility = View.VISIBLE
+                join.visibility = View.GONE
+            }
+            else -> {
+                note.visibility = View.GONE
+                join.visibility = View.VISIBLE
+                join.setText(R.string.member_crew_request)
+                join.setOnClickListener { askToJoin(crew, note, join) }
+            }
+        }
 
         results.addView(row)
     }
 
     /**
-     * Der gefundenen Crew beitreten. Danach wird sie zur angezeigten - wer
-     * beitritt, will sie sehen - und die App springt auf den Startbildschirm,
-     * weil sich damit alles andere auch aendert.
+     * Um Aufnahme bitten.
+     *
+     * Anders als frueher wird hier nicht mehr beigetreten und auch nicht auf
+     * den Startbildschirm gesprungen: die Crew gehoert einem ja noch nicht.
+     * Die Zeile wechselt nur in den angefragten Zustand, damit sichtbar ist,
+     * dass die Bitte draussen ist.
      */
-    private fun joinCrew(crew: Crew) {
+    private fun askToJoin(crew: Crew, note: TextView, join: MaterialButton) {
         lifecycleScope.launch {
-            if (!repository.joinCrew(crew.id)) {
-                Toast.makeText(this@SearchActivity, R.string.invalid_crew_code, Toast.LENGTH_SHORT).show()
+            join.isEnabled = false
+            if (!repository.requestToJoinCrew(crew.id)) {
+                join.isEnabled = true
+                Toast.makeText(this@SearchActivity, R.string.crew_request_failed, Toast.LENGTH_SHORT).show()
                 return@launch
             }
+
+            note.setText(R.string.member_crew_requested)
+            note.visibility = View.VISIBLE
+            join.visibility = View.GONE
+
             Toast.makeText(
                 this@SearchActivity,
-                getString(R.string.joined_crew, crew.name),
+                getString(R.string.crew_request_sent, crew.name),
                 Toast.LENGTH_SHORT
             ).show()
-
-            val intent = Intent(this@SearchActivity, MainHubActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
         }
     }
 

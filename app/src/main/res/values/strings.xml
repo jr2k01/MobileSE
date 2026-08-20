@@ -295,6 +295,34 @@
     <string name="member_crews_label">CREWS</string>
     <string name="member_crew_join">Join</string>
     <string name="member_crew_joined">You are in</string>
+
+    <!--
+        Beitritt ueber Suche und Profil laeuft ueber eine Anfrage, die der
+        Gruender der Crew annimmt oder ablehnt. Ueber Code und QR-Code wird
+        weiterhin direkt beigetreten - wer den Code hat, ist eingeladen.
+    -->
+    <string name="member_crew_request">Ask to join</string>
+    <string name="member_crew_requested">Asked</string>
+    <string name="crew_request_sent">Asked to join \'%s\'</string>
+    <string name="crew_request_failed">Could not ask to join</string>
+    <string name="join_requests_caps">JOIN REQUESTS</string>
+    <string name="join_request_accept">Accept</string>
+    <string name="join_request_reject">Decline</string>
+    <string name="join_request_accepted">%s is in the crew now</string>
+    <string name="join_request_rejected">Declined</string>
+    <string name="join_request_failed">That did not work</string>
+
+    <!-- Sichtbarkeit des eigenen Profils -->
+    <string name="settings_privacy_label">PRIVACY</string>
+    <string name="settings_visibility">Findable in the search</string>
+    <string name="settings_visibility_public">On. People can find you by name and ask to join your crew.</string>
+    <string name="settings_visibility_private">Off. You do not show up in the search. Your crew still sees you.</string>
+
+    <!-- Bild der Crew -->
+    <string name="crew_image_desc">Crew picture</string>
+    <string name="crew_image_saved">Crew picture saved</string>
+    <string name="crew_image_failed">Could not save the crew picture</string>
+    <string name="crew_image_hint">Tap the picture to change it</string>
     <string name="follow_btn">Follow</string>
     <string name="unfollow_btn">Following</string>
     <string name="follow_failed">Could not be saved</string>

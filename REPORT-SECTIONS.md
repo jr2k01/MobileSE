@@ -104,6 +104,9 @@ Dates are the commit dates in the Git repository.
 | 12.1 | 2026-08-20 | Workout screen given the shared top bar with a back arrow | Navigation identical on every sub-screen | Going back needed "Cancel" at the foot of a long form; on a phone that meant scrolling past the whole thing |
 | 12.2 | 2026-08-20 | Permission overview in the settings: camera, microphone, location and photos, each with its purpose and current state | Permissions inspectable and changeable at any time | An app cannot withdraw its own permission — a granted row therefore leads into the system settings |
 | 12.3 | 2026-08-20 | Gallery access asked for before the picker opens, for the profile picture and the crew meme | Picking a picture now behaves like camera, microphone and location | Android does not require a permission here; we chose it deliberately — see incident 11 |
+| 12.4 | 2026-08-20 | Profiles can be set to private, and they then stay out of the search | People who do not want to be found are not | Filtered in the database, not in the app: a profile that does not want to be found should not be transmitted either |
+| 12.5 | 2026-08-20 | Crews are joined by asking: the founder accepts or declines under Members. Joining by code and QR stays direct | Nobody lands in a crew unannounced | Needs the `crew_join_requests` table and one extra rule on `crew_members` — accepting writes a row for *another* person, which an "own rows only" rule forbids |
+| 12.6 | 2026-08-20 | Crew picture, built like the profile picture; only the founder can change it | Crews are recognisable at a glance | Reuses the existing `avatars` bucket instead of asking for a new one |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from

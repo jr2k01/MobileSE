@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Eine offene Beitrittsanfrage.
+
+    Aufgebaut wie eine Mitgliederzeile, damit die beiden Listen untereinander
+    nicht auseinanderfallen - nur stehen hier rechts Haken und Kreuz statt des
+    Pfeils. Angetippt fuehrt die Zeile trotzdem aufs Profil: wer entscheiden
+    soll, muss nachsehen koennen, wen er da hereinlaesst.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:minHeight="56dp"
+    android:paddingStart="@dimen/card_padding"
+    android:paddingEnd="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:background="?attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="@dimen/leaderboard_avatar_size"
+        android:layout_height="@dimen/leaderboard_avatar_size"
+        app:cardCornerRadius="@dimen/leaderboard_avatar_radius"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHighest">
+
+        <ImageView
+            android:id="@+id/ivRequestPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/profile_desc"
+            android:src="@drawable/ic_image" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/tvRequestName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="14dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        android:textColor="?attr/colorOnSurface" />
+
+    <!--
+        Ablehnen steht links vom Annehmen: die haeufigere und harmlosere
+        Handlung gehoert an die Stelle, an der der Daumen ohnehin ist, und
+        annehmen soll den bewussteren Weg brauchen.
+    -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnRejectRequest"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:contentDescription="@string/join_request_reject"
+        app:icon="@drawable/ic_close"
+        app:iconTint="?attr/colorError" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAcceptRequest"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:contentDescription="@string/join_request_accept"
+        app:icon="@drawable/ic_check"
+        app:iconTint="?attr/colorPrimary" />
+
+</LinearLayout>

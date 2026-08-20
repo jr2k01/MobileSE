@@ -265,6 +265,36 @@ data class DeviceToken(
 )
 
 /**
+ * Eine Reaktion auf ein Workout.
+ *
+ * Eine Zeile je Person und Aktivitaet, deshalb ersetzt ein zweites Zeichen das
+ * erste. Wer dasselbe noch einmal antippt, nimmt es zurueck - dann verschwindet
+ * die Zeile.
+ */
+@Serializable
+data class ActivityReaction(
+    @SerialName("activity_id") val activityId: String,
+    @SerialName("user_id") val userId: String,
+    val emoji: String
+)
+
+/**
+ * Ein Kommentar unter einem Workout.
+ *
+ * [id] und [createdAt] vergibt die Datenbank; beim Schreiben stehen sie
+ * deshalb auf null und werden - weil kotlinx mit `encodeDefaults = false`
+ * arbeitet - gar nicht erst mitgeschickt.
+ */
+@Serializable
+data class ActivityComment(
+    val id: String? = null,
+    @SerialName("activity_id") val activityId: String,
+    @SerialName("user_id") val userId: String,
+    val text: String,
+    @SerialName("created_at") val createdAt: String? = null
+)
+
+/**
  * Wer wem folgt.
  *
  * Bewusst gerichtet und ohne Bestaetigung: Folgen ist keine Freundschaft, die

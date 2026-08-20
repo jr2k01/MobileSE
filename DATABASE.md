@@ -214,6 +214,91 @@ create policy "crews_update_by_creator" on crews
     for update to authenticated using (auth.uid() = creator_id);
 ```
 
+## Tabellen fuer Reaktionen und Kommentare
+
+Wer ein Workout eines Crew-Mitglieds ansieht, kann mit einem Zeichen
+reagieren und einen Kommentar hinterlassen.
+
+Beides haengt an der Kennung der Aktivitaet. Aeltere Zeilen haben keine - die
+App blendet den Bereich dann aus, statt ins Leere zu schreiben.
+
+`on delete cascade`: Beim Loeschen eines Kontos werden dessen Aktivitaeten
+mitgeloescht. Ohne die Kaskade blieben Reaktionen und Kommentare zu Workouts
+stehen, die es nicht mehr gibt.
+
+> Falls `activities.id` in eurem Projekt nicht vom Typ `uuid` ist, weist
+> Postgres die Fremdschluessel ab. Dann in beiden Tabellen `activity_id uuid`
+> durch den dort verwendeten Typ ersetzen.
+
+```sql
+-- Eine Reaktion je Person und Aktivitaet: der Schluessel sorgt dafuer, dass
+-- ein zweites Zeichen das erste ersetzt statt sich danebenzustellen. Wer
+-- dasselbe Zeichen noch einmal antippt, nimmt es zurueck - dann loescht die
+-- App die Zeile.
+create table if not exists activity_reactions (
+    activity_id uuid not null references activities(id) on delete cascade,
+    user_id     uuid not null references profiles(id) on delete cascade,
+    emoji       text not null,
+    created_at  timestamptz not null default now(),
+    primary key (activity_id, user_id)
+);
+
+alter table activity_reactions enable row level security;
+
+-- Lesen darf jeder Angemeldete: die Crew soll sehen, wer reagiert hat.
+drop policy if exists "activity_reactions_read" on activity_reactions;
+create policy "activity_reactions_read" on activity_reactions
+    for select to authenticated using (true);
+
+-- Reagieren, aendern und zuruecknehmen nur im eigenen Namen.
+drop policy if exists "activity_reactions_insert_own" on activity_reactions;
+create policy "activity_reactions_insert_own" on activity_reactions
+    for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "activity_reactions_update_own" on activity_reactions;
+create policy "activity_reactions_update_own" on activity_reactions
+    for update to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "activity_reactions_delete_own" on activity_reactions;
+create policy "activity_reactions_delete_own" on activity_reactions
+    for delete to authenticated using (auth.uid() = user_id);
+
+-- Kommentare: beliebig viele je Person, deshalb ein eigener Schluessel und
+-- nicht die Kombination aus Aktivitaet und Person.
+-- created_at ist Text und wird von der App gesetzt, genau wie der Zeitstempel
+-- einer Aktivitaet. Als timestamptz gaebe Postgrest ihn mit Zeitzonen-Offset
+-- zurueck ("...+00:00"), und die Anzeige der App erwartet das hauseigene
+-- ISO-Format ohne Offset - die Uhrzeit stuende dann um Stunden daneben. Im
+-- ISO-Format sortiert Text ausserdem in derselben Reihenfolge wie die Zeit.
+create table if not exists activity_comments (
+    id          uuid primary key default gen_random_uuid(),
+    activity_id uuid not null references activities(id) on delete cascade,
+    user_id     uuid not null references profiles(id) on delete cascade,
+    text        text not null,
+    created_at  text not null
+);
+
+alter table activity_comments enable row level security;
+
+drop policy if exists "activity_comments_read" on activity_comments;
+create policy "activity_comments_read" on activity_comments
+    for select to authenticated using (true);
+
+drop policy if exists "activity_comments_insert_own" on activity_comments;
+create policy "activity_comments_insert_own" on activity_comments
+    for insert to authenticated with check (auth.uid() = user_id);
+
+-- Loeschen nur die eigenen. Bewusst kein Aendern: ein nachtraeglich
+-- umgeschriebener Kommentar liesse sich niemandem mehr zuordnen.
+drop policy if exists "activity_comments_delete_own" on activity_comments;
+create policy "activity_comments_delete_own" on activity_comments
+    for delete to authenticated using (auth.uid() = user_id);
+
+-- Beide werden immer zu einer Aktivitaet gelesen.
+create index if not exists activity_reactions_by_activity on activity_reactions (activity_id);
+create index if not exists activity_comments_by_activity on activity_comments (activity_id, created_at);
+```
+
 ## Tabelle fuer das Bild der Nummer eins
 
 Eine Zeile je Crew - der Schluessel ist die Crew, nicht der Nutzer. Ein neues

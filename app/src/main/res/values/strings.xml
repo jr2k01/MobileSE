@@ -313,6 +313,40 @@
     <string name="join_requests_empty">No one is waiting. People who ask to join your crew show up here.</string>
     <string name="crew_captain">Captain</string>
     <string name="unknown_crew">Unknown Crew</string>
+
+    <!--
+        Reaktionen und Kommentare unter einem Workout.
+    -->
+    <string name="reactions_label">REACTIONS</string>
+    <string name="comments_label">COMMENTS</string>
+    <string name="comments_empty">No comments yet. Be the first.</string>
+    <string name="comment_hint">Write something…</string>
+    <string name="comment_send">Send</string>
+    <string name="comment_send_desc">Send comment</string>
+    <string name="comment_delete_desc">Delete comment</string>
+    <string name="comment_failed">Could not send the comment</string>
+    <string name="comment_deleted">Comment deleted</string>
+    <string name="comment_delete_failed">Could not delete the comment</string>
+    <string name="reaction_failed">Could not save the reaction</string>
+    <string name="reaction_desc">React with %s</string>
+    <string name="reaction_with_count">%1$s %2$d</string>
+    <string name="feedback_unavailable">This workout is from an older version and cannot be commented on.</string>
+
+    <!--
+        Fertige Zurufe. Ein Antippen schickt sie sofort ab - das ist ihr Sinn.
+        Wer etwas Eigenes sagen will, hat das Feld darunter.
+
+        Als string-array und nicht als einzelne Ressourcen: der Bildschirm
+        haengt sie der Reihe nach ein, und eine weitere Zeile hier genuegt,
+        damit sie erscheint.
+    -->
+    <string-array name="comment_presets">
+        <item>Strong! 💪</item>
+        <item>That just motivated me too, thanks!</item>
+        <item>Respect!</item>
+        <item>Keep it up!</item>
+        <item>Next time I\'m coming along</item>
+    </string-array>
     <string name="join_request_accept">Accept</string>
     <string name="join_request_reject">Decline</string>
     <string name="join_request_accepted">%s is in the crew now</string>

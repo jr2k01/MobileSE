@@ -232,6 +232,132 @@
                     android:visibility="gone"
                     app:icon="@drawable/ic_volume_up" />
 
+            <!--
+                Reaktionen und Kommentare.
+
+                Der ganze Block haengt an der Kennung der Aktivitaet. Aeltere
+                Eintraege haben keine - dann steht statt des Blocks ein Satz,
+                der das erklaert, siehe tvFeedbackUnavailable.
+            -->
+            <LinearLayout
+                android:id="@+id/llFeedback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="28dp">
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/reactions_label" />
+
+                <!--
+                    Die fuenf Zeichen werden in der Activity eingehaengt, aus
+                    Reactions.ALL. Ein sechstes Zeichen dort genuegt, damit es
+                    hier erscheint.
+                -->
+                <LinearLayout
+                    android:id="@+id/llReactions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp" />
+
+                <TextView
+                    style="@style/TextAppearance.CrewFit.SectionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/comments_label" />
+
+                <LinearLayout
+                    android:id="@+id/llComments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="4dp" />
+
+                <TextView
+                    android:id="@+id/tvCommentsEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/comments_empty"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <!--
+                    Fertige Zurufe. Antippen schickt sofort ab - wer schnell
+                    etwas Nettes sagen will, soll nicht erst tippen und dann
+                    noch einmal auf Senden druecken muessen.
+
+                    Waagerecht scrollbar, damit die Zeile auf einem schmalen
+                    Telefon nicht umbricht und den halben Bildschirm frisst.
+                -->
+                <HorizontalScrollView
+                    android:id="@+id/hsvCommentPresets"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:scrollbars="none"
+                    android:clipToPadding="false">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/cgCommentPresets"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleLine="true" />
+                </HorizontalScrollView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false"
+                    android:gravity="bottom"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilComment"
+                        style="@style/Widget.CrewFit.TextField"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/comment_hint">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etComment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapSentences|textMultiLine"
+                            android:maxLines="4"
+                            android:imeOptions="actionSend" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSendComment"
+                        style="@style/Widget.Material3.Button.IconButton.Filled"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:contentDescription="@string/comment_send_desc"
+                        app:icon="@drawable/ic_check" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Statt des Blocks, wenn die Aktivitaet keine Kennung hat. -->
+            <TextView
+                android:id="@+id/tvFeedbackUnavailable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:visibility="gone"
+                android:text="@string/feedback_unavailable"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

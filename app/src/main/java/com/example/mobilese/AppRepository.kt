@@ -17,6 +17,7 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
@@ -103,6 +104,13 @@ class AppRepository private constructor(context: Context) {
         /** Ab wie vielen Zeichen gesucht wird - kuerzer traefe fast alles. */
         const val SEARCH_MIN_LENGTH = 2
         private const val SEARCH_LIMIT = 25L
+
+        /**
+         * Obergrenze fuer einen Kommentar. Bewusst kurz: unter einem Workout
+         * steht ein Zuruf, kein Aufsatz - und eine Zeile, die den halben
+         * Bildschirm fuellt, verdraengt alle anderen.
+         */
+        const val COMMENT_MAX_LENGTH = 200
 
         const val MEME_BUCKET = "memes"
         const val MEME_PRESET_FOLDER = "presets"
@@ -1367,6 +1375,147 @@ class AppRepository private constructor(context: Context) {
     /** Die Adresse des Crew-Bilds, oder null wenn keines gesetzt ist. */
     suspend fun getCrewImageUrl(crewCode: String): String? = getCrew(crewCode)?.imageUrl
 
+    // --- REAKTIONEN UND KOMMENTARE ---
+
+    /**
+     * Alles, was unter einem Workout steht: Reaktionen, Kommentare und die
+     * Profile derer, von denen sie stammen.
+     *
+     * In einem Aufruf und nicht in dreien. Die Profile lassen sich erst holen,
+     * wenn feststeht, wer beteiligt ist - Reaktionen und Kommentare laufen
+     * deshalb nebeneinander, die Profile danach, einmal fuer beide.
+     */
+    suspend fun loadActivityFeedback(activityId: String): ActivityFeedback =
+        withContext(Dispatchers.IO) {
+            coroutineScope {
+                val reactionsAsync = async { selectReactions(activityId) }
+                val commentsAsync = async { selectComments(activityId) }
+
+                val reactions = reactionsAsync.await()
+                val comments = commentsAsync.await()
+
+                val ids = (reactions.map { it.userId } + comments.map { it.userId }).distinct()
+                val authors = if (ids.isEmpty()) emptyList() else selectProfiles(ids)
+
+                ActivityFeedback(
+                    reactions = reactions,
+                    comments = comments,
+                    authors = authors.associateBy { it.id }
+                )
+            }
+        }
+
+    private suspend fun selectReactions(activityId: String): List<ActivityReaction> = try {
+        client.postgrest["activity_reactions"].select {
+            filter { eq("activity_id", activityId) }
+        }.decodeList<ActivityReaction>()
+    } catch (e: Exception) {
+        // Fehlt die Tabelle im Projekt, bleibt der Bereich leer statt die
+        // Anzeige des Workouts zu verhindern.
+        Log.e("SupabaseDB", "Reading the reactions failed: ${e.message}")
+        emptyList()
+    }
+
+    private suspend fun selectComments(activityId: String): List<ActivityComment> = try {
+        client.postgrest["activity_comments"].select {
+            filter { eq("activity_id", activityId) }
+            order("created_at", Order.ASCENDING)
+        }.decodeList<ActivityComment>()
+    } catch (e: Exception) {
+        Log.e("SupabaseDB", "Reading the comments failed: ${e.message}")
+        emptyList()
+    }
+
+    /**
+     * Setzt die eigene Reaktion, oder nimmt sie zurueck.
+     *
+     * Dasselbe Zeichen noch einmal heisst "doch nicht" - so braucht es keinen
+     * zweiten Weg zum Zuruecknehmen. Ein anderes Zeichen ersetzt das alte,
+     * denn der Schluessel laesst nur eine Zeile je Person und Aktivitaet zu.
+     */
+    suspend fun setReaction(activityId: String, emoji: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val userId = currentUserId() ?: return@withContext false
+            try {
+                val current = client.postgrest["activity_reactions"].select {
+                    filter {
+                        eq("activity_id", activityId)
+                        eq("user_id", userId)
+                    }
+                    limit(1)
+                }.decodeList<ActivityReaction>().firstOrNull()
+
+                when (current?.emoji) {
+                    emoji -> deleteReaction(activityId, userId)
+                    null -> client.postgrest["activity_reactions"].insert(
+                        ActivityReaction(activityId = activityId, userId = userId, emoji = emoji)
+                    )
+                    else -> client.postgrest["activity_reactions"].update({
+                        ActivityReaction::emoji setTo emoji
+                    }) {
+                        filter {
+                            eq("activity_id", activityId)
+                            eq("user_id", userId)
+                        }
+                    }
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Saving the reaction failed: ${e.message}")
+                false
+            }
+        }
+
+    private suspend fun deleteReaction(activityId: String, userId: String) {
+        client.postgrest["activity_reactions"].delete {
+            filter {
+                eq("activity_id", activityId)
+                eq("user_id", userId)
+            }
+        }
+    }
+
+    /** Schreibt einen Kommentar. Leerer Text wird nicht gespeichert. */
+    suspend fun addComment(activityId: String, text: String): Boolean =
+        withContext(Dispatchers.IO) {
+            val userId = currentUserId() ?: return@withContext false
+            val trimmed = text.trim()
+            if (trimmed.isEmpty() || trimmed.length > COMMENT_MAX_LENGTH) return@withContext false
+
+            try {
+                client.postgrest["activity_comments"].insert(
+                    ActivityComment(
+                        activityId = activityId,
+                        userId = userId,
+                        text = trimmed,
+                        // Von der App gesetzt, im selben Format wie der
+                        // Zeitstempel einer Aktivitaet - siehe DATABASE.md.
+                        createdAt = ActivityTime.now()
+                    )
+                )
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Saving the comment failed: ${e.message}")
+                false
+            }
+        }
+
+    /**
+     * Loescht einen Kommentar. Die Datenbank laesst nur eigene zu - die
+     * Pruefung hier erspart lediglich den vergeblichen Weg dorthin.
+     */
+    suspend fun deleteComment(commentId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["activity_comments"].delete {
+                filter { eq("id", commentId) }
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Deleting the comment failed: ${e.message}")
+            false
+        }
+    }
+
     // --- FOLGEN ---
 
     /** Ob der angemeldete Nutzer dieser Person folgt. */
@@ -1781,6 +1930,20 @@ class AppRepository private constructor(context: Context) {
         }
     }
 }
+
+/**
+ * Was unter einem Workout steht.
+ *
+ * Die Profile liegen bei, damit der Bildschirm zu jedem Kommentar Name und
+ * Bild zeigen kann, ohne je Kommentar noch einmal nachzufragen - bei zehn
+ * Kommentaren waeren das zehn Abfragen fuer drei verschiedene Personen.
+ */
+data class ActivityFeedback(
+    val reactions: List<ActivityReaction> = emptyList(),
+    val comments: List<ActivityComment> = emptyList(),
+    /** Profil je Kennung, fuer alle, die reagiert oder kommentiert haben. */
+    val authors: Map<String, UserProfile> = emptyMap()
+)
 
 /**
  * Der Datenbestand einer Crew zu einem Zeitpunkt. Alle Bildschirme rechnen

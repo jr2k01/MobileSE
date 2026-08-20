@@ -2,15 +2,24 @@ package com.example.mobilese
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.EditText
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.text.NumberFormat
@@ -44,6 +53,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
         }
 
         show(activity, intent.getStringExtra(EXTRA_AUTHOR))
+        setUpFeedback(activity.id)
     }
 
     override fun onStop() {
@@ -58,6 +68,226 @@ class WorkoutDetailActivity : AppCompatActivity() {
         } catch (e: Exception) {
             null
         }
+    }
+
+    // --- Reaktionen und Kommentare ---
+
+    private lateinit var repository: AppRepository
+
+    /** Die Kennung des gezeigten Workouts, oder null bei aelteren Eintraegen. */
+    private var activityId: String? = null
+
+    /** Wer angemeldet ist - fuer "meine Reaktion" und "mein Kommentar". */
+    private var myUserId: String? = null
+
+    /**
+     * Richtet Reaktionen und Kommentare ein.
+     *
+     * Beides braucht die Kennung der Aktivitaet. Aeltere Eintraege haben keine
+     * - die stammen aus der Zeit vor der Umstellung auf Supabase. Statt eines
+     * Bereichs, der bei jedem Antippen nur eine Fehlermeldung liefert, steht
+     * dann ein Satz da, der sagt warum.
+     */
+    private fun setUpFeedback(id: String?) {
+        repository = AppRepository.get(this)
+        activityId = id
+
+        val block = findViewById<View>(R.id.llFeedback)
+        val note = findViewById<View>(R.id.tvFeedbackUnavailable)
+
+        if (id.isNullOrEmpty()) {
+            block.visibility = View.GONE
+            note.visibility = View.VISIBLE
+            return
+        }
+
+        block.visibility = View.VISIBLE
+        note.visibility = View.GONE
+
+        buildReactionButtons(id)
+        buildPresetChips(id)
+
+        findViewById<MaterialButton>(R.id.btnSendComment).setOnClickListener { sendTypedComment(id) }
+
+        lifecycleScope.launch {
+            myUserId = repository.currentUserId()
+            loadFeedback(id)
+        }
+    }
+
+    /**
+     * Ein Knopf je Zeichen aus [Reactions.ALL].
+     *
+     * Aus der Liste und nicht aus dem Layout: ein sechstes Zeichen dort soll
+     * genuegen, damit es hier erscheint.
+     */
+    private fun buildReactionButtons(activityId: String) {
+        val row = findViewById<LinearLayout>(R.id.llReactions)
+        row.removeAllViews()
+        reactionButtons.clear()
+
+        val inflater = LayoutInflater.from(this)
+        Reactions.ALL.forEach { emoji ->
+            val button = inflater.inflate(R.layout.part_reaction_button, row, false) as MaterialButton
+            button.text = emoji
+            button.contentDescription = getString(R.string.reaction_desc, emoji)
+            button.setOnClickListener { react(activityId, emoji) }
+            row.addView(button)
+            reactionButtons[emoji] = button
+        }
+    }
+
+    private val reactionButtons = linkedMapOf<String, MaterialButton>()
+
+    /**
+     * Reagieren, oder die Reaktion zuruecknehmen.
+     *
+     * Die Knoepfe werden waehrenddessen gesperrt: zweimal schnell antippen
+     * schickte sonst zwei Anfragen los, deren Reihenfolge nicht feststeht, und
+     * am Ende zeigte der Bildschirm etwas anderes als die Datenbank.
+     */
+    private fun react(activityId: String, emoji: String) {
+        lifecycleScope.launch {
+            reactionButtons.values.forEach { it.isEnabled = false }
+            val saved = repository.setReaction(activityId, emoji)
+            reactionButtons.values.forEach { it.isEnabled = true }
+
+            if (!saved) {
+                toast(R.string.reaction_failed)
+                return@launch
+            }
+            loadFeedback(activityId)
+        }
+    }
+
+    /** Fertige Zurufe. Antippen schickt sofort ab - das ist ihr Zweck. */
+    private fun buildPresetChips(activityId: String) {
+        val group = findViewById<ChipGroup>(R.id.cgCommentPresets)
+        group.removeAllViews()
+
+        resources.getStringArray(R.array.comment_presets).forEach { preset ->
+            val chip = Chip(this)
+            chip.text = preset
+            chip.isCheckable = false
+            chip.setOnClickListener { sendComment(activityId, preset) }
+            group.addView(chip)
+        }
+
+        // Chips sind fokussierbar, und der zuletzt eingehaengte zieht den
+        // Scrollbereich zu sich - die Reihe stuende sonst von Anfang an ganz
+        // rechts, mit den ersten Vorschlaegen ausserhalb des Bildes. Nach dem
+        // Einhaengen, deshalb per post.
+        val strip = findViewById<HorizontalScrollView>(R.id.hsvCommentPresets)
+        strip.post { strip.scrollX = 0 }
+    }
+
+    private fun sendTypedComment(activityId: String) {
+        val field = findViewById<EditText>(R.id.etComment)
+        val text = field.text.toString()
+        if (text.isBlank()) return
+        sendComment(activityId, text) { field.setText("") }
+    }
+
+    private fun sendComment(activityId: String, text: String, onSent: () -> Unit = {}) {
+        lifecycleScope.launch {
+            if (!repository.addComment(activityId, text)) {
+                toast(R.string.comment_failed)
+                return@launch
+            }
+            onSent()
+            loadFeedback(activityId)
+        }
+    }
+
+    private suspend fun loadFeedback(activityId: String) {
+        val feedback = repository.loadActivityFeedback(activityId)
+        showReactions(feedback)
+        showComments(activityId, feedback)
+    }
+
+    /**
+     * Zahlen an den Zeichen, und die eigene Wahl hervorgehoben.
+     *
+     * Ohne Reaktion steht am Knopf nur das Zeichen - eine "0" daneben zaehlte
+     * etwas, das nicht stattgefunden hat.
+     */
+    private fun showReactions(feedback: ActivityFeedback) {
+        val counts = Reactions.countsOf(feedback.reactions)
+        val mine = Reactions.chosenBy(feedback.reactions, myUserId)
+
+        reactionButtons.forEach { (emoji, button) ->
+            val count = counts[emoji] ?: 0
+            button.text = if (count == 0) emoji else getString(R.string.reaction_with_count, emoji, count)
+
+            val chosen = emoji == mine
+            button.backgroundTintList = ColorStateList.valueOf(
+                if (chosen) themeColor(com.google.android.material.R.attr.colorSecondaryContainer)
+                else Color.TRANSPARENT
+            )
+            button.setTextColor(
+                if (chosen) themeColor(com.google.android.material.R.attr.colorOnSecondaryContainer)
+                else themeColor(com.google.android.material.R.attr.colorOnSurface)
+            )
+        }
+    }
+
+    private fun showComments(activityId: String, feedback: ActivityFeedback) {
+        val container = findViewById<LinearLayout>(R.id.llComments)
+        container.removeAllViews()
+
+        findViewById<View>(R.id.tvCommentsEmpty).visibility =
+            if (feedback.comments.isEmpty()) View.VISIBLE else View.GONE
+
+        val inflater = LayoutInflater.from(this)
+        feedback.comments.forEach { comment ->
+            val row = inflater.inflate(R.layout.item_comment_row, container, false)
+            val author = feedback.authors[comment.userId]
+
+            row.findViewById<TextView>(R.id.tvCommentAuthor).text =
+                author?.let { DisplayName.of(it) }?.ifEmpty { null }
+                    ?: getString(R.string.unknown_member)
+            row.findViewById<TextView>(R.id.tvCommentText).text = comment.text
+            row.findViewById<TextView>(R.id.tvCommentTime).text =
+                comment.createdAt?.let { ActivityTime.toDisplay(it) }.orEmpty()
+
+            ImageLoader.into(
+                row.findViewById(R.id.ivCommentPhoto),
+                author?.avatarUrl,
+                circular = true,
+                placeholder = android.R.drawable.ic_menu_gallery
+            )
+
+            // Loeschen nur beim eigenen Kommentar - fremde laesst die Datenbank
+            // ohnehin nicht zu, und ein Knopf, der nur eine Fehlermeldung
+            // einbringt, gehoert nicht dorthin.
+            val delete = row.findViewById<MaterialButton>(R.id.btnDeleteComment)
+            val id = comment.id
+            if (id != null && comment.userId == myUserId) {
+                delete.visibility = View.VISIBLE
+                delete.setOnClickListener { deleteComment(activityId, id) }
+            } else {
+                delete.visibility = View.GONE
+            }
+
+            container.addView(row)
+        }
+    }
+
+    private fun deleteComment(activityId: String, commentId: String) {
+        lifecycleScope.launch {
+            if (!repository.deleteComment(commentId)) {
+                toast(R.string.comment_delete_failed)
+                return@launch
+            }
+            toast(R.string.comment_deleted)
+            loadFeedback(activityId)
+        }
+    }
+
+    private fun themeColor(attr: Int): Int {
+        val value = TypedValue()
+        theme.resolveAttribute(attr, value, true)
+        return value.data
     }
 
     private fun show(activity: Activity, author: String?) {

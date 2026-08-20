@@ -4,8 +4,8 @@ Written to match `_report_template_v1.0`. Facts (dependency versions, dates,
 counts) are taken from the repository, not from memory. Places where you have to
 fill something in yourself are marked **[FILL IN]**.
 
-State of the repository this describes: 71 commits, 47 Kotlin files (~6,600
-lines), 14 test classes with 102 unit tests, 15 Activities, `minSdk 26`,
+State of the repository this describes: 100 commits, 63 Kotlin files (~10,500
+lines), 21 test classes with 188 unit tests, 17 Activities, `minSdk 26`,
 `targetSdk 36`, Android Gradle Plugin 9.1.1.
 
 ---
@@ -55,7 +55,7 @@ several devices can share one crew — which is the entire point of the app.
 
 | Library | Version | Purpose |
 | --- | --- | --- |
-| `junit` | 4.13.2 | 102 unit tests over the pure logic (points, medals, step goal, statistics, names, dates) |
+| `junit` | 4.13.2 | 188 unit tests over the pure logic (points, medals, step goal, statistics, names, dates, input rules) |
 | `androidx.test.ext:junit`, `espresso-core` | 1.1.5 / 3.5.1 | Instrumentation test scaffolding (default template) |
 
 ### Deliberately not used
@@ -111,6 +111,7 @@ Dates are the commit dates in the Git repository.
 | 12.7 | 2026-08-20 | Tablet brought level with the phone: the 14 dimensions added after the tablet pass (analytics charts, sport ring, member bars, the number one's picture) now have tablet and landscape values | Every one of the 46 dimensions has a tablet value; the analytics section no longer sits phone-sized inside grown cards | Found by comparing the qualifier files against each other rather than by looking — the gap was invisible on a phone |
 | 12.8 | 2026-08-20 | The home screen header shows the crew picture instead of the CrewFit logo once a crew has one | The crew you are looking at is recognisable without reading | Carried in the existing `CrewSnapshot` rather than as a sixth query, so the batching from milestone 5.0 is not undone |
 | 12.9 | 2026-08-20 | Pull down to reload, on the five screens that read from the backend | A screen left lying open can be brought up to date without leaving it | Costs one AndroidX dependency; the alternative was re-implementing a Google widget by hand. This is the answer to dropping Realtime in 5.0: no permanent connection, but a way to ask |
+| 12.10 | 2026-08-20 | The join requests section stays visible for the captain even with nothing pending; the crew's founder is labelled "Captain" in the member list | A captain who has never had a request still knows the section exists and where it will appear | Name, founder and picture were three queries against the same row; folded into one `getCrew()` |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from

@@ -189,12 +189,32 @@
                 android:layout_marginTop="10dp">
 
                 <LinearLayout
-                    android:id="@+id/llJoinRequests"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingTop="6dp"
-                    android:paddingBottom="6dp" />
+                    android:paddingBottom="6dp">
+
+                    <LinearLayout
+                        android:id="@+id/llJoinRequests"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- Statt eines verschwundenen Abschnitts: der Platz
+                         bleibt, und es steht dabei, was hier erscheinen wird. -->
+                    <TextView
+                        android:id="@+id/tvJoinRequestsEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="@dimen/card_padding"
+                        android:paddingEnd="@dimen/card_padding"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:text="@string/join_requests_empty"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton

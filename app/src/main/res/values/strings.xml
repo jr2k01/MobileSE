@@ -305,6 +305,14 @@
     <string name="crew_request_sent">Asked to join \'%s\'</string>
     <string name="crew_request_failed">Could not ask to join</string>
     <string name="join_requests_caps">JOIN REQUESTS</string>
+    <!--
+        Steht auch dann da, wenn nichts offen ist. Der Abschnitt verschwand
+        vorher ganz - wer nie eine Anfrage bekommen hat, erfuhr dadurch nie,
+        dass es ihn gibt und wo er auftauchen wird.
+    -->
+    <string name="join_requests_empty">No one is waiting. People who ask to join your crew show up here.</string>
+    <string name="crew_captain">Captain</string>
+    <string name="unknown_crew">Unknown Crew</string>
     <string name="join_request_accept">Accept</string>
     <string name="join_request_reject">Decline</string>
     <string name="join_request_accepted">%s is in the crew now</string>

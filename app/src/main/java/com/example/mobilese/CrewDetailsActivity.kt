@@ -66,19 +66,19 @@ class CrewDetailsActivity : AppCompatActivity() {
                 coroutineScope {
                     // Alle Abfragen werden angestossen, bevor auf die erste
                     // gewartet wird - sie haengen nicht voneinander ab und laufen
-                    // deshalb nebeneinander.
-                    val nameAsync = async { repository.getCrewName(crewCode) }
+                    // deshalb nebeneinander. Name, Gruender und Bild kommen
+                    // zusammen: sie stehen in derselben Zeile.
+                    val crewAsync = async { repository.getCrew(crewCode) }
                     val membersAsync = async { repository.getCrewMembers(crewCode) }
                     val qrAsync = async { QrCodes.generate(crewCode) }
-                    val creatorAsync = async { repository.isCrewCreator(crewCode) }
-                    val imageAsync = async { repository.getCrewImageUrl(crewCode) }
 
-                    crewName = nameAsync.await()
-                    isCreator = creatorAsync.await()
+                    val crew = crewAsync.await()
+                    crewName = crew?.name ?: getString(R.string.unknown_crew)
+                    isCreator = crew?.creatorId != null && crew.creatorId == repository.currentUserId()
 
                     findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
-                    showMembers(membersAsync.await())
-                    showCrewImage(imageAsync.await())
+                    showMembers(membersAsync.await(), crew?.creatorId)
+                    showCrewImage(crew?.imageUrl)
 
                     val qr = qrAsync.await()
                     if (qr == null) {
@@ -88,9 +88,10 @@ class CrewDetailsActivity : AppCompatActivity() {
                     }
                 }
 
-                // Erst nach isCreator: wer die Crew nicht gegruendet hat, bekommt
-                // die Anfragen gar nicht erst zu sehen, und die Datenbank gibt sie
-                // ihm auch nicht heraus.
+                // Der Abschnitt steht auch dann da, wenn nichts offen ist -
+                // sonst erfaehrt ein Captain ohne Anfragen nie, dass es ihn
+                // gibt. Wer die Crew nicht gegruendet hat, sieht ihn nicht:
+                // die Datenbank gibt ihm die Anfragen ohnehin nicht heraus.
                 if (isCreator) showJoinRequests(repository.getJoinRequests(crewCode))
             } finally {
                 finishRefreshing()
@@ -143,20 +144,21 @@ class CrewDetailsActivity : AppCompatActivity() {
     }
 
     /**
-     * Die offenen Anfragen. Ueberschrift und Karte werden zusammen ein- und
-     * ausgeblendet: eine Ueberschrift ueber einer leeren Karte waere ein
-     * Versprechen auf etwas, das nicht da ist.
+     * Die offenen Anfragen.
+     *
+     * Der Abschnitt steht dem Captain immer offen, auch ohne eine einzige
+     * Anfrage - dann mit dem Hinweis, was hier erscheinen wird. Vorher
+     * verschwand er ganz, und wer noch nie eine bekommen hat, erfuhr dadurch
+     * nie, dass es ihn gibt.
      */
     private fun showJoinRequests(requests: List<UserProfile>) {
-        val label = findViewById<View>(R.id.tvJoinRequestsLabel)
-        val card = findViewById<View>(R.id.cvJoinRequests)
         val container = findViewById<LinearLayout>(R.id.llJoinRequests)
-
         container.removeAllViews()
 
-        val visibility = if (requests.isEmpty()) View.GONE else View.VISIBLE
-        label.visibility = visibility
-        card.visibility = visibility
+        findViewById<View>(R.id.tvJoinRequestsLabel).visibility = View.VISIBLE
+        findViewById<View>(R.id.cvJoinRequests).visibility = View.VISIBLE
+        findViewById<View>(R.id.tvJoinRequestsEmpty).visibility =
+            if (requests.isEmpty()) View.VISIBLE else View.GONE
         if (requests.isEmpty()) return
 
         val inflater = LayoutInflater.from(this)
@@ -209,8 +211,18 @@ class CrewDetailsActivity : AppCompatActivity() {
         }
     }
 
-    /** Eine Zeile je Mitglied; angetippt fuehrt sie zum Kurzprofil. */
-    private fun showMembers(members: List<UserProfile>) {
+    /**
+     * Eine Zeile je Mitglied; angetippt fuehrt sie zum Kurzprofil.
+     *
+     * Wer die Crew gegruendet hat, traegt "Captain" neben dem Namen: er
+     * entscheidet ueber Beitrittsanfragen und das Crew-Bild, und das soll man
+     * sehen koennen, ohne es ausprobiert zu haben.
+     *
+     * @param creatorId Der Gruender, oder null wenn die Crew nicht gelesen
+     *        werden konnte - dann traegt niemand die Kennzeichnung, statt sie
+     *        womoeglich der falschen Person zu geben.
+     */
+    private fun showMembers(members: List<UserProfile>, creatorId: String?) {
         val container = findViewById<LinearLayout>(R.id.llMembersList)
         container.removeAllViews()
         val inflater = LayoutInflater.from(this)
@@ -219,6 +231,8 @@ class CrewDetailsActivity : AppCompatActivity() {
             val row = inflater.inflate(R.layout.item_crew_member_row, container, false)
             row.findViewById<TextView>(R.id.tvMemberName).text =
                 DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
+            row.findViewById<View>(R.id.tvMemberRole).visibility =
+                if (creatorId != null && member.id == creatorId) View.VISIBLE else View.GONE
             ImageLoader.into(
                 row.findViewById(R.id.ivMemberPhoto),
                 member.avatarUrl,

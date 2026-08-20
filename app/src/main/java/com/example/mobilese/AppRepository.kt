@@ -1210,13 +1210,25 @@ class AppRepository private constructor(context: Context) {
      */
     suspend fun isCrewCreator(crewCode: String): Boolean = withContext(Dispatchers.IO) {
         val userId = currentUserId() ?: return@withContext false
+        getCrew(crewCode)?.creatorId == userId
+    }
+
+    /**
+     * Die Crew als Ganzes: Name, Gruender und Bild.
+     *
+     * Alle drei stehen in derselben Zeile. Der Crew-Bildschirm holte sie
+     * vorher einzeln - drei Abfragen fuer eine Zeile, und zwischen ihnen
+     * konnte sie sich sogar unterscheiden.
+     */
+    suspend fun getCrew(crewCode: String): Crew? = withContext(Dispatchers.IO) {
         try {
             client.postgrest["crews"].select {
                 filter { eq("id", crewCode) }
                 limit(1)
-            }.decodeSingleOrNull<Crew>()?.creatorId == userId
+            }.decodeSingleOrNull<Crew>()
         } catch (e: Exception) {
-            false
+            Log.e("SupabaseDB", "Reading the crew failed: ${e.message}")
+            null
         }
     }
 
@@ -1353,16 +1365,7 @@ class AppRepository private constructor(context: Context) {
         }
 
     /** Die Adresse des Crew-Bilds, oder null wenn keines gesetzt ist. */
-    suspend fun getCrewImageUrl(crewCode: String): String? = withContext(Dispatchers.IO) {
-        try {
-            client.postgrest["crews"].select {
-                filter { eq("id", crewCode) }
-                limit(1)
-            }.decodeSingleOrNull<Crew>()?.imageUrl
-        } catch (e: Exception) {
-            null
-        }
-    }
+    suspend fun getCrewImageUrl(crewCode: String): String? = getCrew(crewCode)?.imageUrl
 
     // --- FOLGEN ---
 

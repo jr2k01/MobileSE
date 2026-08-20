@@ -65,7 +65,9 @@ class WatchWorkoutService : WearableListenerService() {
             context = this,
             channelId = Notifications.CHANNEL_WATCH,
             title = getString(R.string.watch_workout_title),
-            text = getString(R.string.watch_workout_text, workout.sport, workout.minutes),
+            text = resources.getQuantityString(
+                R.plurals.watch_workout_text, workout.minutes, workout.sport, workout.minutes
+            ),
             // Feste Kennung: kommen zwei Workouts an, bevor das erste ergaenzt
             // wurde, ersetzt die Meldung die alte. Zwei Zeilen im Schacht, die
             // beide in dieselbe Warteschlange fuehren, waeren Verdopplung ohne

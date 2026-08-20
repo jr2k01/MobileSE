@@ -274,9 +274,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         val notice = findViewById<TextView>(R.id.tvWatchNotice)
         notice.visibility = View.VISIBLE
+        // Mehrzahl ueber die Dauer, damit nicht "1 minutes" dasteht.
         notice.text = when (val average = workout.avgHeartRate) {
-            null -> getString(R.string.watch_notice, workout.minutes)
-            else -> getString(R.string.watch_notice_pulse, workout.minutes, average)
+            null -> resources.getQuantityString(
+                R.plurals.watch_notice, workout.minutes, workout.minutes
+            )
+            else -> resources.getQuantityString(
+                R.plurals.watch_notice_pulse, workout.minutes, workout.minutes, average
+            )
         }
     }
 

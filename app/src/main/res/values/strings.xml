@@ -56,8 +56,14 @@
     <string name="pending_workout_title">Waiting from your watch</string>
     <string name="pending_workout_details">%1$s · %2$d min · tap to log it</string>
     <string name="pending_workout_details_pulse">%1$s · %2$d min · %3$d bpm · tap to log it</string>
-    <string name="watch_notice">Recorded on your watch: %1$d minutes. Photo and location are still missing.</string>
-    <string name="watch_notice_pulse">Recorded on your watch: %1$d minutes, %2$d bpm on average. Photo and location are still missing.</string>
+    <plurals name="watch_notice">
+        <item quantity="one">Recorded on your watch: %1$d minute. Photo and location are still missing.</item>
+        <item quantity="other">Recorded on your watch: %1$d minutes. Photo and location are still missing.</item>
+    </plurals>
+    <plurals name="watch_notice_pulse">
+        <item quantity="one">Recorded on your watch: %1$d minute, %2$d bpm on average. Photo and location are still missing.</item>
+        <item quantity="other">Recorded on your watch: %1$d minutes, %2$d bpm on average. Photo and location are still missing.</item>
+    </plurals>
     <!-- Schritte aus Health Connect -->
     <string name="steps_today_label">Steps today</string>
     <string name="steps_connect">Connect</string>
@@ -460,7 +466,10 @@
     <string name="channel_watch">Watch workouts</string>
     <string name="channel_watch_desc">When a workout you recorded on your watch is waiting to be logged</string>
     <string name="watch_workout_title">Workout finished on your watch</string>
-    <string name="watch_workout_text">%1$s, %2$d minutes. Add a photo and your location to log it.</string>
+    <plurals name="watch_workout_text">
+        <item quantity="one">%1$s, %2$d minute. Add a photo and your location to log it.</item>
+        <item quantity="other">%1$s, %2$d minutes. Add a photo and your location to log it.</item>
+    </plurals>
     <string name="push_ranking_title">The ranking moved</string>
     <string name="push_overtake_text">%1$s went past you. You are now number %2$d.</string>
     <string name="push_lead_text">%1$s is now leading the crew.</string>

@@ -68,7 +68,7 @@ class SettingsActivity : AppCompatActivity() {
         buildPermissionRows()
         setUpVisibility()
 
-        findViewById<View>(R.id.llSettingsAccount).setOnClickListener {
+        findViewById<View>(R.id.llSettingsProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
         findViewById<View>(R.id.llStepsPrivacy).setOnClickListener {

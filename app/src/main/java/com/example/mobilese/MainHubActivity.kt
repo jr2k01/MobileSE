@@ -156,7 +156,7 @@ class MainHubActivity : AppCompatActivity() {
                 R.id.navAddWorkout -> WorkoutTrackingActivity::class.java
                 R.id.navLeaderboard -> LeaderboardActivity::class.java
                 R.id.navChallenges -> CrewChallengesActivity::class.java
-                R.id.navProfile -> ProfileActivity::class.java
+                R.id.navSettings -> SettingsActivity::class.java
                 else -> return@setOnItemSelectedListener false
             }
             startActivity(Intent(this, target))
@@ -458,6 +458,14 @@ class MainHubActivity : AppCompatActivity() {
                 circular = true,
                 placeholder = android.R.drawable.ic_menu_gallery
             )
+
+            // Wie die Mitgliederleiste darueber fuehrt auch das Podest aufs
+            // Profil. Vorher waren dieselben Personen einmal antippbar und
+            // einmal nicht, je nachdem wo man sie erwischt hat.
+            place.avatarHolder.isClickable = true
+            place.avatarHolder.setOnClickListener {
+                startActivity(MemberProfileActivity.intent(this, entry.userId))
+            }
         }
     }
 
@@ -469,6 +477,12 @@ class MainHubActivity : AppCompatActivity() {
         place.avatarHolder.alpha = EMPTY_PLACE_ALPHA
         place.avatar.setImageResource(R.drawable.ic_image)
         place.avatar.contentDescription = getString(R.string.podium_place_empty_desc, rank)
+
+        // Muss geloescht werden, nicht nur uebersprungen: die Ansicht wird beim
+        // Crew-Wechsel wiederverwendet, und ein stehengebliebener Zuhoerer
+        // fuehrte auf das Profil aus der vorigen Crew.
+        place.avatarHolder.setOnClickListener(null)
+        place.avatarHolder.isClickable = false
     }
 
     private fun showLatestActivities(snapshot: CrewSnapshot) {
@@ -486,9 +500,18 @@ class MainHubActivity : AppCompatActivity() {
 
         for (activity in latest) {
             val view = inflater.inflate(R.layout.item_feed_entry, llLatestActivities, false)
+            val author = nameById[activity.userId]?.takeIf { it.isNotBlank() }
+
             view.findViewById<TextView>(R.id.tvLatestActivityUser).text =
-                nameById[activity.userId]?.takeIf { it.isNotBlank() }
-                    ?: getString(R.string.unknown_member)
+                author ?: getString(R.string.unknown_member)
+
+            // Wie in der vollen Liste: die Zeile fuehrt ins Workout. Vorher
+            // liess sich nur dort etwas oeffnen, und dieselben drei Eintraege
+            // auf dem Startbildschirm reagierten nicht - derselbe Eintrag
+            // verhielt sich also je nach Bildschirm anders.
+            view.setOnClickListener {
+                startActivity(WorkoutDetailActivity.intent(this, activity, author))
+            }
             view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = activity.sport
             view.findViewById<TextView>(R.id.tvLatestActivityTime).text =
                 ActivityTime.toDisplay(activity.timestamp)

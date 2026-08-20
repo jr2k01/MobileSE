@@ -37,9 +37,14 @@
             android:icon="@drawable/ic_flag"
             android:title="@string/nav_challenges" />
 
+        <!--
+            Fuehrt in die Einstellungen und nicht mehr direkt ins Profil. Das
+            Profil ist der erste Eintrag dort - so liegt alles Persoenliche
+            hinter einer Tuer, statt sich auf zwei Wege zu verteilen.
+        -->
         <item
-            android:id="@+id/navProfile"
-            android:icon="@drawable/ic_person"
-            android:title="@string/nav_profile" />
+            android:id="@+id/navSettings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/nav_settings" />
     </group>
 </menu>

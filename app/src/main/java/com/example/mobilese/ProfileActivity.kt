@@ -52,13 +52,11 @@ class ProfileActivity : AppCompatActivity() {
         val btnSave = findViewById<Button>(R.id.btnSaveProfile)
         ivProfilePicture = findViewById(R.id.ivProfilePicture)
 
-        setUpTopBar(
-            R.string.my_profile,
-            actionIcon = R.drawable.ic_settings,
-            actionDescription = R.string.settings_desc
-        ) {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
+        // Ohne Zahnrad: der Weg fuehrt jetzt andersherum, von den
+        // Einstellungen ins Profil. Ein Zahnrad hier ergaebe einen Kreis, in
+        // dem man zwischen zwei Bildschirmen hin und her springt, ohne je
+        // irgendwo anzukommen.
+        setUpTopBar(R.string.my_profile)
         ivProfilePicture.setOnClickListener { pickImageLauncher.open() }
 
         etEmail.setText(currentUserEmail)

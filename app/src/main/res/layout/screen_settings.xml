@@ -34,6 +34,50 @@
             style="@style/ContentColumn"
             android:paddingBottom="24dp">
 
+            <!--
+                === Profil ===
+
+                Ganz oben und in einer eigenen Karte: seit die untere Leiste
+                hierher fuehrt statt direkt ins Profil, ist das der Weg zu
+                allem Persoenlichen - Name, Bild, Geburtsdatum, Groesse,
+                Gewicht. Der Eintrag traegt die eigene Mailadresse, damit auf
+                einen Blick klar ist, um wessen Profil es geht.
+            -->
+            <TextView
+                style="@style/TextAppearance.CrewFit.SectionLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/settings_profile_label" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+                <LinearLayout
+                    android:id="@+id/llSettingsProfile"
+                    style="@style/Widget.CrewFit.SettingsRow"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_profile"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+                    <TextView
+                        android:id="@+id/tvSettingsEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- === Erscheinungsbild === -->
             <TextView
                 style="@style/TextAppearance.CrewFit.SectionLabel"
@@ -282,26 +326,6 @@
                     android:orientation="vertical"
                     android:paddingTop="4dp"
                     android:paddingBottom="4dp">
-
-                    <LinearLayout
-                        android:id="@+id/llSettingsAccount"
-                        style="@style/Widget.CrewFit.SettingsRow">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/settings_signed_in_as"
-                            android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
-
-                        <TextView
-                            android:id="@+id/tvSettingsEmail"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
-                    </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/llLogout"

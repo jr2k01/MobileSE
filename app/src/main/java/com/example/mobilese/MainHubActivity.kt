@@ -283,6 +283,7 @@ class MainHubActivity : AppCompatActivity() {
             }
 
             tvCrewName.text = getString(R.string.your_crew_prefix, crewName)
+            showCrewLogo(snapshot.crewImageUrl)
             showMembers(snapshot)
             showStreak(snapshot)
             showTopThree(snapshot)
@@ -366,6 +367,21 @@ class MainHubActivity : AppCompatActivity() {
     private fun decimal(value: Double): String =
         NumberFormat.getNumberInstance().apply { maximumFractionDigits = 2 }.format(value)
 
+
+    /**
+     * Oben links das Bild der Crew, solange sie eines hat - sonst das
+     * CrewFit-Logo.
+     *
+     * Die Beschriftung fuer die Sprachausgabe wechselt mit: "CrewFit logo" waere
+     * falsch, sobald dort das Bild der eigenen Crew steht.
+     */
+    private fun showCrewLogo(imageUrl: String?) {
+        val logo = findViewById<ImageView>(R.id.ivHomeLogo)
+        ImageLoader.into(logo, imageUrl, circular = true, placeholder = R.drawable.logo_new)
+        logo.contentDescription = getString(
+            if (imageUrl.isNullOrEmpty()) R.string.logo_desc else R.string.crew_image_desc
+        )
+    }
 
     private fun showMembers(snapshot: CrewSnapshot) {
         llMembers.removeAllViews()

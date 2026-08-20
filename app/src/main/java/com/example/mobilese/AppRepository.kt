@@ -928,6 +928,11 @@ class AppRepository private constructor(context: Context) {
             val memberIdsAsync = async { selectMemberIds(crewCode) }
             val activitiesAsync = async { selectCrewActivities(crewCode) }
             val challengesAsync = async { selectCrewChallenges(crewCode) }
+            // Mit im Snapshot statt als eigene Abfrage aus dem
+            // Startbildschirm heraus: die Abfragen wurden hier bewusst
+            // gebuendelt, und eine sechste nebenher liefe an dieser
+            // Buendelung vorbei.
+            val crewImageAsync = async { getCrewImageUrl(crewCode) }
 
             val memberIds = memberIdsAsync.await()
             val challenges = challengesAsync.await()
@@ -941,7 +946,8 @@ class AppRepository private constructor(context: Context) {
                 activities = activitiesAsync.await(),
                 challenges = challenges,
                 rewards = rewardsAsync.await(),
-                stepDays = stepDaysAsync.await()
+                stepDays = stepDaysAsync.await(),
+                crewImageUrl = crewImageAsync.await()
             )
         }
     }
@@ -1783,5 +1789,10 @@ data class CrewSnapshot(
     val challenges: List<Challenge>,
     val rewards: List<ChallengeReward>,
     /** Schritte je Mitglied und Tag; leer, solange die Tabelle fehlt. */
-    val stepDays: List<StepDay> = emptyList()
+    val stepDays: List<StepDay> = emptyList(),
+    /**
+     * Das Bild der Crew fuer den Kopf des Startbildschirms. Null heisst: die
+     * Crew hat keines gesetzt, dann steht dort das CrewFit-Logo.
+     */
+    val crewImageUrl: String? = null
 )

@@ -108,6 +108,7 @@ Dates are the commit dates in the Git repository.
 | 12.5 | 2026-08-20 | Crews are joined by asking: the founder accepts or declines under Members. Joining by code and QR stays direct | Nobody lands in a crew unannounced | Needs the `crew_join_requests` table and one extra rule on `crew_members` — accepting writes a row for *another* person, which an "own rows only" rule forbids |
 | 12.6 | 2026-08-20 | Crew picture, built like the profile picture; only the founder can change it | Crews are recognisable at a glance | Reuses the existing `avatars` bucket instead of asking for a new one |
 | 12.7 | 2026-08-20 | Tablet brought level with the phone: the 14 dimensions added after the tablet pass (analytics charts, sport ring, member bars, the number one's picture) now have tablet and landscape values | Every one of the 46 dimensions has a tablet value; the analytics section no longer sits phone-sized inside grown cards | Found by comparing the qualifier files against each other rather than by looking — the gap was invisible on a phone |
+| 12.8 | 2026-08-20 | The home screen header shows the crew picture instead of the CrewFit logo once a crew has one | The crew you are looking at is recognisable without reading | Carried in the existing `CrewSnapshot` rather than as a sixth query, so the batching from milestone 5.0 is not undone |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from

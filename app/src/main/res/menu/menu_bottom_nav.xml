@@ -32,10 +32,16 @@
             android:icon="@drawable/ic_leaderboard"
             android:title="@string/nav_ranking" />
 
+        <!--
+            Anstelle der Challenges. Die laufenden stehen jetzt auf dem
+            Startbildschirm, angelegt werden sie im Crew-Bildschirm - damit
+            war der Platz frei fuer das, was vorher nirgends zusammenstand:
+            Punkte, Level, Serie, Trainings und Medaillen ueber alle Crews.
+        -->
         <item
-            android:id="@+id/navChallenges"
-            android:icon="@drawable/ic_flag"
-            android:title="@string/nav_challenges" />
+            android:id="@+id/navMe"
+            android:icon="@drawable/ic_person"
+            android:title="@string/nav_me" />
 
         <!--
             Fuehrt in die Einstellungen und nicht mehr direkt ins Profil. Das

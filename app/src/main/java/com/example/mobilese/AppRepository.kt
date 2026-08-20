@@ -1399,7 +1399,7 @@ class AppRepository private constructor(context: Context) {
                 userId = userId,
                 activities = activitiesAsync.await(),
                 stepDays = stepDaysAsync.await(),
-                rewardPoints = rewardsAsync.await()
+                rewardPoints = rewardsAsync.await().sumOf { it.points }
             )
         }
     }
@@ -1414,14 +1414,44 @@ class AppRepository private constructor(context: Context) {
         emptyList()
     }
 
-    /** Die Summe der Challenge-Belohnungen einer Person, ueber alle Crews. */
-    private suspend fun selectRewardsOf(userId: String): Int = try {
+    /** Die Challenge-Belohnungen einer Person, ueber alle Crews. */
+    private suspend fun selectRewardsOf(userId: String): List<ChallengeReward> = try {
         client.postgrest["challenge_rewards"].select {
             filter { eq("user_id", userId) }
-        }.decodeList<ChallengeReward>().sumOf { it.points }
+        }.decodeList<ChallengeReward>()
     } catch (e: Exception) {
         Log.e("SupabaseDB", "Could not load the rewards of $userId: ${e.message}")
-        0
+        emptyList()
+    }
+
+    /**
+     * Alles Persoenliche in einem Zug: Aktivitaeten, Schritt-Tage,
+     * Belohnungen und die eigenen Crews - jeweils ueber alle Crews hinweg.
+     *
+     * In einem Aufruf, weil der persoenliche Bildschirm alles davon zugleich
+     * braucht: Punkte, Level, Serie, Medaillen und die nach Crew filterbare
+     * Aktivitaetenliste entstehen aus demselben Bestand. Einzeln geholt waeren
+     * es vier Runden zum Server, und zwischen ihnen koennte sich der Bestand
+     * aendern - dann passten Punkte und Medaillen nicht mehr zueinander.
+     */
+    suspend fun loadPersonalSummary(): PersonalSummary? = withContext(Dispatchers.IO) {
+        val userId = currentUserId() ?: return@withContext null
+
+        coroutineScope {
+            val activitiesAsync = async { selectActivitiesOf(userId) }
+            val stepDaysAsync = async { selectStepDays(listOf(userId)) }
+            val rewardsAsync = async { selectRewardsOf(userId) }
+            val crewsAsync = async { getCrewsOf(userId) }
+
+            PersonalSummary(
+                userId = userId,
+                activities = activitiesAsync.await()
+                    .sortedByDescending { ActivityTime.sortKey(it.timestamp) },
+                stepDays = stepDaysAsync.await(),
+                rewards = rewardsAsync.await(),
+                crews = crewsAsync.await()
+            )
+        }
     }
 
     // --- REAKTIONEN UND KOMMENTARE ---
@@ -1790,13 +1820,24 @@ class AppRepository private constructor(context: Context) {
         timestamp = timestamp
     )
 
-    /** Die eigenen Aktivitaeten, neueste zuerst. */
-    suspend fun getOwnActivities(): List<Activity> {
+    /**
+     * Die eigenen Aktivitaeten, neueste zuerst.
+     *
+     * @param crewCode Auf diese Crew beschraenkt; null bedeutet ueber alle
+     *        Crews. Die Aktivitaetenliste zeigt nur die angezeigte Crew - dort
+     *        stehen daneben die der ganzen Crew, und beide Listen muessen
+     *        denselben Ausschnitt meinen, sonst vergleicht man Ungleiches. Der
+     *        persoenliche Bildschirm fragt ohne Crew und bekommt alles.
+     */
+    suspend fun getOwnActivities(crewCode: String? = null): List<Activity> {
         val userId = currentUserId() ?: return emptyList()
         return withContext(Dispatchers.IO) {
             try {
                 client.postgrest["activities"].select {
-                    filter { eq("user_id", userId) }
+                    filter {
+                        eq("user_id", userId)
+                        if (crewCode != null) eq("crew_id", crewCode)
+                    }
                 }.decodeList<Activity>()
                     // Sortiert wird im Client, weil aeltere Datensaetze noch im
                     // deutschen Datumsformat vorliegen koennen und die Datenbank
@@ -1978,6 +2019,40 @@ class AppRepository private constructor(context: Context) {
             Log.e("SupabaseDB", "Deleting from $table failed: ${e.message}")
         }
     }
+}
+
+/**
+ * Der eigene Bestand ueber alle Crews hinweg.
+ *
+ * Grundlage des persoenlichen Bildschirms. Alle Zahlen dort werden aus diesem
+ * einen Objekt gerechnet, statt einzeln nachzufragen - wie [CrewSnapshot] fuer
+ * die Crew.
+ */
+data class PersonalSummary(
+    val userId: String,
+    /** Alle eigenen Aktivitaeten, neueste zuerst. */
+    val activities: List<Activity>,
+    val stepDays: List<StepDay>,
+    val rewards: List<ChallengeReward>,
+    /** Die eigenen Crews - fuer den Filter ueber der Aktivitaetenliste. */
+    val crews: List<Crew>
+) {
+
+    /** Punkte ueber alle Crews; dieselbe Rechnung wie in der Rangliste. */
+    val totalPoints: Int
+        get() = Scoreboard.pointsFor(userId, activities, stepDays, rewards.sumOf { it.points })
+
+    /** Die erreichten Medaillen, ebenfalls ueber alle Crews. */
+    val medals: Set<Medal>
+        get() = Medals.earnedFrom(activities, stepDays, rewards)
+
+    /** Die laufende Serie an Tagen mit Training oder erreichtem Schrittziel. */
+    val streakDays: Int
+        get() = Streak.current(Streak.activeDays(userId, activities, stepDays))
+
+    /** Die Aktivitaeten einer Crew, oder alle wenn [crewCode] null ist. */
+    fun activitiesIn(crewCode: String?): List<Activity> =
+        if (crewCode == null) activities else activities.filter { it.crewId == crewCode }
 }
 
 /**

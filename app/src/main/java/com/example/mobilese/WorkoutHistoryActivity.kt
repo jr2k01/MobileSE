@@ -70,10 +70,17 @@ class WorkoutHistoryActivity : AppCompatActivity() {
             // Abbruch beim erneuten Laden muessen den Kreis anhalten.
             try {
                 when (scope) {
-                    Scope.MINE -> showActivities(
-                        repository.getOwnActivities().map { it to null },
-                        R.string.no_activities_yet
-                    )
+                    // Nur diese Crew: nebenan steht die Liste der ganzen Crew,
+                    // und beide muessen denselben Ausschnitt meinen. Sonst
+                    // faende man unter "meine" Trainings, die in der Liste
+                    // daneben fehlen, und haelt das fuer einen Fehler.
+                    Scope.MINE -> {
+                        val crewCode = repository.getJoinedCrewCode() ?: return@launch
+                        showActivities(
+                            repository.getOwnActivities(crewCode).map { it to null },
+                            R.string.no_activities_yet
+                        )
+                    }
 
                     Scope.CREW -> {
                         val crewCode = repository.getJoinedCrewCode() ?: return@launch

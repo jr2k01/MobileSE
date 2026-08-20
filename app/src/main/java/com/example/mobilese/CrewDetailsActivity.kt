@@ -51,6 +51,9 @@ class CrewDetailsActivity : AppCompatActivity() {
         setUpPullToRefresh { load() }
         findViewById<TextView>(R.id.tvOverviewCrewCode).text = crewCode
         findViewById<Button>(R.id.btnLeaveCrew).setOnClickListener { leaveCrew() }
+        findViewById<View>(R.id.llCrewChallenges).setOnClickListener {
+            startActivity(Intent(this, CrewChallengesActivity::class.java))
+        }
 
         load()
     }

@@ -126,7 +126,25 @@
     <string name="nav_crew">Crew</string>
     <string name="nav_add">Workout</string>
     <string name="nav_ranking">Ranking</string>
-    <string name="nav_challenges">Challenges</string>
+
+    <!--
+        Der persoenliche Reiter. Steht dort, wo vorher die Challenges lagen -
+        die stehen jetzt auf dem Startbildschirm und werden im
+        Crew-Bildschirm angelegt.
+    -->
+    <string name="nav_me">Me</string>
+    <string name="me_streak_label">STREAK</string>
+    <string name="me_activities_label">MY WORKOUTS</string>
+    <string name="me_filter_hint">Crew</string>
+    <string name="me_filter_all">All crews</string>
+    <string name="me_stat_minutes">Minutes</string>
+    <string name="me_stat_distance">Kilometres</string>
+
+    <!-- Laufende Challenges auf dem Startbildschirm -->
+    <string name="home_challenges_label">ACTIVE CHALLENGES</string>
+    <string name="home_challenge_progress">%1$d / %2$d</string>
+    <string name="crew_challenges_open">Challenges</string>
+    <string name="crew_challenges_hint">Set a goal for the whole crew</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Home -->

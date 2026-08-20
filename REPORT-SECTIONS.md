@@ -4,8 +4,8 @@ Written to match `_report_template_v1.0`. Facts (dependency versions, dates,
 counts) are taken from the repository, not from memory. Places where you have to
 fill something in yourself are marked **[FILL IN]**.
 
-State of the repository this describes: 101 commits, 66 Kotlin files (~11,200
-lines), 22 test classes with 209 unit tests, 17 Activities, `minSdk 26`,
+State of the repository this describes: 102 commits, 67 Kotlin files (~11,600
+lines), 22 test classes with 209 unit tests, 18 Activities, `minSdk 26`,
 `targetSdk 36`, Android Gradle Plugin 9.1.1.
 
 ---
@@ -115,6 +115,8 @@ Dates are the commit dates in the Git repository.
 | 12.11 | 2026-08-20 | Crew members can react to a workout with one of five emoji and leave comments — five ready-made ones that post on a tap, or their own text | A workout is no longer a number in a list that nobody answers | Needs two tables. The comment time is text written by the app: as `timestamptz` PostgREST returns an offset the app's formatter does not read, and the time would have been hours out |
 | 12.12 | 2026-08-20 | Levels 1–100 with prestige, from the points earned across all crews; level and total shown in one's own profile and in every member's | A goal beyond the current crew's weekly ranking | The per-person point calculation was pulled out of `Scoreboard` so ranking and level cannot drift apart. No new table: the total is derived from data that already exists |
 | 12.13 | 2026-08-20 | The three latest activities on the home screen open the workout; the podium's top three open their profiles; the bottom bar's last tab leads to the settings, with the profile as its first entry | The same row and the same face behave the same wherever they appear | The gear in the profile's top bar had to go — with the settings as the parent it would have been a loop between two screens |
+| 12.14 | 2026-08-20 | Home header no longer clips a two-line crew name; the activity list shows only the crew being viewed, in both its scopes | Two lists side by side now mean the same thing | The name was anchored to the 44dp logo top and bottom, so a wrapped name was squeezed to the logo's height |
+| 12.15 | 2026-08-20 | The challenges tab makes way for a personal "Me" screen: points, level, streak, workouts filterable by crew, medals. Running challenges moved to the home screen, creating them to the crew screen | Everything personal in one place, across all crews | Lint caught two ids missing from the tablet-landscape layout — `findViewById` would have returned null and crashed there |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from

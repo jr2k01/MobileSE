@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationBarView
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -155,7 +156,7 @@ class MainHubActivity : AppCompatActivity() {
                 R.id.navCrew -> CrewDetailsActivity::class.java
                 R.id.navAddWorkout -> WorkoutTrackingActivity::class.java
                 R.id.navLeaderboard -> LeaderboardActivity::class.java
-                R.id.navChallenges -> CrewChallengesActivity::class.java
+                R.id.navMe -> MeActivity::class.java
                 R.id.navSettings -> SettingsActivity::class.java
                 else -> return@setOnItemSelectedListener false
             }
@@ -301,6 +302,7 @@ class MainHubActivity : AppCompatActivity() {
                 showCrewLogo(snapshot.crewImageUrl)
                 showMembers(snapshot)
                 showStreak(snapshot)
+                showChallenges(snapshot)
                 showTopThree(snapshot)
                 showLatestActivities(snapshot)
             } finally {
@@ -435,6 +437,62 @@ class MainHubActivity : AppCompatActivity() {
      * Crew-Groesse ein oder zwei Saeulen hat, wuerde bei jedem Beitritt anders
      * aussehen.
      */
+    /**
+     * Die laufenden Challenges, seit sie keinen eigenen Reiter mehr haben.
+     *
+     * Kurzfassung: Art, Stand, Balken, gegebenenfalls die Frist. Wer mehr
+     * wissen will - die Beitraege der einzelnen Mitglieder, oder eine neue
+     * anlegen -, kommt ueber die Zeile in den Challenge-Bildschirm.
+     *
+     * Erledigte fallen heraus. Sie waeren keine laufenden mehr, und der
+     * Startbildschirm fuellte sich mit der Zeit mit Abgehaktem.
+     */
+    private fun showChallenges(snapshot: CrewSnapshot) {
+        val container = findViewById<LinearLayout>(R.id.llHomeChallenges)
+        container.removeAllViews()
+
+        val open = snapshot.challenges.filter { challenge ->
+            val done = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
+            done < challenge.goal && !ChallengeDeadline.isOver(challenge.deadline)
+        }
+
+        findViewById<View>(R.id.tvHomeChallengesLabel).visibility =
+            if (open.isEmpty()) View.GONE else View.VISIBLE
+        if (open.isEmpty()) return
+
+        val inflater = LayoutInflater.from(this)
+        for (challenge in open) {
+            val view = inflater.inflate(R.layout.item_home_challenge, container, false)
+            val type = ChallengeType.fromStored(challenge.type)
+            val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
+
+            view.findViewById<TextView>(R.id.tvHomeChallengeTitle).setText(type.labelRes)
+            view.findViewById<TextView>(R.id.tvHomeChallengeProgress).text =
+                getString(R.string.home_challenge_progress, total, challenge.goal)
+
+            val bar = view.findViewById<LinearProgressIndicator>(R.id.piHomeChallenge)
+            bar.max = challenge.goal.coerceAtLeast(1)
+            bar.setProgressCompat(total.coerceAtMost(bar.max), true)
+
+            val deadline = view.findViewById<TextView>(R.id.tvHomeChallengeDeadline)
+            val date = ChallengeDeadline.toDisplay(challenge.deadline)
+            if (date.isEmpty()) {
+                deadline.visibility = View.GONE
+            } else {
+                deadline.visibility = View.VISIBLE
+                val daysLeft = ChallengeDeadline.daysLeft(challenge.deadline) ?: 0L
+                deadline.text =
+                    if (daysLeft <= 0L) getString(R.string.challenge_deadline_today)
+                    else getString(R.string.challenge_deadline_days, date, daysLeft.toInt())
+            }
+
+            view.setOnClickListener {
+                startActivity(Intent(this, CrewChallengesActivity::class.java))
+            }
+            container.addView(view)
+        }
+    }
+
     private fun showTopThree(snapshot: CrewSnapshot) {
         val ranking = Scoreboard.build(snapshot)
 

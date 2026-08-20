@@ -31,16 +31,36 @@ object Medals {
      * Auch die offenen zurueckzugeben ist Absicht: das Profil zeigt sie
      * abgeblendet mit, damit sichtbar ist, was es ueberhaupt zu holen gibt.
      */
-    fun statusFor(userId: String, snapshot: CrewSnapshot): Map<Medal, Boolean> {
-        val earned = earnedBy(userId, snapshot)
-        return Medal.entries.associateWith { it in earned }
-    }
+    fun statusFor(userId: String, snapshot: CrewSnapshot): Map<Medal, Boolean> =
+        statusOf(earnedBy(userId, snapshot))
 
-    fun earnedBy(userId: String, snapshot: CrewSnapshot): Set<Medal> {
-        val activities = snapshot.activities.filter { it.userId == userId }
-        val stepDays = snapshot.stepDays.filter { it.userId == userId }
-        val rewards = snapshot.rewards.filter { it.userId == userId }
+    /** Dieselbe Aufstellung aus einem bereits ermittelten Bestand. */
+    fun statusOf(earned: Set<Medal>): Map<Medal, Boolean> =
+        Medal.entries.associateWith { it in earned }
 
+    fun earnedBy(userId: String, snapshot: CrewSnapshot): Set<Medal> = earnedFrom(
+        activities = snapshot.activities.filter { it.userId == userId },
+        stepDays = snapshot.stepDays.filter { it.userId == userId },
+        rewards = snapshot.rewards.filter { it.userId == userId }
+    )
+
+    /**
+     * Die Medaillen aus den Daten einer Person.
+     *
+     * Steht neben der Fassung mit dem [CrewSnapshot], weil es zwei Sichten
+     * gibt: das Kurzprofil zeigt sie innerhalb einer Crew, der persoenliche
+     * Bildschirm ueber alle hinweg. Wie bei [Scoreboard.pointsFor] rechnet
+     * beides mit derselben Funktion - zwei Kopien waeren auseinandergelaufen,
+     * und eine Medaille, die auf einem Bildschirm da ist und auf dem anderen
+     * nicht, waere schlimmer als keine.
+     *
+     * Alle drei Listen enthalten nur, was zu dieser einen Person gehoert.
+     */
+    fun earnedFrom(
+        activities: List<Activity>,
+        stepDays: List<StepDay>,
+        rewards: List<ChallengeReward>
+    ): Set<Medal> {
         val goalDays = stepDays.filter { StepGoal.isReached(it.steps.toLong()) }
         val totalKm = activities.sumOf { it.distance }
 

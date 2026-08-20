@@ -217,6 +217,44 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!--
+                Der Weg zu den Challenges, seit sie keinen eigenen Reiter mehr
+                haben. Hier, weil eine Challenge der ganzen Crew gilt und
+                dieser Bildschirm die Crew ist - laufende sieht man auf dem
+                Startbildschirm, angelegt werden sie hier.
+            -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+                <LinearLayout
+                    android:id="@+id/llCrewChallenges"
+                    style="@style/Widget.CrewFit.SettingsRow"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/crew_challenges_open"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/crew_challenges_hint"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLeaveCrew"
                 style="@style/Widget.CrewFit.Button.Text"

@@ -196,6 +196,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp" />
 
+                <!-- Muss hier stehen wie in layout/: die Activity sucht die
+                     Karte in jeder Fassung, und ohne sie waere es ein
+                     Absturz. -->
+                <include
+                    android:id="@+id/pendingWorkoutCard"
+                    layout="@layout/view_pending_workout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
                 <!-- Wie in layout/: die laufenden Challenges ueber der Top 3.
                      Muss hier stehen, sonst faende die Activity die Liste in
                      dieser Fassung nicht und stuerzte ab. -->

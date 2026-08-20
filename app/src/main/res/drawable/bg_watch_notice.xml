@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Untergrund fuer den Hinweis, dass die Werte von der Uhr kommen. Dieselbe
+     Farbfamilie wie die Marke fuer den Punkte-Aufschlag, nur eckiger: es ist
+     ein Textblock und keine Zahl. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorTertiaryContainer" />
+    <corners android:radius="12dp" />
+</shape>

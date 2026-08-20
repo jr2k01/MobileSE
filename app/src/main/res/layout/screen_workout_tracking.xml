@@ -48,6 +48,33 @@
             Eintraege genuegt ein Auswahldialog, der ohne eigenes Popup-Fenster
             auskommt. Das Feld selbst ist nur noch Anzeige und Schaltflaeche.
         -->
+        <!--
+            Der Hinweis auf das Workout, das von der Uhr kam.
+
+            Steht ueber dem Formular und nicht daneben: Sportart und Dauer sind
+            schon ausgefuellt, und ohne eine Zeile davor waere unklar, woher
+            die Werte kommen und warum man sie aendern darf.
+
+            Ist meistens gone. In einem ConstraintLayout schrumpft ein solcher
+            Block auf einen Punkt zusammen, das Feld darunter rueckt also nach
+            oben - eine eigene Fassung des Bildschirms braucht es dafuer nicht.
+        -->
+        <TextView
+            android:id="@+id/tvWatchNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_watch_notice"
+            android:drawablePadding="10dp"
+            android:padding="12dp"
+            app:drawableStartCompat="@drawable/ic_watch"
+            app:drawableTint="?attr/colorOnTertiaryContainer"
+            android:gravity="center_vertical"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnTertiaryContainer"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilSport"
             style="@style/Widget.CrewFit.TextField"
@@ -58,7 +85,7 @@
             app:endIconMode="custom"
             app:endIconDrawable="@drawable/ic_arrow_drop_down"
             app:endIconTint="?attr/colorOnSurfaceVariant"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/tvWatchNotice">
 
             <!--
                 focusable=false: das Feld wird nicht getippt, sondern

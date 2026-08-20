@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Der Stopp-Knopf traegt die Fehlerfarbe: er beendet etwas. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#93000A" />
+    <corners android:radius="24dp" />
+</shape>

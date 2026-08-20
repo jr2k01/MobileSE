@@ -24,3 +24,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "MobileSE"
 include(":app")
+
+// Die App fuer die Uhr. Eigenes Modul, weil daraus ein eigenes APK wird, das
+// auf der Uhr laeuft - Wear OS ist ein eigenes Geraet, kein zweiter Bildschirm.
+include(":wear")

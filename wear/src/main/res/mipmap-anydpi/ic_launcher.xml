@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Das App-Symbol: zwei Ebenen, aus denen das System je nach
+    Hersteller einen Kreis, ein Quadrat mit runden Ecken oder einen Tropfen
+    schneidet.
+
+    Vordergrund ist das freigestellte CrewFit-Emblem, Hintergrund das Marineblau
+    aus dem Logo. Das Emblem fuellt nur 65 Prozent der Kante - alles darueber
+    hinaus schneidet die Maske je nach Geraet an.
+
+    Keine monochrome Ebene: dafuer braeuchte es eine einfarbige Silhouette des
+    Emblems, und das Logo lebt gerade von seinen zwei Farben. Ohne sie faellt
+    Android bei den themenbezogenen Symbolen auf diese Fassung zurueck.
+
+    Ordner ohne v26 und ohne quadratische Alt-Fassungen: die App setzt Android 8
+    voraus, adaptive Symbole gibt es dort ueberall. Eine Fassung fuer aeltere
+    Geraete waere Ballast, den nie jemand zu sehen bekommt.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

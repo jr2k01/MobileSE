@@ -2,6 +2,7 @@ package com.example.mobilese
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
@@ -37,15 +38,31 @@ import java.util.Locale
 
 class WorkoutTrackingActivity : AppCompatActivity() {
 
-    private companion object {
-        const val FILE_PROVIDER_AUTHORITY = "com.example.mobilese.fileprovider"
-        const val STATE_PHOTO_PATH = "photo_path"
-        const val STATE_PHOTO_URI = "photo_uri"
-        const val STATE_VOICE_PATH = "voice_path"
-        const val STATE_LOCATION = "location"
-        const val STATE_SPORT = "sport"
-        const val STATE_LATITUDE = "latitude"
-        const val STATE_LONGITUDE = "longitude"
+    companion object {
+        /**
+         * Das Workout von der Uhr, das hier ergaenzt werden soll - erkannt an
+         * seinem Ende in Millisekunden.
+         *
+         * Ohne diesen Zusatz bleibt der Bildschirm, was er war: ein leeres
+         * Formular. Er sucht sich also nicht von sich aus ein wartendes
+         * Workout, sonst waere beim Antippen von "+" ploetzlich etwas
+         * ausgefuellt, das man gar nicht gemeint hat.
+         */
+        const val EXTRA_PENDING_AT = "pending_at"
+
+        fun intent(context: Context, workout: PendingWorkout): Intent =
+            Intent(context, WorkoutTrackingActivity::class.java)
+                .putExtra(EXTRA_PENDING_AT, workout.endedAt)
+
+        private const val FILE_PROVIDER_AUTHORITY = "com.example.mobilese.fileprovider"
+        private const val STATE_PHOTO_PATH = "photo_path"
+        private const val STATE_PHOTO_URI = "photo_uri"
+        private const val STATE_VOICE_PATH = "voice_path"
+        private const val STATE_LOCATION = "location"
+        private const val STATE_SPORT = "sport"
+        private const val STATE_LATITUDE = "latitude"
+        private const val STATE_LONGITUDE = "longitude"
+        private const val STATE_PENDING_AT = "pending_at_state"
     }
 
     private lateinit var repository: AppRepository
@@ -74,6 +91,18 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
+
+    /**
+     * Das Workout von der Uhr, das gerade ergaenzt wird - und sein Puls.
+     *
+     * Der Puls wird mitgefuehrt und nicht bei jedem Speichern neu aus der
+     * Ablage geholt: die Uhr hat waehrend des Workouts gemessen, das ist die
+     * genauere Zahl als alles, was sich hinterher aus Health Connect
+     * zusammensuchen laesst.
+     */
+    private var pendingEndedAt: Long? = null
+    private var watchAvgHeartRate: Int? = null
+    private var watchMaxHeartRate: Int? = null
 
     // Referenzen, damit laufende Sensor-Zugriffe beim Verlassen des Screens
     // wieder abgemeldet werden koennen.
@@ -132,6 +161,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         tvMapAttribution = findViewById(R.id.tvMapAttribution)
 
         restoreState(savedInstanceState, etSport, tilDistance)
+        applyWatchWorkout(savedInstanceState, etSport, etDuration, tilDistance, etDistance)
 
         // Sowohl das Feld als auch der Pfeil rechts oeffnen die Auswahl.
         val openSportPicker = View.OnClickListener {
@@ -172,6 +202,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         outState.putString(STATE_SPORT, selectedSport)
         pickedLatitude?.let { outState.putDouble(STATE_LATITUDE, it) }
         pickedLongitude?.let { outState.putDouble(STATE_LONGITUDE, it) }
+        pendingEndedAt?.let { outState.putLong(STATE_PENDING_AT, it) }
     }
 
     private fun restoreState(
@@ -200,6 +231,52 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         if (locationText.isNotEmpty()) {
             showLocation()
             showMapPreview()
+        }
+    }
+
+    /**
+     * Uebernimmt ein auf der Uhr aufgezeichnetes Workout ins Formular.
+     *
+     * Sportart und Dauer stehen damit schon da, Foto und Ort fehlen weiterhin -
+     * genau die beiden Dinge, die nur am Telefon zu holen sind. Die
+     * uebernommenen Werte bleiben aenderbar: die Uhr misst die Zeit bis zum
+     * Antippen von "Stopp", und die letzten zwei Minuten waren vielleicht schon
+     * der Heimweg.
+     */
+    private fun applyWatchWorkout(
+        state: Bundle?,
+        etSport: EditText,
+        etDuration: EditText,
+        tilDistance: TextInputLayout,
+        etDistance: EditText
+    ) {
+        val endedAt = when {
+            state?.containsKey(STATE_PENDING_AT) == true -> state.getLong(STATE_PENDING_AT)
+            intent.hasExtra(EXTRA_PENDING_AT) -> intent.getLongExtra(EXTRA_PENDING_AT, 0L)
+            else -> return
+        }
+        // Weg ist es, wenn dasselbe Workout inzwischen an anderer Stelle
+        // eingetragen wurde - etwa ueber die Benachrichtigung auf einem
+        // zweiten Weg. Dann bleibt hier ein leeres Formular stehen statt einer
+        // Vorgabe, die es nicht mehr gibt.
+        val workout = PendingWorkouts.find(this, endedAt) ?: return
+
+        pendingEndedAt = workout.endedAt
+        watchAvgHeartRate = workout.avgHeartRate
+        watchMaxHeartRate = workout.maxHeartRate
+
+        // Nach einer Drehung stehen die Werte schon im Formular, womoeglich von
+        // Hand geaendert - dann waere ein zweites Befuellen ein Rueckschritt.
+        if (state == null) {
+            applySport(workout.sport, etSport, tilDistance, etDistance)
+            etDuration.setText(workout.minutes.toString())
+        }
+
+        val notice = findViewById<TextView>(R.id.tvWatchNotice)
+        notice.visibility = View.VISIBLE
+        notice.text = when (val average = workout.avgHeartRate) {
+            null -> getString(R.string.watch_notice, workout.minutes)
+            else -> getString(R.string.watch_notice_pulse, workout.minutes, average)
         }
     }
 
@@ -348,8 +425,10 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             // Connect geschrieben hat. Das Ende ist jetzt, der Anfang liegt die
             // eingetragene Dauer davor - genauer geht es nicht, solange die
             // Dauer von Hand eingegeben wird und nicht mitlaeuft.
+            // Kam das Workout von der Uhr, hat sie waehrenddessen gemessen -
+            // das schlaegt jede nachtraegliche Suche im Zeitfenster.
             val end = Instant.now()
-            val beats = HealthHeartRate.forWindow(
+            val beats = if (pendingEndedAt != null) null else HealthHeartRate.forWindow(
                 this@WorkoutTrackingActivity,
                 end.minus(minutes.toLong(), ChronoUnit.MINUTES),
                 end
@@ -366,11 +445,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 // Fuer die Kartenvorschau in der Historie.
                 latitude = pickedLatitude,
                 longitude = pickedLongitude,
-                avgHeartRate = beats?.average,
-                maxHeartRate = beats?.max
+                avgHeartRate = watchAvgHeartRate ?: beats?.average,
+                maxHeartRate = watchMaxHeartRate ?: beats?.max
             )
 
             if (saved) {
+                // Erst jetzt aus der Warteschlange nehmen: waere es vorher
+                // geschehen und der Upload gescheitert, waere das Workout weg.
+                pendingEndedAt?.let { PendingWorkouts.remove(this@WorkoutTrackingActivity, it) }
                 toast(R.string.activity_saved)
                 finish()
             } else {

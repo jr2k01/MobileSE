@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Der Pulssensor der Uhr. Ab Android 13 muss zur Laufzeit gefragt werden. -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+
+    <!--
+        Nur fuer Uhren. Ohne diesen Eintrag boete der Play Store das APK auch
+        Telefonen an, wo es nichts zu suchen hat.
+    -->
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CrewFitWear">
+
+        <!--
+            Sagt Wear OS, dass diese App ohne das Telefon auskommt. Sie schickt
+            zwar am Ende etwas hin, laeuft aber auch ohne - man kann trainieren,
+            ohne das Telefon dabeizuhaben.
+        -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+
+        <activity
+            android:name=".SportChoiceActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".WorkoutActivity"
+            android:exported="false" />
+    </application>
+
+</manifest>

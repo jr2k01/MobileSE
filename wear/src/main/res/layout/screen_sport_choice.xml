@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Auswahl der Sportart auf der Uhr.
+
+    Eine schlichte Liste in einer ScrollView statt einer RecyclerView: fuenf
+    Eintraege, die sich nie aendern - ein Recycler waere Aufwand ohne Gewinn.
+
+    Der Rand ringsum ist grosszuegig, weil das Display rund ist: was in den
+    Ecken eines gedachten Rechtecks liegt, ist auf einer runden Uhr
+    abgeschnitten.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101319"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="28dp"
+    android:paddingBottom="28dp">
+
+    <LinearLayout
+        android:id="@+id/llSports"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="@string/choose_sport"
+            android:textColor="#C6C6D0"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

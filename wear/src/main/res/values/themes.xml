@@ -1,0 +1,9 @@
+<resources>
+    <!--
+        Dunkel und ohne Titelleiste. Eine Uhr zeigt kein Fenster mit
+        Ueberschrift, und auf OLED-Displays spart Schwarz Akku.
+    -->
+    <style name="Theme.CrewFitWear" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">#101319</item>
+    </style>
+</resources>

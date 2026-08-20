@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Das Workout, das auf der Uhr aufgezeichnet wurde und noch Foto und Ort
+    braucht.
+
+    Steht nur da, wenn wirklich eines wartet - eine dauerhaft sichtbare Karte
+    "keine offenen Workouts" waere taeglicher Platzverbrauch fuer eine
+    Nachricht, die fast immer dieselbe ist.
+
+    Aufgebaut wie die Serien-Karte darueber, damit beide als dieselbe Sorte
+    Hinweis gelesen werden. Anders ist nur die Farbe: hier ist etwas zu tun.
+-->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cvPendingWorkout"
+    style="@style/Widget.CrewFit.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardBackgroundColor="?attr/colorTertiaryContainer">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/card_padding"
+        android:paddingEnd="@dimen/card_padding"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_watch"
+            app:tint="?attr/colorOnTertiaryContainer" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvPendingTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/pending_workout_title"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnTertiaryContainer" />
+
+            <!-- Sportart, Dauer und - wenn gemessen - der Puls. -->
+            <TextView
+                android:id="@+id/tvPendingDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnTertiaryContainer" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="12dp"
+            android:contentDescription="@null"
+            android:rotation="270"
+            android:src="@drawable/ic_arrow_drop_down"
+            app:tint="?attr/colorOnTertiaryContainer" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

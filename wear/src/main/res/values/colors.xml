@@ -1,0 +1,6 @@
+<resources>
+    <!-- Hintergrund des App-Symbols, wie im Telefon-Modul: das Marineblau aus
+         dem Logo. Steht hier ein zweites Mal, weil Module keine Ressourcen
+         teilen. -->
+    <color name="ic_launcher_background">#131A2A</color>
+</resources>

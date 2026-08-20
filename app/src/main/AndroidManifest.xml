@@ -105,6 +105,26 @@
             </intent-filter>
         </service>
 
+        <!--
+            Nimmt die auf der Uhr beendeten Workouts entgegen.
+
+            Muss exportiert sein: die Play-Dienste laufen in einem eigenen
+            Prozess und koennten den Dienst sonst nicht starten. Der Filter
+            grenzt auf genau einen Pfad ein - andere Nachrichten erreichen ihn
+            gar nicht erst.
+        -->
+        <service
+            android:name=".WatchWorkoutService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/crewfit/workout" />
+            </intent-filter>
+        </service>
+
         <!-- Zeichen und Farbe der Benachrichtigungen, wenn die Nachricht
              selbst keine mitbringt. -->
         <meta-data

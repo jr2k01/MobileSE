@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Das laufende Workout auf der Uhr: Sportart, Zeit, Puls, Stopp.
+
+    Alles mittig und gross - abgelesen wird das im Laufen, mit einem Blick.
+    Deshalb steht auch nur das Noetigste da; alles Weitere kommt am Telefon.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101319"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp">
+
+    <TextView
+        android:id="@+id/tvSport"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="#C6C6D0"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/tvElapsed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#E3E2E9"
+        android:textSize="34sp" />
+
+    <TextView
+        android:id="@+id/tvHeartRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#FFB4AB"
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/btnStop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_watch_stop"
+        android:gravity="center"
+        android:minWidth="120dp"
+        android:minHeight="44dp"
+        android:text="@string/stop"
+        android:textColor="#FFDAD6"
+        android:textSize="16sp" />
+
+</LinearLayout>

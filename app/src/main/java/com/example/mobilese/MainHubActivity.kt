@@ -174,6 +174,41 @@ class MainHubActivity : AppCompatActivity() {
         // Ebenfalls hier, damit eine in den Systemeinstellungen erteilte oder
         // wieder entzogene Erlaubnis beim Zurueckkehren sofort greift.
         showStepsToday()
+        // Auch hier und nicht in onCreate: die Uhr kann melden, waehrend die
+        // App offen ist, und nach dem Eintragen soll die Karte verschwunden
+        // sein, sobald man zurueckkommt.
+        showPendingWorkout()
+    }
+
+    /**
+     * Die Karte fuer ein Workout, das auf der Uhr aufgezeichnet wurde.
+     *
+     * Zeigt immer das aelteste: warten mehrere, waere eine Liste auf dem
+     * Startbildschirm zu viel: nach dem Eintragen rueckt das naechste nach.
+     */
+    private fun showPendingWorkout() {
+        val card = findViewById<View>(R.id.pendingWorkoutCard)
+        val workout = PendingWorkouts.oldest(this)
+
+        if (workout == null) {
+            card.visibility = View.GONE
+            return
+        }
+
+        card.visibility = View.VISIBLE
+        card.findViewById<TextView>(R.id.tvPendingDetails).text =
+            when (val average = workout.avgHeartRate) {
+                null -> getString(R.string.pending_workout_details, workout.sport, workout.minutes)
+                else -> getString(
+                    R.string.pending_workout_details_pulse,
+                    workout.sport,
+                    workout.minutes,
+                    average
+                )
+            }
+        card.setOnClickListener {
+            startActivity(WorkoutTrackingActivity.intent(this, workout))
+        }
     }
 
     /**

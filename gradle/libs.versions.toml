@@ -16,6 +16,7 @@ ktor = "3.0.3"
 kotlinx-serialization = "1.7.3"
 lifecycleKtx = "2.6.2"
 healthConnect = "1.1.0"
+playServicesWearable = "18.2.0"
 firebaseBom = "33.7.0"
 googleServices = "4.4.2"
 
@@ -40,6 +41,7 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 health-connect-client = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

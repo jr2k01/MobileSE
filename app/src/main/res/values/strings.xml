@@ -52,6 +52,12 @@
     <string name="streak_hint_start">A workout or your step goal starts one</string>
     <string name="streak_hint_top">Highest level reached</string>
     <string name="streak_multiplier">x%1$s</string>
+    <!-- Workout von der Uhr, das noch Foto und Ort braucht -->
+    <string name="pending_workout_title">Waiting from your watch</string>
+    <string name="pending_workout_details">%1$s · %2$d min · tap to log it</string>
+    <string name="pending_workout_details_pulse">%1$s · %2$d min · %3$d bpm · tap to log it</string>
+    <string name="watch_notice">Recorded on your watch: %1$d minutes. Photo and location are still missing.</string>
+    <string name="watch_notice_pulse">Recorded on your watch: %1$d minutes, %2$d bpm on average. Photo and location are still missing.</string>
     <!-- Schritte aus Health Connect -->
     <string name="steps_today_label">Steps today</string>
     <string name="steps_connect">Connect</string>
@@ -451,6 +457,10 @@
     <string name="channel_ranking_desc">When the order in the crew ranking changes</string>
     <string name="push_activity_title">New workout in the crew</string>
     <string name="push_activity_text">%1$s trained %2$s for %3$s minutes</string>
+    <string name="channel_watch">Watch workouts</string>
+    <string name="channel_watch_desc">When a workout you recorded on your watch is waiting to be logged</string>
+    <string name="watch_workout_title">Workout finished on your watch</string>
+    <string name="watch_workout_text">%1$s, %2$d minutes. Add a photo and your location to log it.</string>
     <string name="push_ranking_title">The ranking moved</string>
     <string name="push_overtake_text">%1$s went past you. You are now number %2$d.</string>
     <string name="push_lead_text">%1$s is now leading the crew.</string>

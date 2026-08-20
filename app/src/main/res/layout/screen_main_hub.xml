@@ -168,6 +168,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp" />
 
+            <!-- Ueber allem anderen ausser Schritten und Serie: es ist das
+                 einzige hier, das auf eine Handlung wartet. -->
+            <include
+                android:id="@+id/pendingWorkoutCard"
+                layout="@layout/view_pending_workout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
             <!--
                 Laufende Challenges.
 

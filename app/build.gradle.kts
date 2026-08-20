@@ -107,6 +107,11 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
 
+    // Die Verbindung zur Uhr. Sie ist der einzige Weg, auf dem Uhr und Telefon
+    // unter Android miteinander sprechen - eine eigene Loesung ueber Bluetooth
+    // gibt es dafuer nicht.
+    implementation(libs.play.services.wearable)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

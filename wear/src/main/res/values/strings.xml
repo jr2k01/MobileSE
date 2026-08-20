@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">CrewFit</string>
+    <string name="choose_sport">What are you training?</string>
+    <string name="stop">Stop</string>
+    <string name="heart_rate">%1$d bpm</string>
+    <string name="heart_rate_waiting">Measuring…</string>
+    <string name="heart_rate_none">No sensor</string>
+    <string name="sensor_permission_needed">CrewFit needs the body sensor for your heart rate</string>
+    <string name="sent">Saved – shows up on your phone</string>
+    <string name="not_sent">Could not save the workout</string>
+    <string name="too_short">Too short to count</string>
+</resources>

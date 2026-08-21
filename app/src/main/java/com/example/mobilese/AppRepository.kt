@@ -1698,7 +1698,8 @@ class AppRepository private constructor(context: Context) {
         latitude: Double? = null,
         longitude: Double? = null,
         avgHeartRate: Int? = null,
-        maxHeartRate: Int? = null
+        maxHeartRate: Int? = null,
+        partnerId: String? = null
     ): Boolean {
         val userId = currentUserId() ?: return false
         val crewId = getJoinedCrewCode() ?: "no_crew"
@@ -1728,12 +1729,25 @@ class AppRepository private constructor(context: Context) {
                     latitude = latitude,
                     longitude = longitude,
                     avgHeartRate = avgHeartRate,
-                    maxHeartRate = maxHeartRate
+                    maxHeartRate = maxHeartRate,
+                    partnerId = partnerId
                 )
 
                 try {
                     client.postgrest["activities"].insert(activity)
                 } catch (e: Exception) {
+                    if (isMissingColumn(e, "partner_id")) {
+                        // Die Spalte fuer das gemeinsame Training fehlt in
+                        // dieser Datenbank. Das Workout wird gespeichert, zaehlt
+                        // dann aber einfach - besser als gar nicht.
+                        Log.w(
+                            "SupabaseDB",
+                            "Saving without the training partner, the partner_id column is " +
+                                    "missing. See the documentation for the required ALTER TABLE."
+                        )
+                        client.postgrest["activities"].insert(activity.copy(partnerId = null))
+                        return@withContext true
+                    }
                     if (isMissingColumn(e, "heart_rate")) {
                         // Die Pulsspalten fehlen in dieser Datenbank. Wie bei
                         // den Koordinaten: das Workout ist wichtiger als die

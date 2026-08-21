@@ -41,7 +41,21 @@ enum class AppPermission(
      * Diese Teilfreigabe zaehlt hier als erteilt: die App bekommt genau das,
      * was sie braucht, und darf deshalb nicht weiter nachfragen.
      */
-    GALLERY(R.string.permission_gallery, R.string.permission_gallery_purpose);
+    GALLERY(R.string.permission_gallery, R.string.permission_gallery_purpose),
+
+    /**
+     * Geraete in der Naehe, fuer das gemeinsame Training.
+     *
+     * Der Bruch liegt bei Android 12: davor gab es nur BLUETOOTH und
+     * BLUETOOTH_ADMIN, die das System ohne Nachfrage erteilt - dafuer verlangte
+     * es fuer jeden Bluetooth-Suchlauf den **Standort**, weil sich aus
+     * sichtbaren Geraeten der Aufenthaltsort ableiten laesst. Ab Android 12
+     * gibt es eigene Rechte zum Suchen und Senden, und der Standort entfaellt.
+     *
+     * Deshalb steht hier auf alten Geraeten der Standort und auf neuen die
+     * beiden Bluetooth-Rechte - dieselbe Funktion, zwei Wege dorthin.
+     */
+    NEARBY(R.string.permission_nearby, R.string.permission_nearby_purpose);
 
     /**
      * Die Systemnamen, die zu dieser Berechtigung auf *diesem* Geraet gehoeren.
@@ -58,6 +72,7 @@ enum class AppPermission(
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
             GALLERY -> galleryNames()
+            NEARBY -> nearbyNames()
         }
 
     /**
@@ -69,9 +84,17 @@ enum class AppPermission(
      * der bereits zugestimmt hat.
      */
     fun isGranted(context: Context): Boolean =
-        manifestNames.any {
-            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        // Ausnahme von der Regel: Suchen und Senden sind zwei getrennte
+        // Rechte, und mit nur einem davon findet man entweder niemanden oder
+        // wird selbst nicht gefunden. Hier muessen beide stehen.
+        if (this == NEARBY && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            manifestNames.all { granted(context, it) }
+        } else {
+            manifestNames.any { granted(context, it) }
         }
+
+    private fun granted(context: Context, name: String): Boolean =
+        ContextCompat.checkSelfPermission(context, name) == PackageManager.PERMISSION_GRANTED
 
     private fun galleryNames(): Array<String> = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> arrayOf(
@@ -84,4 +107,18 @@ enum class AppPermission(
         // Bis Android 12 gab es keinen eigenen Namen fuer Bilder.
         else -> arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
+
+    private fun nearbyNames(): Array<String> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_ADVERTISE
+            )
+        } else {
+            // Vor Android 12 verlangte das System fuer jeden Bluetooth-
+            // Suchlauf den Standort. BLUETOOTH und BLUETOOTH_ADMIN stehen im
+            // Manifest und werden ohne Nachfrage erteilt; erfragt werden muss
+            // nur der Standort.
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
 }

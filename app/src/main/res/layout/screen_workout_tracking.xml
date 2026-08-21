@@ -75,6 +75,31 @@
             android:textColor="?attr/colorOnTertiaryContainer"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!--
+            Dass dieses Workout doppelt zaehlt. Dieselbe Form wie der Hinweis
+            auf ein Workout von der Uhr - beides sagt "hier ist etwas anders
+            als sonst", und zwei verschiedene Formen dafuer waeren eine zuviel.
+
+            Unsichtbar, solange allein trainiert wird; ConstraintLayout zieht
+            den Block dann auf einen Punkt zusammen und das Feld darunter
+            rueckt nach oben.
+        -->
+        <TextView
+            android:id="@+id/tvPartnerBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_watch_notice"
+            android:drawablePadding="10dp"
+            android:padding="12dp"
+            app:drawableStartCompat="@drawable/ic_group"
+            app:drawableTint="?attr/colorOnTertiaryContainer"
+            android:gravity="center_vertical"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnTertiaryContainer"
+            app:layout_constraintTop_toBottomOf="@id/tvWatchNotice" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilSport"
             style="@style/Widget.CrewFit.TextField"
@@ -85,7 +110,7 @@
             app:endIconMode="custom"
             app:endIconDrawable="@drawable/ic_arrow_drop_down"
             app:endIconTint="?attr/colorOnSurfaceVariant"
-            app:layout_constraintTop_toBottomOf="@id/tvWatchNotice">
+            app:layout_constraintTop_toBottomOf="@id/tvPartnerBanner">
 
             <!--
                 focusable=false: das Feld wird nicht getippt, sondern

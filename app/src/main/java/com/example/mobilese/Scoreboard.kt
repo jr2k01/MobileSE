@@ -91,7 +91,11 @@ object Scoreboard {
         val workoutPoints = activities.sumOf { activity ->
             val base = PointsCalculator.calculateWorkoutPoints(
                 activity.duration,
-                WorkoutIntensity.fromName(activity.intensity)
+                WorkoutIntensity.fromName(activity.intensity),
+                // Gemeinsam trainiert zaehlt doppelt. Der Aufschlag der Serie
+                // kommt darunter noch obendrauf - beides belohnt
+                // Unterschiedliches: Regelmaessigkeit und Verabredung.
+                together = !activity.partnerId.isNullOrEmpty()
             )
             val day = ActivityTime.dayOf(activity.timestamp)
             if (day.isEmpty()) base

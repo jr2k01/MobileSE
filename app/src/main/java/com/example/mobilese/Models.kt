@@ -113,7 +113,16 @@ data class Activity(
     // eine Uhr aufgezeichnet hat. Null, wenn keine getragen wurde oder der
     // Zugriff nicht erlaubt ist.
     @SerialName("avg_heart_rate") val avgHeartRate: Int? = null,
-    @SerialName("max_heart_rate") val maxHeartRate: Int? = null
+    @SerialName("max_heart_rate") val maxHeartRate: Int? = null,
+    /**
+     * Das Crew-Mitglied, mit dem zusammen trainiert wurde - die Telefone haben
+     * sich waehrenddessen ueber Bluetooth erkannt, siehe [CoLocation]. Dann
+     * zaehlt das Workout doppelt.
+     *
+     * Null heisst allein. Der Standardwert laesst aeltere Zeilen ohne diese
+     * Spalte weiterhin lesen.
+     */
+    @SerialName("partner_id") val partnerId: String? = null
 )
 
 /**

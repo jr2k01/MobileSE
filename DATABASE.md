@@ -214,6 +214,31 @@ create policy "crews_update_by_creator" on crews
     for update to authenticated using (auth.uid() = creator_id);
 ```
 
+## Gemeinsames Training
+
+Wer mit jemandem aus der Crew zusammen trainiert, bekommt die doppelten
+Punkte. Die Telefone erkennen sich waehrenddessen ueber Bluetooth Low Energy;
+gespeichert wird, **mit wem** - nicht bloss ein Ja oder Nein. So steht spaeter
+noch da, worauf die Verdopplung beruht.
+
+`on delete set null` und nicht `cascade`: verlaesst der Trainingspartner die
+App, soll das eigene Workout bleiben. Es zaehlt dann wieder einfach - die
+Verdopplung haengt daran, dass die Kennung dasteht.
+
+```sql
+alter table activities add column if not exists partner_id uuid;
+
+alter table activities
+drop constraint if exists activities_partner_id_fkey,
+add constraint activities_partner_id_fkey
+  foreign key (partner_id)
+  references profiles(id)
+  on delete set null;
+```
+
+Ohne diese Spalte laeuft die App weiter: das Workout wird dann ohne Partner
+gespeichert und zaehlt einfach.
+
 ## Tabellen fuer Reaktionen und Kommentare
 
 Wer ein Workout eines Crew-Mitglieds ansieht, kann mit einem Zeichen

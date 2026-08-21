@@ -63,6 +63,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         private const val STATE_LATITUDE = "latitude"
         private const val STATE_LONGITUDE = "longitude"
         private const val STATE_PENDING_AT = "pending_at_state"
+        private const val STATE_PARTNER_ID = "partner_id_state"
     }
 
     private lateinit var repository: AppRepository
@@ -136,6 +137,68 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             }
         }
 
+    // --- Gemeinsames Training ---
+
+    /**
+     * Das Crew-Mitglied, mit dem trainiert wird, oder null fuer allein.
+     *
+     * Ueberlebt das Drehen des Geraets: die Kopplung war ein eigener
+     * Bildschirm und womoeglich ein Weg quer durch den Raum - sie noch einmal
+     * zu verlangen, waere die schlechteste Antwort auf eine Drehung.
+     */
+    private var partnerId: String? = null
+
+    private val pickPartner =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            partnerId = TrainingPartnerActivity.partnerIdFrom(result.data)
+            showPartnerBanner()
+        }
+
+    /**
+     * Die erste Frage: allein oder zu zweit.
+     *
+     * Vor allem anderen, weil die Antwort den Wert des Workouts verdoppelt -
+     * und weil die Kopplung waehrend des Trainings stattfindet, nicht
+     * danach. Wer erst das Formular ausfuellt und dann gefragt wird, steht
+     * womoeglich schon wieder allein da.
+     *
+     * Nicht abbrechbar: eine der beiden Antworten muss kommen. Der Weg zurueck
+     * ist der Pfeil in der Kopfzeile.
+     */
+    private fun askIfTrainingTogether() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.together_title)
+            .setMessage(R.string.together_message)
+            .setPositiveButton(R.string.together_with) { _, _ ->
+                pickPartner.launch(TrainingPartnerActivity.intent(this))
+            }
+            .setNegativeButton(R.string.together_alone, null)
+            .setCancelable(false)
+            .show()
+    }
+
+    /**
+     * Der Hinweis ueber dem Formular, dass dieses Workout doppelt zaehlt.
+     *
+     * Der Name wird nachgeladen: aus der Kopplung kommt nur die Kennung
+     * zurueck, und den Namen kennt die Crew.
+     */
+    private fun showPartnerBanner() {
+        val banner = findViewById<TextView>(R.id.tvPartnerBanner)
+        val id = partnerId
+        if (id == null) {
+            banner.visibility = View.GONE
+            return
+        }
+
+        banner.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val name = repository.getProfileById(id)?.let { DisplayName.of(it) }
+                ?: getString(R.string.unknown_member)
+            banner.text = getString(R.string.partner_banner, name)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_tracking)
@@ -143,6 +206,13 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         setUpTopBar(R.string.track_workout)
 
         repository = AppRepository.get(this)
+
+        // Nur beim ersten Aufbau fragen. Nach dem Drehen des Geraets stuende
+        // der Dialog sonst wieder da, obwohl die Frage laengst beantwortet
+        // ist - und die Antwort waere verloren.
+        if (savedInstanceState == null) askIfTrainingTogether()
+        partnerId = savedInstanceState?.getString(STATE_PARTNER_ID)
+        showPartnerBanner()
 
         val etSport = findViewById<EditText>(R.id.etSport)
         val tilSport = findViewById<TextInputLayout>(R.id.tilSport)
@@ -203,6 +273,10 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         pickedLatitude?.let { outState.putDouble(STATE_LATITUDE, it) }
         pickedLongitude?.let { outState.putDouble(STATE_LONGITUDE, it) }
         pendingEndedAt?.let { outState.putLong(STATE_PENDING_AT, it) }
+        // Die Kopplung war ein eigener Bildschirm und womoeglich ein Weg quer
+        // durch den Raum. Sie nach einer Drehung noch einmal zu verlangen,
+        // waere die schlechteste aller Antworten.
+        outState.putString(STATE_PARTNER_ID, partnerId)
     }
 
     private fun restoreState(
@@ -451,7 +525,12 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 latitude = pickedLatitude,
                 longitude = pickedLongitude,
                 avgHeartRate = watchAvgHeartRate ?: beats?.average,
-                maxHeartRate = watchMaxHeartRate ?: beats?.max
+                maxHeartRate = watchMaxHeartRate ?: beats?.max,
+                // Wurde zu zweit trainiert, zaehlt das Workout doppelt. Die
+                // Kennung wird mitgespeichert und nicht nur ein Ja/Nein: so
+                // steht spaeter noch da, mit wem - und die Verdopplung laesst
+                // sich nachvollziehen.
+                partnerId = partnerId
             )
 
             if (saved) {

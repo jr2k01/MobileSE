@@ -10,6 +10,35 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!--
+        Gemeinsames Training: die Telefone erkennen sich ueber Bluetooth Low
+        Energy, siehe PartnerBeacon.
+
+        Zwei Wege, weil Android 12 hier alles umgestellt hat. Davor genuegten
+        BLUETOOTH und BLUETOOTH_ADMIN - die erteilt das System ohne Nachfrage,
+        verlangte dafuer aber fuer jeden Suchlauf den Standort. maxSdkVersion
+        haelt sie aus den Berechtigungen neuerer Geraete heraus, wo sie
+        wirkungslos waeren.
+
+        Ab Android 12 gibt es eigene Rechte zum Suchen und Senden.
+        neverForLocation sagt dem System ausdruecklich, dass wir aus den
+        gefundenen Geraeten keinen Aufenthaltsort ableiten - dann entfaellt der
+        Standort. Uns interessiert nur, ob jemand da ist, nicht wo.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+
+    <!--
         Die Galerie, fuer Profil-, Crew- und Meme-Bild.
 
         Drei Namen fuer dieselbe Sache, weil Android sie zweimal umbenannt hat.
@@ -87,6 +116,7 @@
         <activity android:name=".LeaderboardActivity" android:exported="false" />
         <activity android:name=".CrewChallengesActivity" android:exported="false" />
         <activity android:name=".MeActivity" android:exported="false" />
+        <activity android:name=".TrainingPartnerActivity" android:exported="false" />
         <activity android:name=".MemberProfileActivity" android:exported="false" />
         <activity android:name=".WorkoutDetailActivity" android:exported="false" />
         <activity android:name=".SettingsActivity" android:exported="false" />

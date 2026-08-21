@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die Suche nach Crew-Mitgliedern in Reichweite.
+
+    Kein eigener Zustand im Layout: die Liste fuellt sich, waehrend gesucht
+    wird, und der Hinweis darunter sagt, was zu tun ist. Der Weg zurueck zum
+    Alleintrainieren steht unten - wer niemanden findet, soll nicht in einer
+    Sackgasse stehen.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <include
+        android:id="@+id/topBar"
+        layout="@layout/part_top_bar"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toTopOf="@id/btnPartnerSkip">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <LinearLayout
+            style="@style/ContentColumn"
+            android:paddingBottom="24dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/piPartnerSearch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    app:indicatorSize="22dp"
+                    app:trackThickness="3dp" />
+
+                <TextView
+                    android:id="@+id/tvPartnerStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/partner_searching"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorOnSurface" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPartnerHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/partner_hint"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <LinearLayout
+                    android:id="@+id/llPartnerFound"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/tvPartnerEmpty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/partner_none_yet"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPartnerSkip"
+        style="@style/Widget.CrewFit.Button.Text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/screen_padding_horizontal"
+        android:layout_marginEnd="@dimen/screen_padding_horizontal"
+        android:layout_marginBottom="12dp"
+        android:text="@string/partner_skip"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

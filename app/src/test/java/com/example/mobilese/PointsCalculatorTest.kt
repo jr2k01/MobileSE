@@ -48,4 +48,45 @@ class PointsCalculatorTest {
             previous = points
         }
     }
+
+    // --- Gemeinsames Training ---
+
+    @Test
+    fun `training together counts double`() {
+        val alone = PointsCalculator.calculateWorkoutPoints(60, WorkoutIntensity.HIGH)
+        val together = PointsCalculator.calculateWorkoutPoints(60, WorkoutIntensity.HIGH, together = true)
+
+        assertEquals(alone * 2, together)
+    }
+
+    /** Ohne Angabe bleibt alles wie bisher - der Rest der App ruft so auf. */
+    @Test
+    fun `counts single by default`() {
+        assertEquals(
+            PointsCalculator.calculateWorkoutPoints(45, WorkoutIntensity.LOW),
+            PointsCalculator.calculateWorkoutPoints(45, WorkoutIntensity.LOW, together = false)
+        )
+    }
+
+    /** Zweimal nichts ist nichts: gemeinsam kurz stehenbleiben zaehlt nicht. */
+    @Test
+    fun `too short stays worthless even together`() {
+        assertEquals(0, PointsCalculator.calculateWorkoutPoints(9, WorkoutIntensity.HIGH, together = true))
+    }
+
+    /**
+     * Verdoppelt wird nach dem Runden. Sonst haenge das Ergebnis daran, ob
+     * eine halbe Punktzahl auf- oder abgerundet wurde, und zwei gleiche
+     * Trainings braechten unterschiedlich viel.
+     */
+    @Test
+    fun `doubles the rounded value, not the raw one`() {
+        for (minutes in 10..180 step 1) {
+            for (intensity in WorkoutIntensity.entries) {
+                val alone = PointsCalculator.calculateWorkoutPoints(minutes, intensity)
+                val together = PointsCalculator.calculateWorkoutPoints(minutes, intensity, together = true)
+                assertEquals("$minutes min, $intensity", alone * 2, together)
+            }
+        }
+    }
 }

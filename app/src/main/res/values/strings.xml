@@ -501,6 +501,31 @@
     <string name="permission_location_purpose">To name the place where you trained</string>
     <string name="permission_gallery">Photos</string>
     <string name="permission_gallery_purpose">To pick a profile, crew or meme picture</string>
+    <string name="permission_nearby">Nearby devices</string>
+    <string name="permission_nearby_purpose">To find crew mates you are training with</string>
+
+    <!--
+        Gemeinsames Training. Die Telefone erkennen sich ueber Bluetooth Low
+        Energy; wer zusammen trainiert, bekommt die doppelten Punkte.
+    -->
+    <string name="together_title">Are you training alone?</string>
+    <string name="together_message">Training with someone from your crew counts double. Both phones need CrewFit open on this screen.</string>
+    <string name="together_alone">On my own</string>
+    <string name="together_with">With my crew</string>
+    <string name="partner_title">Find your crew</string>
+    <string name="partner_searching">Searching for crew mates nearby…</string>
+    <string name="partner_hint">The other phone has to be on this screen too. Hold them close together.</string>
+    <string name="partner_none_yet">Nobody found yet.</string>
+    <string name="partner_pick">Tap whoever you are training with.</string>
+    <string name="partner_skip">Train on my own instead</string>
+    <string name="partner_chosen">Training with %s — double points</string>
+    <string name="partner_banner">Double points: training with %s</string>
+    <string name="partner_no_bluetooth">This device has no Bluetooth.</string>
+    <string name="partner_bluetooth_off">Bluetooth is off. Switch it on to find your crew.</string>
+    <string name="partner_cannot_advertise">This device can receive but not send. The other phone has to find you.</string>
+    <string name="partner_scan_failed">The search could not be started.</string>
+    <string name="partner_permission_missing">Without access to nearby devices CrewFit cannot find your crew.</string>
+    <string name="partner_no_crew">Only members of your crew can be found.</string>
     <string name="permission_status_granted">Allowed. Tap to manage in the system settings.</string>
     <string name="permission_status_denied">Not allowed. Tap to allow.</string>
     <string name="gallery_permission_denied">CrewFit needs access to your photos to pick a picture</string>

@@ -52,7 +52,263 @@ dieselben Unterbauten.
 
 ---
 
-## 2. Was jede Bibliothek mitbringt
+## 2. Nach Zweck
+
+Jede Kategorie mit dem, was **nur sie** braucht. Artefakte, die mehrere
+Kategorien gemeinsam benutzen, stehen weiter unten unter "Geteilte
+Grundlagen" - sie waeren sonst mehrfach gezaehlt.
+
+| Zweck | Selbst eingetragen | Nur dafuer | Insgesamt beteiligt |
+| --- | --- | --- | --- |
+| **Oberflaeche** | 7 | 19 | 68 |
+| **Backend** | 5 | 62 | 92 |
+| **Push** | 2 | 21 | 68 |
+| **Health Connect** | 1 | 9 | 42 |
+| **Uhr** | 1 | 0 | 41 |
+| **QR-Codes** | 2 | 0 | 2 |
+| **Kotlin** | 1 | 0 | 2 |
+| *Geteilte Grundlagen* | – | 46 | – |
+
+"Nur dafuer" zaehlt die mitgezogenen Artefakte ohne die eingetragene
+Bibliothek selbst. "Insgesamt beteiligt" zaehlt alles mit, was zu dieser
+Kategorie gehoert - auch das Geteilte, das darum mehrfach auftaucht.
+
+### Oberflaeche
+
+AndroidX und Material - Activities, Layouts, Knoepfe, Textfelder, Dialoge, Navigationsleiste, Farbrollen. Ohne diese laesst sich unter Android keine Oberflaeche bauen, die auf mehreren Versionen gleich aussieht.
+
+**Selbst eingetragen:** `androidx.activity:activity-ktx` 1.8.0, `androidx.appcompat:appcompat` 1.6.1, `androidx.lifecycle:lifecycle-runtime-ktx` 2.8.7, `androidx.constraintlayout:constraintlayout` 2.1.4, `androidx.swiperefreshlayout:swiperefreshlayout` 1.1.0, `androidx.core:core-ktx` 1.13.0, `com.google.android.material:material` 1.12.0
+
+**Nur dafuer im APK** (19):
+
+| Artefakt | Version |
+| --- | --- |
+| `androidx.appcompat:appcompat-resources` | 1.6.1 |
+| `androidx.cardview:cardview` | 1.0.0 |
+| `androidx.constraintlayout:constraintlayout-core` | 1.0.4 |
+| `androidx.coordinatorlayout:coordinatorlayout` | 1.1.0 |
+| `androidx.cursoradapter:cursoradapter` | 1.0.0 |
+| `androidx.drawerlayout:drawerlayout` | 1.1.1 |
+| `androidx.dynamicanimation:dynamicanimation` | 1.0.0 |
+| `androidx.emoji2:emoji2` | 1.2.0 |
+| `androidx.emoji2:emoji2-views-helper` | 1.2.0 |
+| `androidx.lifecycle:lifecycle-runtime-ktx-android` | 2.8.7 |
+| `androidx.lifecycle:lifecycle-viewmodel-ktx` | 2.8.7 |
+| `androidx.recyclerview:recyclerview` | 1.1.0 |
+| `androidx.resourceinspection:resourceinspection-annotation` | 1.0.1 |
+| `androidx.savedstate:savedstate-ktx` | 1.2.1 |
+| `androidx.transition:transition` | 1.5.0 |
+| `androidx.vectordrawable:vectordrawable` | 1.1.0 |
+| `androidx.vectordrawable:vectordrawable-animated` | 1.1.0 |
+| `androidx.viewpager2:viewpager2` | 1.0.0 |
+| `org.jetbrains.kotlin:kotlin-bom` | 1.8.22 |
+
+### Backend
+
+Supabase als gehostete Datenbank mit Anmeldung und Dateispeicher. Der Kurs erlaubt ein Backend ausdruecklich, solange es nicht der Schwerpunkt ist. Ktor ist der HTTP-Motor darunter, kotlinx-serialization das JSON-Format - beide zieht supabase-kt ohnehin nach, sie stehen nur ausdruecklich im Buildfile, damit kein zweiter Motor mitkommt.
+
+**Selbst eingetragen:** `io.github.jan-tennert.supabase:postgrest-kt` 3.1.0, `io.github.jan-tennert.supabase:auth-kt` 3.1.0, `io.github.jan-tennert.supabase:storage-kt` 3.1.0, `io.ktor:ktor-client-android` 3.0.3, `org.jetbrains.kotlinx:kotlinx-serialization-json` 1.7.3
+
+**Nur dafuer im APK** (62):
+
+| Artefakt | Version |
+| --- | --- |
+| `androidx.browser:browser` | 1.8.0 |
+| `co.touchlab:kermit` | 2.0.5 |
+| `co.touchlab:kermit-android-debug` | 2.0.5 |
+| `co.touchlab:kermit-core` | 2.0.5 |
+| `co.touchlab:kermit-core-android-debug` | 2.0.5 |
+| `com.russhwolf:multiplatform-settings` | 1.3.0 |
+| `com.russhwolf:multiplatform-settings-android-debug` | 1.3.0 |
+| `com.russhwolf:multiplatform-settings-coroutines` | 1.3.0 |
+| `com.russhwolf:multiplatform-settings-coroutines-android-debug` | 1.3.0 |
+| `com.russhwolf:multiplatform-settings-no-arg` | 1.3.0 |
+| `com.russhwolf:multiplatform-settings-no-arg-android-debug` | 1.3.0 |
+| `com.squareup.okio:okio` | 3.10.2 |
+| `com.squareup.okio:okio-jvm` | 3.10.2 |
+| `io.github.jan-tennert.supabase:auth-kt-android-debug` | 3.1.0 |
+| `io.github.jan-tennert.supabase:postgrest-kt-android-debug` | 3.1.0 |
+| `io.github.jan-tennert.supabase:storage-kt-android-debug` | 3.1.0 |
+| `io.github.jan-tennert.supabase:supabase-kt` | 3.1.0 |
+| `io.github.jan-tennert.supabase:supabase-kt-android-debug` | 3.1.0 |
+| `io.ktor:ktor-client-android-jvm` | 3.0.3 |
+| `io.ktor:ktor-client-content-negotiation` | 3.0.3 |
+| `io.ktor:ktor-client-content-negotiation-jvm` | 3.0.3 |
+| `io.ktor:ktor-client-core` | 3.0.3 |
+| `io.ktor:ktor-client-core-jvm` | 3.0.3 |
+| `io.ktor:ktor-events` | 3.0.3 |
+| `io.ktor:ktor-events-jvm` | 3.0.3 |
+| `io.ktor:ktor-http` | 3.0.3 |
+| `io.ktor:ktor-http-jvm` | 3.0.3 |
+| `io.ktor:ktor-io` | 3.0.3 |
+| `io.ktor:ktor-io-jvm` | 3.0.3 |
+| `io.ktor:ktor-serialization` | 3.0.3 |
+| `io.ktor:ktor-serialization-jvm` | 3.0.3 |
+| `io.ktor:ktor-serialization-kotlinx` | 3.0.3 |
+| `io.ktor:ktor-serialization-kotlinx-json` | 3.0.3 |
+| `io.ktor:ktor-serialization-kotlinx-json-jvm` | 3.0.3 |
+| `io.ktor:ktor-serialization-kotlinx-jvm` | 3.0.3 |
+| `io.ktor:ktor-sse` | 3.0.3 |
+| `io.ktor:ktor-sse-jvm` | 3.0.3 |
+| `io.ktor:ktor-utils` | 3.0.3 |
+| `io.ktor:ktor-utils-jvm` | 3.0.3 |
+| `io.ktor:ktor-websocket-serialization` | 3.0.3 |
+| `io.ktor:ktor-websocket-serialization-jvm` | 3.0.3 |
+| `io.ktor:ktor-websockets` | 3.0.3 |
+| `io.ktor:ktor-websockets-jvm` | 3.0.3 |
+| `org.jetbrains.kotlin:kotlin-reflect` | 2.1.10 |
+| `org.jetbrains.kotlinx:atomicfu` | 0.27.0 |
+| `org.jetbrains.kotlinx:atomicfu-jvm` | 0.27.0 |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-slf4j` | 1.10.1 |
+| `org.jetbrains.kotlinx:kotlinx-datetime` | 0.6.1 |
+| `org.jetbrains.kotlinx:kotlinx-datetime-jvm` | 0.6.1 |
+| `org.jetbrains.kotlinx:kotlinx-io-bytestring` | 0.5.4 |
+| `org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm` | 0.5.4 |
+| `org.jetbrains.kotlinx:kotlinx-io-core` | 0.5.4 |
+| `org.jetbrains.kotlinx:kotlinx-io-core-jvm` | 0.5.4 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-bom` | 1.7.3 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-core` | 1.7.3 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-core-jvm` | 1.7.3 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-json-io` | 1.7.3 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm` | 1.7.3 |
+| `org.jetbrains.kotlinx:kotlinx-serialization-json-jvm` | 1.7.3 |
+| `org.kotlincrypto:secure-random` | 0.3.2 |
+| `org.kotlincrypto:secure-random-jvm` | 0.3.2 |
+| `org.slf4j:slf4j-api` | 2.0.16 |
+
+### Push
+
+Benachrichtigungen ueber neue Workouts und Rangwechsel. Unvermeidlich fuer Push: eine Meldung an eine geschlossene App muss ueber den System-Kanal, und der ist unter Android Firebase Cloud Messaging.
+
+**Selbst eingetragen:** `com.google.firebase:firebase-bom` 33.7.0, `com.google.firebase:firebase-messaging` 24.1.0
+
+**Nur dafuer im APK** (21):
+
+| Artefakt | Version |
+| --- | --- |
+| `com.google.android.datatransport:transport-api` | 3.1.0 |
+| `com.google.android.datatransport:transport-backend-cct` | 3.1.9 |
+| `com.google.android.datatransport:transport-runtime` | 3.1.9 |
+| `com.google.android.gms:play-services-cloud-messaging` | 17.2.0 |
+| `com.google.android.gms:play-services-stats` | 17.0.2 |
+| `com.google.firebase:firebase-annotations` | 16.2.0 |
+| `com.google.firebase:firebase-common` | 21.0.0 |
+| `com.google.firebase:firebase-common-ktx` | 21.0.0 |
+| `com.google.firebase:firebase-components` | 18.0.0 |
+| `com.google.firebase:firebase-datatransport` | 18.2.0 |
+| `com.google.firebase:firebase-encoders` | 17.0.0 |
+| `com.google.firebase:firebase-encoders-json` | 18.0.0 |
+| `com.google.firebase:firebase-encoders-proto` | 16.0.0 |
+| `com.google.firebase:firebase-iid-interop` | 17.1.0 |
+| `com.google.firebase:firebase-installations` | 18.0.0 |
+| `com.google.firebase:firebase-installations-interop` | 17.1.1 |
+| `com.google.firebase:firebase-measurement-connector` | 19.0.0 |
+| `javax.inject:javax.inject` | 1 |
+| `org.jetbrains.kotlin:kotlin-stdlib-jdk7` | 1.8.22 |
+| `org.jetbrains.kotlin:kotlin-stdlib-jdk8` | 1.8.22 |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-play-services` | 1.10.1 |
+
+### Health Connect
+
+Schrittzahl und Puls aus der Gesundheitsdatenbank des Geraets. Unvermeidlich: der Zugriff laeuft ueber einen Systemdienst, nicht ueber eine offene Schnittstelle.
+
+**Selbst eingetragen:** `androidx.health.connect:connect-client` 1.1.0
+
+**Nur dafuer im APK** (9):
+
+| Artefakt | Version |
+| --- | --- |
+| `androidx.health.connect:connect-client-external-protobuf` | 1.1.0 |
+| `androidx.health.connect:connect-client-proto` | 1.1.0 |
+| `com.google.code.findbugs:jsr305` | 3.0.2 |
+| `com.google.guava:failureaccess` | 1.0.1 |
+| `com.google.guava:guava` | 31.1-android |
+| `com.google.j2objc:j2objc-annotations` | 1.3 |
+| `org.checkerframework:checker-qual` | 3.12.0 |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-guava` | 1.10.1 |
+| `org.jspecify:jspecify` | 1.0.0 |
+
+### Uhr
+
+Die Verbindung zwischen Uhr und Telefon (Wearable Data Layer). Unvermeidlich: Wear OS bietet keine andere Schnittstelle.
+
+**Selbst eingetragen:** `com.google.android.gms:play-services-wearable` 18.2.0
+
+Bringt nichts mit, was nicht ohnehin gebraucht wuerde.
+
+### QR-Codes
+
+Der Crew-Code als QR zum Teilen und Scannen. Android bringt weder Erzeuger noch Leser mit.
+
+**Selbst eingetragen:** `com.journeyapps:zxing-android-embedded` 4.3.0, `com.google.zxing:core` 3.5.3
+
+Bringt nichts mit, was nicht ohnehin gebraucht wuerde.
+
+### Kotlin
+
+Die Standardbibliothek der Sprache. Nicht selbst eingetragen - das Kotlin-Plugin fuegt sie jedem Modul hinzu.
+
+**Selbst eingetragen:** `org.jetbrains.kotlin:kotlin-stdlib` 2.2.10
+
+Bringt nichts mit, was nicht ohnehin gebraucht wuerde.
+
+### Geteilte Grundlagen
+
+Diese 46 Artefakte werden von mehreren Kategorien gebraucht. Sie liessen
+sich also nicht einsparen, indem man eine einzelne Kategorie streicht.
+
+| Artefakt | Version | Gebraucht von |
+| --- | --- | --- |
+| `androidx.activity:activity` | 1.8.0 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.annotation:annotation` | 1.8.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.annotation:annotation-experimental` | 1.4.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.annotation:annotation-jvm` | 1.8.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.arch.core:core-common` | 2.2.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.arch.core:core-runtime` | 2.2.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.collection:collection` | 1.1.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.concurrent:concurrent-futures` | 1.1.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.core:core` | 1.13.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.core:core-ktx` | 1.13.0 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.customview:customview` | 1.1.0 | Oberflaeche, Push, Uhr |
+| `androidx.documentfile:documentfile` | 1.0.0 | Oberflaeche, Push |
+| `androidx.fragment:fragment` | 1.3.6 | Oberflaeche, Push, Uhr |
+| `androidx.interpolator:interpolator` | 1.0.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.legacy:legacy-support-core-utils` | 1.0.0 | Oberflaeche, Push |
+| `androidx.lifecycle:lifecycle-common` | 2.8.7 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-common-jvm` | 2.8.7 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-livedata` | 2.8.7 | Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-livedata-core` | 2.8.7 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-livedata-core-ktx` | 2.8.7 | Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-process` | 2.8.7 | Backend, Oberflaeche |
+| `androidx.lifecycle:lifecycle-runtime` | 2.8.7 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-runtime-android` | 2.8.7 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-viewmodel` | 2.8.7 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-viewmodel-android` | 2.8.7 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.lifecycle:lifecycle-viewmodel-savedstate` | 2.8.7 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.loader:loader` | 1.0.0 | Oberflaeche, Push, Uhr |
+| `androidx.localbroadcastmanager:localbroadcastmanager` | 1.0.0 | Oberflaeche, Push |
+| `androidx.print:print` | 1.0.0 | Oberflaeche, Push |
+| `androidx.profileinstaller:profileinstaller` | 1.3.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.savedstate:savedstate` | 1.2.1 | Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.startup:startup-runtime` | 1.2.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.tracing:tracing` | 1.0.0 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.versionedparcelable:versionedparcelable` | 1.1.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `androidx.viewpager:viewpager` | 1.0.0 | Oberflaeche, Push, Uhr |
+| `com.google.android.gms:play-services-base` | 18.5.0 | Push, Uhr |
+| `com.google.android.gms:play-services-basement` | 18.4.0 | Push, Uhr |
+| `com.google.android.gms:play-services-tasks` | 18.2.0 | Push, Uhr |
+| `com.google.errorprone:error_prone_annotations` | 2.26.0 | Health Connect, Oberflaeche, Push |
+| `com.google.guava:listenablefuture` | 9999.0-empty-to-avoid-conflict-with-guava | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `org.jetbrains.kotlin:kotlin-stdlib` | 2.2.10 | Backend, Health Connect, Kotlin, Oberflaeche, Push, Uhr |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-android` | 1.10.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-bom` | 1.10.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-core` | 1.10.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm` | 1.10.1 | Backend, Health Connect, Oberflaeche, Push, Uhr |
+| `org.jetbrains:annotations` | 23.0.0 | Backend, Health Connect, Kotlin, Oberflaeche, Push, Uhr |
+
+---
+
+## 3. Was jede Bibliothek einzeln mitbringt
 
 ### `org.jetbrains.kotlin:kotlin-stdlib` 2.2.10
 
@@ -924,7 +1180,7 @@ Verbindung zur Uhr. Unvermeidlich: Wear OS bietet keine andere Schnittstelle.
 
 ---
 
-## 3. Das Uhr-Modul
+## 4. Das Uhr-Modul
 
 Die Uhr traegt fuenf Bibliotheken ein, alle auch im Telefon-Modul. Ihr APK
 bleibt mit 53 Artefakten deutlich kleiner - Supabase, Firebase, ZXing und

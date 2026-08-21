@@ -1,6 +1,7 @@
 package com.example.mobilese
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.AdvertiseCallback
 import android.bluetooth.le.AdvertiseData
@@ -49,7 +50,7 @@ class PartnerBeacon(
     private val context: Context,
     private val ownUserId: String,
     private val members: List<UserProfile>,
-    private val onFound: (UserProfile) -> Unit,
+    private val onFound: (UserProfile, BluetoothDevice) -> Unit,
     private val onProblem: (Int) -> Unit
 ) {
 
@@ -77,7 +78,9 @@ class PartnerBeacon(
                 ?: return
 
             val member = CoLocation.memberFor(payload, members, ownUserId) ?: return
-            if (seen.add(member.id)) onFound(member)
+            // Das Geraet wandert mit: ohne seine Adresse laesst sich spaeter
+            // keine Verbindung dorthin aufbauen.
+            if (seen.add(member.id)) onFound(member, result.device)
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -157,7 +160,10 @@ class PartnerBeacon(
         val settings = AdvertiseSettings.Builder()
             .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
             .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-            .setConnectable(false)
+            // Verbindbar: die Werbung ist nur der erste Schritt. Wer
+            // angetippt wird, muss danach eine Verbindung annehmen koennen -
+            // sonst bliebe es beim Finden.
+            .setConnectable(true)
             .build()
 
         // Der Geraetename bleibt draussen: er waere der laengste Teil des

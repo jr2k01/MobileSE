@@ -514,9 +514,10 @@
     <string name="together_with">With my crew</string>
     <string name="partner_title">Find your crew</string>
     <string name="partner_searching">Searching for crew mates nearby…</string>
-    <string name="partner_hint">The other phone has to be on this screen too. Hold them close together.</string>
+    <string name="partner_hint">The other phone has to be on this screen too. Hold them close together, and let only one of you tap.</string>
     <string name="partner_none_yet">Nobody found yet.</string>
-    <string name="partner_pick">Tap whoever you are training with.</string>
+    <string name="partner_pick">Tap whoever you are training with. Only one of you taps — the other just waits.</string>
+    <string name="partner_incoming">Someone from your crew is connecting to you…</string>
     <string name="partner_skip">Train on my own instead</string>
     <string name="partner_chosen">Training with %s — double points</string>
     <string name="partner_banner">Double points: training with %s</string>
@@ -526,6 +527,38 @@
     <string name="partner_scan_failed">The search could not be started.</string>
     <string name="partner_permission_missing">Without access to nearby devices CrewFit cannot find your crew.</string>
     <string name="partner_no_crew">Only members of your crew can be found.</string>
+    <string name="partner_connecting">Connecting…</string>
+    <string name="partner_connected">Connected with %s</string>
+    <string name="partner_lost">The connection was lost.</string>
+    <string name="partner_link_failed">Could not connect. Try again.</string>
+    <string name="partner_pairing">Pairing… confirm on both devices.</string>
+    <string name="partner_pair_failed">Pairing did not work. Tap the name again to retry.</string>
+
+    <!--
+        Das laufende gemeinsame Training. Die Uhr laeuft, solange die
+        Verbindung steht; reisst sie ab, haelt sie an.
+    -->
+    <string name="session_with">Training with %s</string>
+    <string name="session_timer_zero">00:00</string>
+    <string name="session_pick_sport">Pick the sport, then start.</string>
+    <string name="session_wait_sport">%s is picking the sport.</string>
+    <string name="session_wait_start">Waiting for %s to start.</string>
+    <string name="session_running">The clock is running. Stop when you are done.</string>
+    <string name="session_running_follower">The clock is running. %s stops it.</string>
+    <string name="session_start">Start workout</string>
+    <string name="session_stop">Finish workout</string>
+    <string name="session_reconnect">Connect again</string>
+    <string name="session_disconnected">The connection dropped — the clock has stopped. Connect again to carry on.</string>
+    <string name="session_need_sport">Pick a sport first.</string>
+
+    <!--
+        Ein gemeinsam absolviertes Workout, wie es die ganze Crew sieht. Der
+        Platzhalter nimmt alle Beteiligten auf, durch Komma getrennt - auch den
+        Verfasser selbst, damit die Gruppe vollstaendig dasteht.
+    -->
+    <string name="joint_workout_badge">Trained together</string>
+    <string name="joint_workout_with">Together: %s</string>
+    <string name="joint_workout_desc">Trained together with %s</string>
     <string name="permission_status_granted">Allowed. Tap to manage in the system settings.</string>
     <string name="permission_status_denied">Not allowed. Tap to allow.</string>
     <string name="gallery_permission_denied">CrewFit needs access to your photos to pick a picture</string>

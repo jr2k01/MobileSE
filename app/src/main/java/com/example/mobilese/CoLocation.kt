@@ -40,6 +40,17 @@ object CoLocation {
      */
     val SERVICE_UUID: UUID = UUID.fromString("0000c7f1-0000-1000-8000-00805f9b34fb")
 
+    /**
+     * Das Merkmal, in das der Verbindende seine Kennung schreibt.
+     *
+     * Die Werbung sagt nur "hier ist jemand". Erst dieser Schreibvorgang ueber
+     * eine echte Verbindung macht daraus eine Kopplung: Der Angetippte erfaehrt
+     * dadurch, **wer** sich verbunden hat - aus der Werbung allein weiss er es
+     * nicht, denn er hoert sie zwar, kann sie aber niemandem zuordnen, der
+     * gerade auf ihn zugeht.
+     */
+    val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000c7f2-0000-1000-8000-00805f9b34fb")
+
     /** So viele Byte der Nutzerkennung reisen mit. */
     const val PAYLOAD_BYTES = 8
 

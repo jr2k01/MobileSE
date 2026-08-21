@@ -63,7 +63,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         private const val STATE_LATITUDE = "latitude"
         private const val STATE_LONGITUDE = "longitude"
         private const val STATE_PENDING_AT = "pending_at_state"
-        private const val STATE_PARTNER_ID = "partner_id_state"
+        private const val STATE_PARTNER_IDS = "partner_ids_state"
     }
 
     private lateinit var repository: AppRepository
@@ -140,19 +140,52 @@ class WorkoutTrackingActivity : AppCompatActivity() {
     // --- Gemeinsames Training ---
 
     /**
-     * Das Crew-Mitglied, mit dem trainiert wird, oder null fuer allein.
+     * Wer mittrainiert hat - leer, wenn allein.
      *
      * Ueberlebt das Drehen des Geraets: die Kopplung war ein eigener
      * Bildschirm und womoeglich ein Weg quer durch den Raum - sie noch einmal
      * zu verlangen, waere die schlechteste Antwort auf eine Drehung.
      */
-    private var partnerId: String? = null
+    private var partnerIds: List<String> = emptyList()
 
     private val pickPartner =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            partnerId = TrainingPartnerActivity.partnerIdFrom(result.data)
+            if (TrainingPartnerActivity.isJoint(result.data)) {
+                partnerIds = JointSession.partners.map { it.id }
+            }
+            applyJointSession()
             showPartnerBanner()
         }
+
+    /**
+     * Uebernimmt ein gemeinsam absolviertes Training in das Formular.
+     *
+     * Sportart und Dauer stehen dann fest: die eine hat der Fuehrende
+     * gewaehlt, die andere hat die Uhr gemessen. Beide Felder werden gesperrt -
+     * waeren sie aenderbar, koennte einer der beiden hinterher etwas anderes
+     * eintragen als tatsaechlich zusammen trainiert wurde.
+     *
+     * Alles Weitere - Foto, Sprachnotiz, Ort - traegt jeder fuer sich ein,
+     * wann und wo er will. Die Verbindung wird dafuer nicht mehr gebraucht.
+     */
+    private fun applyJointSession() {
+        if (!JointSession.isFinished()) return
+
+        val sport = JointSession.sport
+        val minutes = JointSession.seconds?.let { it / 60 }
+
+        if (sport != null) {
+            selectedSport = sport
+            findViewById<EditText>(R.id.etSport).setText(sport)
+            findViewById<TextInputLayout>(R.id.tilSport).isEnabled = false
+            findViewById<View>(R.id.tilDistance).visibility =
+                if (Sports.tracksDistance(sport)) View.VISIBLE else View.GONE
+        }
+        if (minutes != null) {
+            findViewById<EditText>(R.id.etDuration).setText(minutes.toString())
+            findViewById<TextInputLayout>(R.id.tilDuration).isEnabled = false
+        }
+    }
 
     /**
      * Die erste Frage: allein oder zu zweit.
@@ -185,17 +218,23 @@ class WorkoutTrackingActivity : AppCompatActivity() {
      */
     private fun showPartnerBanner() {
         val banner = findViewById<TextView>(R.id.tvPartnerBanner)
-        val id = partnerId
-        if (id == null) {
+        if (partnerIds.isEmpty()) {
             banner.visibility = View.GONE
             return
         }
 
         banner.visibility = View.VISIBLE
         lifecycleScope.launch {
-            val name = repository.getProfileById(id)?.let { DisplayName.of(it) }
-                ?: getString(R.string.unknown_member)
-            banner.text = getString(R.string.partner_banner, name)
+            // Die Namen stehen meist schon in der Sitzung; nur wenn die nach
+            // einer Drehung weg ist, werden sie nachgeladen.
+            val names = partnerIds.map { id ->
+                JointSession.partners.firstOrNull { it.id == id }
+                    ?: repository.getProfileById(id)
+            }.map { profile ->
+                profile?.let { DisplayName.of(it) }?.ifEmpty { null }
+                    ?: getString(R.string.unknown_member)
+            }
+            banner.text = getString(R.string.partner_banner, names.joinToString(", "))
         }
     }
 
@@ -210,8 +249,8 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         // Nur beim ersten Aufbau fragen. Nach dem Drehen des Geraets stuende
         // der Dialog sonst wieder da, obwohl die Frage laengst beantwortet
         // ist - und die Antwort waere verloren.
-        if (savedInstanceState == null) askIfTrainingTogether()
-        partnerId = savedInstanceState?.getString(STATE_PARTNER_ID)
+        if (savedInstanceState == null && !JointSession.isFinished()) askIfTrainingTogether()
+        partnerIds = savedInstanceState?.getStringArrayList(STATE_PARTNER_IDS).orEmpty()
         showPartnerBanner()
 
         val etSport = findViewById<EditText>(R.id.etSport)
@@ -276,7 +315,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         // Die Kopplung war ein eigener Bildschirm und womoeglich ein Weg quer
         // durch den Raum. Sie nach einer Drehung noch einmal zu verlangen,
         // waere die schlechteste aller Antworten.
-        outState.putString(STATE_PARTNER_ID, partnerId)
+        outState.putStringArrayList(STATE_PARTNER_IDS, ArrayList(partnerIds))
     }
 
     private fun restoreState(
@@ -526,14 +565,18 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 longitude = pickedLongitude,
                 avgHeartRate = watchAvgHeartRate ?: beats?.average,
                 maxHeartRate = watchMaxHeartRate ?: beats?.max,
-                // Wurde zu zweit trainiert, zaehlt das Workout doppelt. Die
-                // Kennung wird mitgespeichert und nicht nur ein Ja/Nein: so
-                // steht spaeter noch da, mit wem - und die Verdopplung laesst
-                // sich nachvollziehen.
-                partnerId = partnerId
+                // Wurde gemeinsam trainiert, zaehlt das Workout doppelt. Die
+                // Kennungen werden mitgespeichert und nicht nur ein Ja/Nein:
+                // so steht spaeter noch da, mit wem - und die ganze Crew sieht
+                // es unter dem Eintrag.
+                partnerIds = partnerIds
             )
 
             if (saved) {
+                // Das gemeinsame Training ist abgeschlossen - die Verbindung
+                // wird nicht mehr gebraucht und wuerde sonst weiter Akku
+                // ziehen.
+                JointSession.clear()
                 // Erst jetzt aus der Warteschlange nehmen: waere es vorher
                 // geschehen und der Upload gescheitert, waere das Workout weg.
                 pendingEndedAt?.let { PendingWorkouts.remove(this@WorkoutTrackingActivity, it) }

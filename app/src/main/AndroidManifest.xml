@@ -35,6 +35,9 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <!-- Fuer die eigentliche Verbindung: Server oeffnen und sich verbinden.
+         Vor Android 12 deckte BLUETOOTH das mit ab. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 

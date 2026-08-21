@@ -112,7 +112,9 @@ enum class AppPermission(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(
                 Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADVERTISE
+                Manifest.permission.BLUETOOTH_ADVERTISE,
+                // Fuer die Verbindung selbst, nicht nur fuers Finden.
+                Manifest.permission.BLUETOOTH_CONNECT
             )
         } else {
             // Vor Android 12 verlangte das System fuer jeden Bluetooth-

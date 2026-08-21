@@ -235,26 +235,43 @@ Workout hat stattgefunden, und die App zeigt fuer eine unbekannte Kennung
 schlicht "Unknown" an, statt einen Namen zu erfinden oder die Zeile
 wegzulassen.
 
+Frueher stand hier eine einzelne Spalte `partner_id`. Das Skript unten laeuft
+in beiden Faellen durch: der `do`-Block sieht erst nach, ob es sie gibt, und
+uebernimmt nur dann ihren Inhalt. Ein blosses `update` auf `partner_id` waere
+in einem Projekt, in dem sie nie angelegt wurde, ein Fehler auf eine unbekannte
+Spalte - und weil der SQL-Editor das ganze Skript als eine Transaktion
+ausfuehrt, waere damit auch die neue Spalte wieder weg gewesen.
+
 ```sql
--- Frueher stand hier eine einzelne Spalte partner_id. Wer sie schon angelegt
--- hat, uebernimmt ihren Inhalt; wer nicht, bekommt nur die neue Spalte. Beides
--- laeuft ohne Fehler durch.
 alter table activities add column if not exists partner_ids uuid[];
 
-update activities
-   set partner_ids = array[partner_id]
- where partner_ids is null
-   and partner_id is not null;
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'activities' and column_name = 'partner_id'
+  ) then
+    update activities
+       set partner_ids = array[partner_id]
+     where partner_ids is null
+       and partner_id is not null;
 
-alter table activities drop column if exists partner_id;
+    alter table activities drop column partner_id;
+  end if;
+end $$;
+```
+
+Zur Kontrolle - erwartet wird genau eine Zeile, `partner_ids | ARRAY`:
+
+```sql
+select column_name, data_type
+  from information_schema.columns
+ where table_name = 'activities'
+   and column_name like 'partner%';
 ```
 
 Ohne diese Spalte laeuft die App weiter: das Workout wird dann ohne die
 Beteiligten gespeichert und zaehlt einfach.
-
-> Laeuft das Skript in einem Projekt, in dem es `partner_id` nie gab, meldet
-> Postgres beim `update` einen Fehler auf die unbekannte Spalte. Dann nur die
-> erste Zeile ausfuehren - die uebrigen beiden sind reines Aufraeumen.
 
 ## Tabellen fuer Reaktionen und Kommentare
 

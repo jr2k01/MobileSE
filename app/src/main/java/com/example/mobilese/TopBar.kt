@@ -38,3 +38,32 @@ fun AppCompatActivity.setUpTopBar(
     if (actionDescription != 0) action.contentDescription = getString(actionDescription)
     action.setOnClickListener { onAction() }
 }
+
+/**
+ * Setzt statt eines festen Titels das eigene Profil in die Kopfzeile.
+ *
+ * Der "Me"-Reiter ist der einzige Bildschirm, der von einer bestimmten Person
+ * handelt - der eigenen. Dort "Me" zu schreiben sagt weniger als das eigene
+ * Bild und der eigene Name, und es ist derselbe Kopf, den die anderen von
+ * einem sehen.
+ *
+ * Fehlt das Bild, bleibt der Kreis mit dem Platzhalter stehen: er haelt die
+ * Stelle, an der das Bild sein wird, sobald eines hochgeladen ist. Ist auch
+ * kein Name gesetzt, bleibt der uebergebene Titel stehen - eine leere
+ * Kopfzeile waere schlechter als ein allgemeines Wort.
+ */
+fun AppCompatActivity.showProfileInTopBar(profile: UserProfile?) {
+    val holder = findViewById<View>(R.id.cvTopBarAvatar) ?: return
+    if (profile == null) return
+
+    holder.visibility = View.VISIBLE
+    ImageLoader.into(
+        findViewById(R.id.ivTopBarAvatar),
+        profile.avatarUrl,
+        circular = true,
+        placeholder = R.drawable.ic_image
+    )
+
+    val name = DisplayName.of(profile)
+    if (name.isNotBlank()) findViewById<TextView>(R.id.tvTopBarTitle).text = name
+}

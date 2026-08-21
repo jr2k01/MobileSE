@@ -41,6 +41,41 @@
         app:layout_constraintBottom_toBottomOf="@id/btnTopBarBack"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!--
+        Platz fuer ein Bild links vom Titel, etwa das eigene Profilbild im
+        "Me"-Reiter. Wie die Aktion rechts standardmaessig weg - die meisten
+        Unterseiten zeigen einen Titel und sonst nichts.
+    -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cvTopBarAvatar"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:visibility="gone"
+        app:cardCornerRadius="18dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="2dp"
+        app:strokeColor="?attr/colorPrimaryContainer"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHighest"
+        app:layout_constraintBottom_toBottomOf="@id/btnTopBarBack"
+        app:layout_constraintStart_toEndOf="@id/btnTopBarBack"
+        app:layout_constraintTop_toTopOf="@id/btnTopBarBack">
+
+        <!--
+            Ohne app:tint. Die Faerbung bliebe auf dem geladenen Foto liegen und
+            machte aus ihm eine einfarbige Flaeche - genau das war beim ersten
+            Versuch auf dem Tablet zu sehen. Dieselbe Bauart wie die
+            Mitglieder-Kreise im Startbildschirm.
+        -->
+        <ImageView
+            android:id="@+id/ivTopBarAvatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/profile_desc"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_image" />
+    </com.google.android.material.card.MaterialCardView>
+
     <TextView
         android:id="@+id/tvTopBarTitle"
         android:layout_width="0dp"
@@ -53,6 +88,6 @@
         android:textColor="?attr/colorOnSurface"
         app:layout_constraintBottom_toBottomOf="@id/btnTopBarBack"
         app:layout_constraintEnd_toStartOf="@id/btnTopBarAction"
-        app:layout_constraintStart_toEndOf="@id/btnTopBarBack"
+        app:layout_constraintStart_toEndOf="@id/cvTopBarAvatar"
         app:layout_constraintTop_toTopOf="@id/btnTopBarBack" />
 </androidx.constraintlayout.widget.ConstraintLayout>

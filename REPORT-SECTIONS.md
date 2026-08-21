@@ -130,6 +130,12 @@ Dates are the commit dates in the Git repository.
 | 12.15 | 2026-08-20 | The challenges tab makes way for a personal "Me" screen: points, level, streak, workouts filterable by crew, medals. Running challenges moved to the home screen, creating them to the crew screen | Everything personal in one place, across all crews | Lint caught two ids missing from the tablet-landscape layout — `findViewById` would have returned null and crashed there |
 | 13.0 | 2026-08-20 | Wear OS app as its own module: pick a sport on the watch, it counts the time and reads the heart rate, the phone finishes the entry | A workout can be started without carrying the phone | The watch and the phone must share an `applicationId`, or the system does not treat them as one app |
 | 13.1 | 2026-08-20 | A workout from the watch can be discarded with a long press | Starting the watch by accident no longer forces an entry | Until then the card could only leave the queue by being logged |
+| 14.0 | 2026-08-21 | Co-location over Bluetooth Low Energy, written against the platform API: each phone advertises an 8-byte identifier under a 16-bit service UUID and scans for the others. Only members of the same crew are shown | Double points can no longer be claimed by typing a name — the phones have to be in the same room | The identifier had to be shortened to 8 bytes and the service UUID to its 16-bit form: an advertising packet holds 31 bytes, and a full 128-bit UUID alone eats 16 of them |
+| 14.1 | 2026-08-21 | Not just discovery but a real connection: `createBond()` for system-level pairing, then a GATT link over which the phones exchange their identifiers | "Paired" now means what it says — the pairing is visible in the Android Bluetooth settings and can be undone there | Android's GATT stack processes one operation at a time. `requestMtu()` followed straight away by `discoverServices()` looks like it works and drops the link seconds later; the second call has to wait for `onMtuChanged` |
+| 14.2 | 2026-08-21 | The joint workout is timed instead of typed: one picks the sport, both see a running clock, and whoever stops it stops it for everyone. Sport and duration are then locked in the form | Two people who trained together cannot end up filing two different workouts | The clock stops when the connection drops and carries on when it is back. Photo, place and voice note are filled in afterwards, each for themselves — the connection is not needed for that |
+| 14.3 | 2026-08-21 | Group training: any number of phones can join one session. The one who connects broadcasts the roster so every device knows the whole group | A third person no longer has to be left out of a run | Still double points and not triple: the multiplier rewards training together, not the size of the group |
+| 14.4 | 2026-08-21 | A joint workout is marked as such for the whole crew — the participants are named in the crew feed and in the workout, and the history marks the row with an icon | The point of training together is that the crew sees it | `Activity.partner_id` became `partner_ids uuid[]`. Postgres cannot put a foreign key on array elements, so a departed member shows as "Unknown" rather than the row vanishing |
+| 14.5 | 2026-08-21 | The "Me" tab carries one's own picture and short name in its header instead of the word "Me" | The screen that is about you looks like it | Built into the shared top bar next to the existing action slot, so it is available to any screen and the sub-screens stay identical |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from
@@ -157,6 +163,9 @@ app, and several were caused by it as well.
 | 10 | throughout | The assistant proposed features we did not ask for (a second ring, weekly trends, more medals). | Suggestions listed at the end of each change. | We picked what fitted the course scope and rejected the rest. Keeping the decision on our side mattered: the assistant will happily grow the app indefinitely. |
 | 11 | 12.3 | We asked for an "Allow access to gallery?" prompt, so that picking a picture behaves like the camera, the microphone and the location. | The assistant advised against it: the system picker hands the app exactly one file and needs no permission at all, whereas `READ_MEDIA_IMAGES` asks for every photo on the device. It recommended keeping the picker as it was. | We overruled it — for the people using the app, one rule for all media is worth more than the smaller scope, and the inconsistency was what we had noticed in testing. The assistant then implemented it with the Android 14 partial access (`READ_MEDIA_VISUAL_USER_SELECTED`), so single pictures can be released instead of the whole gallery. Worth recording as the case where the assistant's objection was technically sound and we still decided against it. |
 | 12 | 12.2 | Asked for permissions that can be "managed manually at any time" in the settings. | The assistant stated plainly that an app cannot revoke its own permission, and built the row so that a granted permission opens the system settings instead. | Accepted. The alternative would have been a switch that silently does nothing when turned off. |
+| 13 | 14.1 | **AI-caused.** After the Bluetooth link was rebuilt for real pairing, the connection dropped a few seconds after every connect. | The assistant first suspected distance and radio interference. | Wrong twice over, and both causes were its own: it had put `discoverServices()` directly after `requestMtu()`, and it confirmed the partner before the connection existed. We made it read the logcat of *both* devices instead of guessing — status 22 on one side and 133 on the other showed the local host was terminating the link. |
+| 14 | 14.1 | Pairing worked sometimes and sometimes not; occasionally a tap led straight to the workout screen with no pairing at all. | The assistant looked for the fault in the connection code. | The cause was in how we used it: both of us were tapping the other's name, so two connection attempts crossed. Timo found this himself. The assistant then locked the list as soon as an incoming connection arrives and added the hint "Only one of you taps" — the fix was interface, not protocol. |
+| 15 | 14.2 | We asked for the joint workout to be checked at upload: same place, similar distance. | The assistant built the location comparison. | We dropped it ourselves after testing: two people finish a run and file it at different times from different places, and the check punished exactly the normal case. What remained is the part that matters — whoever stops the clock stops it for everyone. Recorded here as a feature we removed after seeing it work. |
 
 **Working style, and how it changed.** In the first weeks AI was used for
 isolated pieces of code that we pasted in. From August onwards the assistant
@@ -165,7 +174,9 @@ the emulator. That made it much faster, and it made verification the bottleneck
 rather than typing: the useful question stopped being "does it compile" and
 became "what did you actually observe". Incidents 3, 4, 6 and 8 are all cases
 where the first answer sounded plausible and was wrong, and asking for the
-evidence changed the outcome.
+evidence changed the outcome — incident 13 is the same pattern in Bluetooth,
+where the logcat of both devices settled in a minute what an hour of guessing
+had not.
 
 **[FILL IN]** — add any incidents from your own or Timo's AI use (ChatGPT for
 mockups, etc.) that are not visible in this repository.
@@ -190,6 +201,7 @@ mockups, etc.) that are not visible in this repository.
 | **Wear OS as a second module** | `wear/` — `SportChoiceActivity`, `WorkoutActivity`, `HeartRateReader`, `PhoneLink`, `WatchProtocol` | The watch is its own device with its own APK, not a second screen. It knows what only it can know — sport, duration, heart rate — and hands that over to the phone, where the camera, the keyboard and the crew are. Both modules must carry the same `applicationId`, or the system does not treat them as one app. |
 | **Wearable Data Layer** | `PhoneLink` on the watch, `WatchWorkoutService` on the phone | The workout travels as a *data item*, not as a message. A message only arrives while the phone is in range — and running without the phone is exactly what a watch is for. The item waits on the watch until the two meet again. |
 | **`SensorManager` on the watch** | `HeartRateReader` | The heart rate comes from the watch's own sensor while the workout runs. |
+| **Bluetooth Low Energy** | `CoLocation`, `PartnerLink`, `TrainingPartnerActivity`, `TrainingProtocol` | Proof that two people were actually in the same place. Advertising (`BluetoothLeAdvertiser`), scanning (`BluetoothLeScanner`), system bonding (`createBond`) and a GATT server plus client for the exchange — all from the platform API, no library. The permission model splits at API 31: `BLUETOOTH`/`BLUETOOTH_ADMIN` with `ACCESS_FINE_LOCATION` below, `BLUETOOTH_SCAN`/`_ADVERTISE`/`_CONNECT` from there on. |
 | **`SharedPreferences`** | `AppRepository` (session marker, joined crew code) | Small key-value state that must survive a process restart. |
 | **Internal storage** | `ProfileActivity.storeProfilePicture`, `WorkoutTrackingActivity` | Photos and recordings are written to app-private storage before upload. |
 | **Deep links (`intent-filter`)** | `ResetPasswordActivity` (`crewfit://reset-password`) | The password-reset link from the e-mail opens the app directly. |
@@ -285,7 +297,41 @@ hand; `Geocoder` unavailable or returning nothing → the user's own name for th
 place is used; older entries without coordinates → no map is shown rather than
 an empty frame.
 
-#### (e) Degrading gracefully when the backend schema is behind
+#### (e) Bluetooth Low Energy without a library
+
+Double points for training together are worth having only if they cannot simply
+be claimed. So the phones have to establish for themselves that they are in the
+same place, and that is the platform API and nothing else.
+
+Each phone does two things at once: it advertises an 8-byte identifier under a
+16-bit service UUID, and it scans for the same UUID. Both numbers are as small
+as they are because an advertising packet holds 31 bytes in total — a full
+128-bit UUID would take 16 of them, and the account identifier is a UUID that
+does not fit at all. `CoLocation.payloadFor` therefore sends only its upper
+half, which is enough to pick one of a handful of crew members out and is
+matched against the crew list rather than trusted on its own.
+
+Discovery alone would have been "the other phone is nearby". The devices
+therefore bond at system level (`createBond()`) and then open a GATT
+connection, over which each writes its identifier to the other. That is what
+makes the pairing real: it appears in the Android Bluetooth settings and can be
+undone there.
+
+Two things about Android's GATT stack are not obvious and cost us an evening
+each. First, it processes exactly one operation at a time — calling
+`discoverServices()` right after `requestMtu()` appears to work and then drops
+the link after a few seconds; the second call belongs in `onMtuChanged`. Second,
+a connection only counts once the write has been acknowledged in
+`onCharacteristicWrite`, not when `onConnectionStateChange` reports CONNECTED.
+Confirming earlier meant the app believed in a partner it could not yet talk to.
+
+For a group, connections are opened one after another rather than all at once,
+and whoever did the connecting broadcasts the roster — otherwise the third
+person would know the first but not the second. `TrainingProtocol` holds the
+whole message format (sport, start, stop, roster) as plain byte arrays with no
+Android imports, so it is covered by unit tests.
+
+#### (f) Degrading gracefully when the backend schema is behind
 
 Three features need database columns or tables that have to be created by hand
 in Supabase (`profiles.display_name`, `activities.latitude/longitude`,

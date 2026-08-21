@@ -16,7 +16,8 @@ object TestData {
         distance: Double = 0.0,
         intensity: WorkoutIntensity = WorkoutIntensity.HIGH,
         crewId: String = "CRW100",
-        timestamp: String = "2026-08-13T18:00:00"
+        timestamp: String = "2026-08-13T18:00:00",
+        partnerIds: List<String>? = null
     ) = Activity(
         userId = userId,
         crewId = crewId,
@@ -24,7 +25,8 @@ object TestData {
         duration = duration,
         distance = distance,
         intensity = intensity.name,
-        timestamp = timestamp
+        timestamp = timestamp,
+        partnerIds = partnerIds
     )
 
     fun challenge(

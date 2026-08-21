@@ -216,28 +216,45 @@ create policy "crews_update_by_creator" on crews
 
 ## Gemeinsames Training
 
-Wer mit jemandem aus der Crew zusammen trainiert, bekommt die doppelten
-Punkte. Die Telefone erkennen sich waehrenddessen ueber Bluetooth Low Energy;
+Wer mit anderen aus der Crew zusammen trainiert, bekommt die doppelten Punkte.
+Die Telefone erkennen sich waehrenddessen ueber Bluetooth Low Energy;
 gespeichert wird, **mit wem** - nicht bloss ein Ja oder Nein. So steht spaeter
-noch da, worauf die Verdopplung beruht.
+noch da, worauf die Verdopplung beruht, und die ganze Crew sieht unter dem
+Eintrag, wer dabei war.
 
-`on delete set null` und nicht `cascade`: verlaesst der Trainingspartner die
-App, soll das eigene Workout bleiben. Es zaehlt dann wieder einfach - die
-Verdopplung haengt daran, dass die Kennung dasteht.
+Eine Liste und keine einzelne Kennung: trainiert eine Gruppe von fuenf
+zusammen, muss jeder die vier anderen eintragen koennen. Mit einer einzelnen
+Spalte waeren drei von ihnen nirgends vermerkt gewesen - genau das, was
+niemanden ausschliessen sollte. Die Verdopplung bleibt trotzdem eine
+Verdopplung; die Laenge der Liste aendert daran nichts.
+
+Kein Fremdschluessel auf `profiles`: Postgres kennt keinen Fremdschluessel auf
+die Elemente eines Arrays. Verlaesst also jemand die App, bleibt seine Kennung
+in fremden Workouts stehen. Das ist hier das gewuenschte Verhalten - das
+Workout hat stattgefunden, und die App zeigt fuer eine unbekannte Kennung
+schlicht "Unknown" an, statt einen Namen zu erfinden oder die Zeile
+wegzulassen.
 
 ```sql
-alter table activities add column if not exists partner_id uuid;
+-- Frueher stand hier eine einzelne Spalte partner_id. Wer sie schon angelegt
+-- hat, uebernimmt ihren Inhalt; wer nicht, bekommt nur die neue Spalte. Beides
+-- laeuft ohne Fehler durch.
+alter table activities add column if not exists partner_ids uuid[];
 
-alter table activities
-drop constraint if exists activities_partner_id_fkey,
-add constraint activities_partner_id_fkey
-  foreign key (partner_id)
-  references profiles(id)
-  on delete set null;
+update activities
+   set partner_ids = array[partner_id]
+ where partner_ids is null
+   and partner_id is not null;
+
+alter table activities drop column if exists partner_id;
 ```
 
-Ohne diese Spalte laeuft die App weiter: das Workout wird dann ohne Partner
-gespeichert und zaehlt einfach.
+Ohne diese Spalte laeuft die App weiter: das Workout wird dann ohne die
+Beteiligten gespeichert und zaehlt einfach.
+
+> Laeuft das Skript in einem Projekt, in dem es `partner_id` nie gab, meldet
+> Postgres beim `update` einen Fehler auf die unbekannte Spalte. Dann nur die
+> erste Zeile ausfuehren - die uebrigen beiden sind reines Aufraeumen.
 
 ## Tabellen fuer Reaktionen und Kommentare
 

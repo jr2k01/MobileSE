@@ -170,6 +170,36 @@
                         android:textColor="?attr/colorOnSurface" />
                 </LinearLayout>
 
+                <!--
+                    Wer zusammen trainiert hat. Nur da, wenn es eine Gruppe war;
+                    ein allein absolviertes Workout soll nicht mit einer leeren
+                    Zeile so aussehen, als fehlte etwas.
+                -->
+                <LinearLayout
+                    android:id="@+id/llDetailTogether"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_group"
+                        app:tint="?attr/colorSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvDetailTogether"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="?attr/colorSecondary" />
+                </LinearLayout>
+
                 <!-- Ort -->
                 <LinearLayout
                     android:id="@+id/llDetailLocation"

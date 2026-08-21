@@ -642,6 +642,7 @@ class MainHubActivity : AppCompatActivity() {
                 startActivity(WorkoutDetailActivity.intent(this, activity, author))
             }
             view.findViewById<TextView>(R.id.tvLatestActivityInfo).text = activity.sport
+            showTogether(view, activity, nameById)
             view.findViewById<TextView>(R.id.tvLatestActivityTime).text =
                 ActivityTime.toDisplay(activity.timestamp)
             view.findViewById<TextView>(R.id.tvLatestActivityDuration).text =
@@ -658,6 +659,28 @@ class MainHubActivity : AppCompatActivity() {
 
             llLatestActivities.addView(view)
         }
+    }
+
+    /**
+     * Die Zeile "Together: ..." unter einem gemeinsam absolvierten Workout.
+     *
+     * Sie steht im Feed und nicht nur in der Einzelansicht, weil sie sonst
+     * niemand sieht: der Sinn des gemeinsamen Trainings ist, dass die Crew es
+     * mitbekommt. Die Namen kommen aus den ohnehin geladenen Profilen der Crew,
+     * kosten also keine zusaetzliche Abfrage.
+     */
+    private fun showTogether(view: View, activity: Activity, nameById: Map<String, String>) {
+        val row = view.findViewById<View>(R.id.llLatestActivityTogether)
+        val names = JointWorkout.participants(activity, nameById, getString(R.string.unknown_member))
+
+        if (names.isEmpty()) {
+            row.visibility = View.GONE
+            return
+        }
+
+        row.visibility = View.VISIBLE
+        view.findViewById<TextView>(R.id.tvLatestActivityTogether).text =
+            getString(R.string.joint_workout_with, names.joinToString(", "))
     }
 
     private fun toast(resId: Int) =

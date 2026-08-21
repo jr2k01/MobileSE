@@ -1023,6 +1023,17 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
+    /**
+     * Mehrere Profile auf einmal.
+     *
+     * Fuer Stellen, an denen eine Handvoll Kennungen vorliegt und daraus Namen
+     * werden sollen - etwa die Beteiligten eines gemeinsamen Workouts. Eine
+     * Schleife ueber [getProfileById] waere bei einer Gruppe von sechs sechs
+     * Abfragen fuer eine einzige Zeile Text.
+     */
+    suspend fun getProfilesByIds(userIds: List<String>): List<UserProfile> =
+        withContext(Dispatchers.IO) { selectProfiles(userIds.distinct()) }
+
     private suspend fun selectProfiles(userIds: List<String>): List<UserProfile> {
         if (userIds.isEmpty()) return emptyList()
         return try {
@@ -1442,9 +1453,11 @@ class AppRepository private constructor(context: Context) {
             val stepDaysAsync = async { selectStepDays(listOf(userId)) }
             val rewardsAsync = async { selectRewardsOf(userId) }
             val crewsAsync = async { getCrewsOf(userId) }
+            val profileAsync = async { getProfileById(userId) }
 
             PersonalSummary(
                 userId = userId,
+                profile = profileAsync.await(),
                 activities = activitiesAsync.await()
                     .sortedByDescending { ActivityTime.sortKey(it.timestamp) },
                 stepDays = stepDaysAsync.await(),
@@ -1699,7 +1712,7 @@ class AppRepository private constructor(context: Context) {
         longitude: Double? = null,
         avgHeartRate: Int? = null,
         maxHeartRate: Int? = null,
-        partnerId: String? = null
+        partnerIds: List<String> = emptyList()
     ): Boolean {
         val userId = currentUserId() ?: return false
         val crewId = getJoinedCrewCode() ?: "no_crew"
@@ -1730,22 +1743,25 @@ class AppRepository private constructor(context: Context) {
                     longitude = longitude,
                     avgHeartRate = avgHeartRate,
                     maxHeartRate = maxHeartRate,
-                    partnerId = partnerId
+                    // Leer heisst allein. Dann bleibt das Feld null und
+                    // wird - `encodeDefaults = false` - gar nicht erst
+                    // mitgeschickt.
+                    partnerIds = partnerIds.ifEmpty { null }
                 )
 
                 try {
                     client.postgrest["activities"].insert(activity)
                 } catch (e: Exception) {
-                    if (isMissingColumn(e, "partner_id")) {
+                    if (isMissingColumn(e, "partner_ids")) {
                         // Die Spalte fuer das gemeinsame Training fehlt in
                         // dieser Datenbank. Das Workout wird gespeichert, zaehlt
                         // dann aber einfach - besser als gar nicht.
                         Log.w(
                             "SupabaseDB",
-                            "Saving without the training partner, the partner_id column is " +
+                            "Saving without the training partners, the partner_ids column is " +
                                     "missing. See the documentation for the required ALTER TABLE."
                         )
-                        client.postgrest["activities"].insert(activity.copy(partnerId = null))
+                        client.postgrest["activities"].insert(activity.copy(partnerIds = null))
                         return@withContext true
                     }
                     if (isMissingColumn(e, "heart_rate")) {
@@ -2044,6 +2060,14 @@ class AppRepository private constructor(context: Context) {
  */
 data class PersonalSummary(
     val userId: String,
+    /**
+     * Das eigene Profil - Bild und Kuerzel fuer die Kopfzeile.
+     *
+     * Null, wenn es noch keines gibt. Der Bildschirm zeigt dann seinen Titel
+     * wie zuvor; ein leerer Kreis ohne Namen waere schlechter als das Wort
+     * "Me".
+     */
+    val profile: UserProfile? = null,
     /** Alle eigenen Aktivitaeten, neueste zuerst. */
     val activities: List<Activity>,
     val stepDays: List<StepDay>,

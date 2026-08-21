@@ -157,6 +157,9 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         showBadge(view, R.id.ivSummaryHasPhoto, !activity.photoUrl.isNullOrEmpty())
         showBadge(view, R.id.ivSummaryHasMap, activity.latitude != null && activity.longitude != null)
         showBadge(view, R.id.ivSummaryHasVoice, !activity.voiceUrl.isNullOrEmpty())
+        // Nur das Zeichen: in dieser schmalen Zeile waere fuer eine Gruppe von
+        // fuenf Namen kein Platz. Wer wissen will, mit wem, tippt die Zeile an.
+        showBadge(view, R.id.ivSummaryTogether, JointWorkout.isJoint(activity))
 
         view.setOnClickListener {
             startActivity(WorkoutDetailActivity.intent(this, activity, author))

@@ -115,14 +115,14 @@ data class Activity(
     @SerialName("avg_heart_rate") val avgHeartRate: Int? = null,
     @SerialName("max_heart_rate") val maxHeartRate: Int? = null,
     /**
-     * Das Crew-Mitglied, mit dem zusammen trainiert wurde - die Telefone haben
-     * sich waehrenddessen ueber Bluetooth erkannt, siehe [CoLocation]. Dann
-     * zaehlt das Workout doppelt.
+     * Wer mittrainiert hat - die Telefone haben sich waehrenddessen ueber
+     * Bluetooth gekoppelt, siehe [CoLocation]. Dann zaehlt das Workout
+     * doppelt, gleich ob zu zweit oder zu sechst.
      *
      * Null heisst allein. Der Standardwert laesst aeltere Zeilen ohne diese
      * Spalte weiterhin lesen.
      */
-    @SerialName("partner_id") val partnerId: String? = null
+    @SerialName("partner_ids") val partnerIds: List<String>? = null
 )
 
 /**

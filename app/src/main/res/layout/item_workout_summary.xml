@@ -72,6 +72,20 @@
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
 
+        <!--
+            Zeichen fuer das gemeinsame Training. Hier nur das Symbol: die
+            Zeile ist schmal, die Namen stehen in der Einzelansicht.
+        -->
+        <ImageView
+            android:id="@+id/ivSummaryTogether"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/joint_workout_badge"
+            android:src="@drawable/ic_group"
+            android:visibility="gone"
+            app:tint="?attr/colorSecondary" />
+
         <!-- Zeichen fuer Foto, Karte und Sprachnotiz, wenn vorhanden -->
         <LinearLayout
             android:layout_width="wrap_content"

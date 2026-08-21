@@ -84,6 +84,7 @@ class MeActivity : AppCompatActivity() {
     }
 
     private fun show(summary: PersonalSummary) {
+        showProfileInTopBar(summary.profile)
         LevelCardView(findViewById(R.id.levelCard)).show(summary.totalPoints)
         showStreak(summary.streakDays)
         MedalGrid.fill(findViewById<GridLayout>(R.id.glMeMedals), Medals.statusOf(summary.medals))
@@ -168,6 +169,7 @@ class MeActivity : AppCompatActivity() {
         showBadge(row, R.id.ivSummaryHasPhoto, !activity.photoUrl.isNullOrEmpty())
         showBadge(row, R.id.ivSummaryHasMap, activity.latitude != null && activity.longitude != null)
         showBadge(row, R.id.ivSummaryHasVoice, !activity.voiceUrl.isNullOrEmpty())
+        showBadge(row, R.id.ivSummaryTogether, JointWorkout.isJoint(activity))
 
         row.setOnClickListener {
             startActivity(WorkoutDetailActivity.intent(this, activity, null))

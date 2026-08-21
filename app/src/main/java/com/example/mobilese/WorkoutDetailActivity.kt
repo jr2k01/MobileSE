@@ -44,6 +44,7 @@ class WorkoutDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_detail)
         setUpTopBar(R.string.workout_detail_title)
+        repository = AppRepository.get(this)
 
         val activity = readActivity()
         if (activity == null) {
@@ -89,7 +90,6 @@ class WorkoutDetailActivity : AppCompatActivity() {
      * dann ein Satz da, der sagt warum.
      */
     private fun setUpFeedback(id: String?) {
-        repository = AppRepository.get(this)
         activityId = id
 
         val block = findViewById<View>(R.id.llFeedback)
@@ -307,10 +307,48 @@ class WorkoutDetailActivity : AppCompatActivity() {
             }
         }
 
+        showTogether(activity)
         showStats(activity)
         showPhoto(activity.photoUrl)
         showLocation(activity)
         showVoice(activity.voiceUrl)
+    }
+
+    /**
+     * Die Zeile mit allen, die zusammen trainiert haben.
+     *
+     * Genannt werden auch die, die nicht in der eigenen Crew sind: gespeichert
+     * ist die Kennung, und wer sie liest, soll einen Namen sehen und keine
+     * Zeichenkette aus dreissig Zeichen. Die Namen werden nachgeladen, weil in
+     * der Aktivitaet nur Kennungen stehen - aber in einer einzigen Abfrage.
+     *
+     * Bis sie da sind, bleibt die Zeile unsichtbar. Sie erst leer einzublenden
+     * und dann zu fuellen liesse den Bildschirm unter dem Finger springen.
+     */
+    private fun showTogether(activity: Activity) {
+        val row = findViewById<View>(R.id.llDetailTogether)
+        if (!JointWorkout.isJoint(activity)) {
+            row.visibility = View.GONE
+            return
+        }
+
+        lifecycleScope.launch {
+            val ids = listOf(activity.userId) + activity.partnerIds.orEmpty()
+            val nameById = repository.getProfilesByIds(ids)
+                .associate { it.id to DisplayName.of(it) }
+            val names = JointWorkout.participants(
+                activity,
+                nameById,
+                getString(R.string.unknown_member)
+            )
+
+            row.visibility = View.VISIBLE
+            findViewById<TextView>(R.id.tvDetailTogether).apply {
+                text = getString(R.string.joint_workout_with, names.joinToString(", "))
+                contentDescription =
+                    getString(R.string.joint_workout_desc, names.joinToString(", "))
+            }
+        }
     }
 
     private fun showStats(activity: Activity) {

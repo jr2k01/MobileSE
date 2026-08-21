@@ -77,5 +77,37 @@
                 android:contentDescription="@string/play_voice" />
         </LinearLayout>
 
+        <!--
+            Wer zusammen trainiert hat. Steht unter der Zeile und nicht daneben:
+            bei einer Gruppe von fuenf waere neben Sportart und Dauer kein Platz,
+            und abgeschnittene Namen waeren schlimmer als eine zweite Zeile.
+        -->
+        <LinearLayout
+            android:id="@+id/llLatestActivityTogether"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_group"
+                app:tint="?attr/colorSecondary" />
+
+            <TextView
+                android:id="@+id/tvLatestActivityTogether"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="?attr/colorSecondary" />
+        </LinearLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

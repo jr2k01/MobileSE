@@ -4,9 +4,10 @@ Written to match `_report_template_v1.0`. Facts (dependency versions, dates,
 counts) are taken from the repository, not from memory. Places where you have to
 fill something in yourself are marked **[FILL IN]**.
 
-State of the repository this describes: 102 commits, 67 Kotlin files (~11,600
-lines), 22 test classes with 209 unit tests, 18 Activities, `minSdk 26`,
-`targetSdk 36`, Android Gradle Plugin 9.1.1.
+State of the repository this describes: 107 commits in two modules — `app`
+(phone and tablet) and `wear` (the watch). 76 Kotlin files (~12,400 lines), 22
+test classes with 209 unit tests, 18 Activities on the phone and 2 on the
+watch, `minSdk 26`, `targetSdk 36`, Android Gradle Plugin 9.1.1.
 
 ---
 
@@ -32,6 +33,16 @@ ourselves — see "Deliberately not used" below.
 | `androidx.lifecycle:lifecycle-runtime-ktx` | 2.6.2 | `lifecycleScope` for coroutines | Ties background work to the screen's lifetime, so a request cannot outlive the Activity and write into a dead view. |
 | `com.google.android.material` | 1.12.0 | Material Design 3 components and theming | The course asks for proper Android UI; MD3 is Google's own implementation. Building buttons, text fields, dialogs and navigation bars by hand would have been weeks of work for a worse result. |
 | `androidx.health.connect:connect-client` | 1.1.0 | Reading the daily step count | **Unavoidable.** Health Connect is reached through a system service over AIDL, not through an open HTTP or content-provider interface. There is no way to talk to it without this client. It also forced `minSdk` from 24 to 26. |
+
+Two libraries below come from Google Play services rather than AndroidX. They
+are not part of the platform in the strict sense — a device without Play
+services cannot run them — but each is the only interface Android offers for
+what it does.
+
+| Library | Version | Purpose | Why this one (over alternatives)? |
+| --- | --- | --- | --- |
+| `com.google.android.gms:play-services-wearable` | 18.2.0 | The link between watch and phone (Wearable Data Layer), in both modules | **Unavoidable.** Wear OS gives no other interface for it. Talking to the watch over raw Bluetooth ourselves would mean writing a pairing, transport and retry protocol that Android already runs — and it would stop working the moment the system reconnected the devices itself. |
+| `com.google.firebase:firebase-messaging` (via `firebase-bom` 33.7.0) | BOM 33.7.0 | Push notifications for new workouts and changes in the ranking | **Unavoidable for push.** A notification that reaches a phone whose app is closed has to come through the system's push channel, and on Android that is Firebase Cloud Messaging. The alternative — keeping our own connection open — is what we removed with Supabase Realtime, for battery reasons. |
 
 ### Backend libraries
 
@@ -117,6 +128,8 @@ Dates are the commit dates in the Git repository.
 | 12.13 | 2026-08-20 | The three latest activities on the home screen open the workout; the podium's top three open their profiles; the bottom bar's last tab leads to the settings, with the profile as its first entry | The same row and the same face behave the same wherever they appear | The gear in the profile's top bar had to go — with the settings as the parent it would have been a loop between two screens |
 | 12.14 | 2026-08-20 | Home header no longer clips a two-line crew name; the activity list shows only the crew being viewed, in both its scopes | Two lists side by side now mean the same thing | The name was anchored to the 44dp logo top and bottom, so a wrapped name was squeezed to the logo's height |
 | 12.15 | 2026-08-20 | The challenges tab makes way for a personal "Me" screen: points, level, streak, workouts filterable by crew, medals. Running challenges moved to the home screen, creating them to the crew screen | Everything personal in one place, across all crews | Lint caught two ids missing from the tablet-landscape layout — `findViewById` would have returned null and crashed there |
+| 13.0 | 2026-08-20 | Wear OS app as its own module: pick a sport on the watch, it counts the time and reads the heart rate, the phone finishes the entry | A workout can be started without carrying the phone | The watch and the phone must share an `applicationId`, or the system does not treat them as one app |
+| 13.1 | 2026-08-20 | A workout from the watch can be discarded with a long press | Starting the watch by accident no longer forces an entry | Until then the card could only leave the queue by being logged |
 
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from
@@ -174,6 +187,9 @@ mockups, etc.) that are not visible in this repository.
 | **`MediaRecorder` / `MediaPlayer`** | `WorkoutTrackingActivity` (record), `VoicePlayer` (play, used by home screen and workout detail) | Voice notes. Playback uses `prepareAsync()` because the notes are URLs and a synchronous `prepare()` on the main thread risks an ANR. |
 | **`LocationManager` + `Geocoder`** | `WorkoutTrackingActivity`, `LocationNames` | The training location. `Geocoder` turns coordinates into a readable place name; the API 33 listener variant is used where available, the deprecated blocking call below it. |
 | **Health Connect** | `HealthSteps`, `MainHubActivity`, `HealthPrivacyActivity` | Today's step count, read from the platform health database rather than counted by us. |
+| **Wear OS as a second module** | `wear/` — `SportChoiceActivity`, `WorkoutActivity`, `HeartRateReader`, `PhoneLink`, `WatchProtocol` | The watch is its own device with its own APK, not a second screen. It knows what only it can know — sport, duration, heart rate — and hands that over to the phone, where the camera, the keyboard and the crew are. Both modules must carry the same `applicationId`, or the system does not treat them as one app. |
+| **Wearable Data Layer** | `PhoneLink` on the watch, `WatchWorkoutService` on the phone | The workout travels as a *data item*, not as a message. A message only arrives while the phone is in range — and running without the phone is exactly what a watch is for. The item waits on the watch until the two meet again. |
+| **`SensorManager` on the watch** | `HeartRateReader` | The heart rate comes from the watch's own sensor while the workout runs. |
 | **`SharedPreferences`** | `AppRepository` (session marker, joined crew code) | Small key-value state that must survive a process restart. |
 | **Internal storage** | `ProfileActivity.storeProfilePicture`, `WorkoutTrackingActivity` | Photos and recordings are written to app-private storage before upload. |
 | **Deep links (`intent-filter`)** | `ResetPasswordActivity` (`crewfit://reset-password`) | The password-reset link from the e-mail opens the app directly. |

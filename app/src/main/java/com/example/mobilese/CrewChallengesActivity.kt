@@ -144,7 +144,13 @@ class CrewChallengesActivity : AppCompatActivity() {
             view.findViewById<TextView>(R.id.tvChallengeProgress).text =
                 getString(type.progressRes, total, challenge.goal)
 
-            showDeadline(view, challenge, done = total >= challenge.goal)
+            // "Geschafft" gilt nur, wenn ueberhaupt gezaehlt wird. Ein Battle,
+            // der noch nicht angenommen oder abgelehnt wurde, laeuft nicht -
+            // dann meldete die Karte einen Erfolg, den es nicht gibt, bloss
+            // weil die eigene Crew das Ziel ohnehin schon ueberschritten hat.
+            val counts = !challenge.isBattle || CrewBattle.isRunning(challenge)
+
+            showDeadline(view, challenge, done = counts && total >= challenge.goal)
             showBattle(view, challenge, total, type)
 
             // Loeschen darf nur, wem die Zeile gehoert. Die herausgeforderte
@@ -169,7 +175,7 @@ class CrewChallengesActivity : AppCompatActivity() {
             progressBar.max = challenge.goal.coerceAtLeast(1)
             progressBar.setProgressCompat(total.coerceAtMost(progressBar.max), true)
 
-            if (total >= challenge.goal) {
+            if (counts && total >= challenge.goal) {
                 view.findViewById<TextView>(R.id.tvChallengeStatus).visibility = View.VISIBLE
                 view.findViewById<MaterialCardView>(R.id.cvChallengeRoot).strokeColor = accent.defaultColor
                 // LinearProgressIndicator faerbt sich ueber setIndicatorColor,

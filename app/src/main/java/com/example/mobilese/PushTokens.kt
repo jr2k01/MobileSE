@@ -43,7 +43,12 @@ object PushTokens {
         val app = context.applicationContext
         scope.launch {
             val token = currentToken() ?: return@launch
-            AppRepository.get(app).savePushToken(token)
+            val stored = AppRepository.get(app).savePushToken(token)
+            // Ohne diese Zeile war beim Suchen nicht zu unterscheiden, ob die
+            // Anmeldung gar nicht lief, keine Kennung bekam oder an der
+            // Datenbank scheiterte - alle drei Faelle sahen im Log gleich
+            // still aus.
+            Log.i("CrewFitPush", if (stored) "Device registered for push" else "Not registered, nobody is signed in")
         }
     }
 

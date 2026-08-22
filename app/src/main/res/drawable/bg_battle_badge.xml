@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Untergrund der Battle-Marke. Dieselbe Form wie die Marke fuer den
+     Punkte-Aufschlag, nur in der Warnfarbe: ein Battle ist kein gemuetliches
+     gemeinsames Ziel, sondern ein Wettkampf. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?attr/colorErrorContainer" />
+    <corners android:radius="12dp" />
+</shape>

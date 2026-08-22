@@ -37,6 +37,25 @@ object TestData {
         crewId: String = "CRW100"
     ) = Challenge(id = id, crewId = crewId, type = type.name, goal = goal, reward = reward)
 
+    /** Eine Challenge gegen eine andere Crew. */
+    fun battle(
+        id: String = "1",
+        type: ChallengeType = ChallengeType.DISTANCE,
+        goal: Int = 10,
+        reward: Int = 20,
+        crewId: String = "CRW100",
+        opponentCrewId: String = "CRW200",
+        status: String = CrewBattle.STATUS_ACCEPTED
+    ) = Challenge(
+        id = id,
+        crewId = crewId,
+        type = type.name,
+        goal = goal,
+        reward = reward,
+        opponentCrewId = opponentCrewId,
+        battleStatus = status
+    )
+
     fun stepDay(userId: String, day: String, steps: Int) =
         StepDay(userId = userId, day = day, steps = steps)
 

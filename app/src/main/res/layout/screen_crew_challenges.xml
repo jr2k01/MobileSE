@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/topBar"
-        app:layout_constraintBottom_toTopOf="@id/btnLaunchChallenge">
+        app:layout_constraintBottom_toTopOf="@id/llChallengeButtons">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -40,17 +40,43 @@
     </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLaunchChallenge"
-        style="@style/Widget.CrewFit.Button"
+    <!--
+        Zwei Wege, eine Challenge zu beginnen: im eigenen Kreis oder gegen eine
+        andere Crew. Untereinander und beide sichtbar, statt hinter einer
+        Auswahl im selben Knopf - der Battle ist sonst nicht zu finden, und
+        genau darum geht es bei einem Wettkampf: dass man ihn sucht.
+
+        Der gewoehnliche Knopf steht unten und traegt die volle Farbe: er ist
+        der haeufigere Fall.
+    -->
+    <LinearLayout
+        android:id="@+id/llChallengeButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/screen_padding_horizontal"
-        android:layout_marginEnd="@dimen/screen_padding_horizontal"
-        android:layout_marginBottom="24dp"
-        android:text="@string/add_challenge_btn"
-        app:icon="@drawable/ic_add"
-        app:iconGravity="textStart"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_padding_horizontal"
+        android:paddingEnd="@dimen/screen_padding_horizontal"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLaunchBattle"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="@string/add_battle_btn"
+            app:icon="@drawable/ic_battle"
+            app:iconGravity="textStart" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLaunchChallenge"
+            style="@style/Widget.CrewFit.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_challenge_btn"
+            app:icon="@drawable/ic_add"
+            app:iconGravity="textStart" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

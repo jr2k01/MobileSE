@@ -231,8 +231,25 @@ data class Challenge(
      *
      * Der Standardwert laesst aeltere Zeilen ohne diese Spalte weiterhin lesen.
      */
-    val deadline: String? = null
-)
+    val deadline: String? = null,
+    /**
+     * Die herausgeforderte Crew, als deren Code. Null heisst: eine ganz
+     * gewoehnliche Challenge innerhalb der eigenen Crew.
+     *
+     * Die Zeile gehoert weiterhin der Crew in [crewId] - das ist die, die
+     * herausgefordert hat. Die Gegenseite findet die Challenge ueber diese
+     * Spalte und sieht dieselbe Zeile aus ihrer Sicht.
+     */
+    @SerialName("opponent_crew_id") val opponentCrewId: String? = null,
+    /**
+     * Ob die herausgeforderte Crew zugestimmt hat - siehe [CrewBattle].
+     * Null bei einer gewoehnlichen Challenge.
+     */
+    @SerialName("battle_status") val battleStatus: String? = null
+) {
+    /** Ob es ein Battle gegen eine andere Crew ist. */
+    val isBattle: Boolean get() = !opponentCrewId.isNullOrEmpty()
+}
 
 /**
  * Dieselbe Challenge ohne die Frist.

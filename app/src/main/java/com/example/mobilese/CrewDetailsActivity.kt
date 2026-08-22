@@ -13,6 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -74,6 +75,9 @@ class CrewDetailsActivity : AppCompatActivity() {
                     val crewAsync = async { repository.getCrew(crewCode) }
                     val membersAsync = async { repository.getCrewMembers(crewCode) }
                     val qrAsync = async { QrCodes.generate(crewCode) }
+                    // Fuer das Crew-Level: es rechnet mit denselben Punkten
+                    // wie die Rangliste und mit den gewonnenen Battles.
+                    val snapshotAsync = async { repository.loadCrewSnapshot(crewCode) }
 
                     val crew = crewAsync.await()
                     crewName = crew?.name ?: getString(R.string.unknown_crew)
@@ -82,6 +86,8 @@ class CrewDetailsActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.tvCrewNameDisplay).text = crewName
                     showMembers(membersAsync.await(), crew?.creatorId)
                     showCrewImage(crew?.imageUrl)
+
+                    showCrewLevel(snapshotAsync.await())
 
                     val qr = qrAsync.await()
                     if (qr == null) {
@@ -100,6 +106,37 @@ class CrewDetailsActivity : AppCompatActivity() {
                 finishRefreshing()
             }
         }
+    }
+
+    /**
+     * Das Level der Crew.
+     *
+     * Gerechnet aus dem Durchschnitt der Mitgliederpunkte und den gewonnenen
+     * Battles - siehe [CrewLevel]. Die Zeile darunter nennt den Gewinn eines
+     * Battles, damit auf diesem Bildschirm steht, wie man das Level bewegt.
+     */
+    private fun showCrewLevel(snapshot: CrewSnapshot) {
+        val card = findViewById<View>(R.id.crewLevelCard)
+        val progress = CrewLevel.of(snapshot)
+
+        card.findViewById<TextView>(R.id.tvCrewLevelValue).text =
+            if (progress.prestige > 0) {
+                getString(R.string.crew_level_prestige, progress.prestige, progress.level)
+            } else {
+                getString(R.string.crew_level_value, progress.level)
+            }
+
+        val bar = card.findViewById<LinearProgressIndicator>(R.id.piCrewLevel)
+        bar.max = progress.pointsForNextLevel.coerceAtLeast(1)
+        bar.setProgressCompat(progress.pointsIntoLevel.coerceAtMost(bar.max), true)
+
+        card.findViewById<TextView>(R.id.tvCrewLevelProgress).text = getString(
+            R.string.crew_level_hint,
+            progress.pointsIntoLevel,
+            progress.pointsForNextLevel
+        )
+        card.findViewById<TextView>(R.id.tvCrewLevelBattles).text =
+            getString(R.string.crew_level_battles, CrewBattle.WIN_BONUS)
     }
 
     private fun showCrewImage(url: String?) {

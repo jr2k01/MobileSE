@@ -50,6 +50,36 @@ object ChallengeManager {
     }
 
     /**
+     * Der Stand der gegnerischen Crew in einem Battle.
+     *
+     * Gerechnet wie bei der eigenen Crew: erst je Mitglied, dann
+     * zusammengezaehlt. Der Umweg ueber die einzelnen Personen ist noetig, weil
+     * sich nicht jede Art einfach aufsummieren laesst - bei Trainingstagen
+     * zaehlen zwei Mitglieder am selben Tag als zwei Tage. Ueber alle
+     * Aktivitaeten auf einmal gerechnet waere es einer, und der Gegner stuende
+     * schlechter da, als er ist.
+     */
+    fun progressOfOpponent(challenge: Challenge, opponent: OpponentProgress): Int {
+        val type = ChallengeType.fromStored(challenge.type)
+
+        val activitiesByUser = opponent.activities
+            .filter { ChallengeDeadline.countsTowards(challenge.deadline, it.timestamp) }
+            .groupBy { it.userId }
+
+        val stepsByUser = opponent.stepDays
+            .filter { day -> ChallengeDeadline.countsOnDay(challenge.deadline, day.day) }
+            .groupBy { it.userId }
+
+        return opponent.memberIds.sumOf { id ->
+            ChallengeCalculator.progressOf(
+                type,
+                activitiesByUser[id].orEmpty(),
+                stepsByUser[id].orEmpty()
+            )
+        }
+    }
+
+    /**
      * Ermittelt, welche Mitglieder fuer eine Challenge noch Punkte bekommen
      * muessen. Gibt null zurueck, wenn nichts zu tun ist - das Ziel ist noch
      * nicht erreicht, alle wurden bereits bedacht, oder der Topf ist leer.
@@ -73,6 +103,13 @@ object ChallengeManager {
             .filter { it.challengeId == challenge.id }
             .map { it.userId }
             .toSet()
+
+        // Ein Battle ist entschieden, sobald irgendwo ausgeschuettet wurde -
+        // und wenn das nicht an die eigenen Mitglieder ging, hat die andere
+        // Crew ihn gewonnen. Ohne diese Zeile bekaeme auch die zweite Crew
+        // ihre Punkte, sobald sie das Ziel spaeter noch erreicht, und "wer
+        // zuerst da ist" waere bedeutungslos.
+        if (challenge.isBattle && alreadyRewarded.any { it !in memberIds }) return null
 
         val pending = memberIds.filterNot { it in alreadyRewarded }
         if (pending.isEmpty()) return null

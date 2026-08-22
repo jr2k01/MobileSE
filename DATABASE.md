@@ -36,6 +36,51 @@ alter table activities add column if not exists max_heart_rate integer;
 alter table challenges add column if not exists deadline date;
 ```
 
+## Crew-Battles
+
+Eine Challenge kann sich auch gegen eine andere Crew richten. Sie steht dann
+**einmal** in der Tabelle - bei der herausfordernden Crew - und traegt die
+herausgeforderte in `opponent_crew_id`. Die Gegenseite findet dieselbe Zeile
+ueber diese Spalte und sieht sie aus ihrer Sicht.
+
+Zwei Zeilen, eine je Crew, waeren die naheliegende Alternative gewesen und die
+schlechtere: dann koennten Ziel, Frist oder Art auseinanderlaufen, und der
+Battle waere kein Battle mehr, sondern zwei Challenges, die sich zufaellig
+aehneln.
+
+`battle_status` haelt fest, ob die herausgeforderte Crew zugestimmt hat:
+`pending`, `accepted` oder `declined`. Solange nicht angenommen ist, zaehlt
+nichts und es gibt keine Punkte - sonst koennte man sich Punkte holen, indem man
+eine Crew herausfordert, die nie antwortet.
+
+Wer gewonnen hat, steht nirgends als eigene Spalte: das ergibt sich aus den
+Belohnungen in `challenge_rewards`. Wurde fuer einen Battle bereits an
+Mitglieder einer Crew ausgeschuettet, hat diese ihn gewonnen, und die andere
+geht leer aus. Eine Spalte fuer den Sieger waere eine zweite Wahrheit, die mit
+der ersten aus dem Tritt geraten kann.
+
+```sql
+alter table challenges add column if not exists opponent_crew_id text;
+alter table challenges add column if not exists battle_status text;
+```
+
+Zur Kontrolle - erwartet werden genau zwei Zeilen:
+
+```sql
+select column_name, data_type
+  from information_schema.columns
+ where table_name = 'challenges'
+   and column_name in ('opponent_crew_id', 'battle_status');
+```
+
+**Ohne diese Spalten laeuft die App weiter**, zeigt aber keine Battles: das
+Laden faellt auf die eigenen Challenges zurueck, und der Versuch, einen Battle
+anzulegen, endet mit einem Hinweis auf diese Seite.
+
+An den Rechten ist nichts zu tun. `challenges` wird von jedem Angemeldeten
+gelesen und geschrieben; die herausgeforderte Crew kann die Zeile damit sehen
+und ihren Status setzen.
+
 ## Tabelle fuer die Schrittzahl
 
 Eine Zeile je Nutzer und Tag. Der zusammengesetzte Schluessel sorgt dafuer, dass

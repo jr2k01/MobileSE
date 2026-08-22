@@ -518,14 +518,28 @@ class MainHubActivity : AppCompatActivity() {
      * Erledigte fallen heraus. Sie waeren keine laufenden mehr, und der
      * Startbildschirm fuellte sich mit der Zeit mit Abgehaktem.
      */
-    private fun showChallenges(snapshot: CrewSnapshot) {
+    private suspend fun showChallenges(snapshot: CrewSnapshot) {
         val container = findViewById<LinearLayout>(R.id.llHomeChallenges)
         container.removeAllViews()
 
         val open = snapshot.challenges.filter { challenge ->
+            // Ein Battle, der noch nicht angenommen oder abgelehnt wurde,
+            // gehoert nicht unter "laufende Challenges" - dort steht, woran
+            // gerade gearbeitet wird. Beantwortet wird er im
+            // Challenge-Bildschirm.
+            if (challenge.isBattle && !CrewBattle.isRunning(challenge)) return@filter false
+
             val done = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
             done < challenge.goal && !ChallengeDeadline.isOver(challenge.deadline)
         }
+
+        // Die Namen der gegnerischen Crews, einmal je Crew. Ohne Battles
+        // laeuft hier keine einzige Abfrage.
+        val myCrewCode = repository.getJoinedCrewCode().orEmpty()
+        val opponentNames = open
+            .mapNotNull { CrewBattle.opponentOf(it, myCrewCode) }
+            .distinct()
+            .associateWith { code -> repository.getCrew(code)?.name.orEmpty() }
 
         findViewById<View>(R.id.tvHomeChallengesLabel).visibility =
             if (open.isEmpty()) View.GONE else View.VISIBLE
@@ -538,6 +552,18 @@ class MainHubActivity : AppCompatActivity() {
             val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
 
             view.findViewById<TextView>(R.id.tvHomeChallengeTitle).setText(type.labelRes)
+
+            val battleLine = view.findViewById<TextView>(R.id.tvHomeChallengeBattle)
+            val opponentCode = CrewBattle.opponentOf(challenge, myCrewCode)
+            if (opponentCode == null) {
+                battleLine.visibility = View.GONE
+            } else {
+                battleLine.visibility = View.VISIBLE
+                val name = opponentNames[opponentCode].orEmpty()
+                battleLine.text =
+                    if (name.isEmpty()) getString(R.string.battle_label_unknown)
+                    else getString(R.string.battle_label, name)
+            }
             view.findViewById<TextView>(R.id.tvHomeChallengeProgress).text =
                 getString(R.string.home_challenge_progress, total, challenge.goal)
 

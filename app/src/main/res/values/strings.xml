@@ -648,6 +648,41 @@
     <string name="qr_generation_failed">Could not generate the QR code</string>
 
     <!-- Challenges -->
+    <!-- === Crew-Battle: eine Challenge gegen eine andere Crew === -->
+    <string name="add_battle_btn">Add crew battle</string>
+    <string name="battle_search_title">Challenge a crew</string>
+    <string name="battle_search_hint">Name of a crew or a person</string>
+    <string name="battle_challenge_btn">Challenge</string>
+    <string name="battle_own_crew">Your own crew</string>
+    <string name="battle_person_crews">%1$s trains in these crews</string>
+    <string name="battle_person_no_crew">This person is not in a crew yet, so there is nobody to challenge.</string>
+    <string name="battle_label">Battle vs %1$s</string>
+    <string name="battle_label_unknown">Battle</string>
+    <string name="battle_side">%1$s · %2$s</string>
+    <string name="battle_us">Us</string>
+    <string name="battle_accept">Accept</string>
+    <string name="battle_decline">Decline</string>
+    <string name="battle_pending_sent">Waiting for %1$s to accept</string>
+    <string name="battle_pending_received">%1$s wants to battle you</string>
+    <string name="battle_declined">Declined — nothing counts here</string>
+    <string name="battle_leading">You are ahead</string>
+    <string name="battle_behind">You are behind</string>
+    <string name="battle_tied">Level pegging</string>
+    <string name="battle_won">Won</string>
+    <string name="battle_lost">Lost</string>
+    <string name="battle_sent">%1$s has been challenged</string>
+    <string name="battle_add_failed">Could not start the battle. The database may still be missing the crew battle columns — see DATABASE.md.</string>
+    <string name="battle_answer_failed">Could not answer the battle</string>
+    <string name="battle_accepted_toast">Battle accepted — good luck</string>
+    <string name="battle_declined_toast">Battle declined</string>
+    <string name="ok_btn">OK</string>
+
+    <!-- Das Level der ganzen Crew -->
+    <string name="crew_level_label">CREW LEVEL</string>
+    <string name="crew_level_value">Level %1$d</string>
+    <string name="crew_level_prestige">Prestige %1$d · Level %2$d</string>
+    <string name="crew_level_hint">%1$d of %2$d points into the next level</string>
+    <string name="crew_level_battles">Every battle won is worth %1$d points</string>
     <string name="challenge_added">Challenge added</string>
     <string name="challenge_add_failed">Could not add the challenge</string>
     <string name="challenge_deleted">Challenge deleted</string>

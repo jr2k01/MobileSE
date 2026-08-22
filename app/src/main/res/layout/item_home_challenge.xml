@@ -52,6 +52,22 @@
                 android:textColor="?attr/colorPrimary" />
         </LinearLayout>
 
+        <!-- Nur bei einem Battle gegen eine andere Crew. -->
+        <TextView
+            android:id="@+id/tvHomeChallengeBattle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:drawablePadding="6dp"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorError"
+            app:drawableStartCompat="@drawable/ic_battle"
+            app:drawableTint="?attr/colorError"
+            android:visibility="gone" />
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/piHomeChallenge"
             android:layout_width="match_parent"

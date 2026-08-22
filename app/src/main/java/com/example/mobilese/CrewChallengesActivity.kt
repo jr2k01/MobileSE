@@ -11,14 +11,19 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -36,6 +41,21 @@ class CrewChallengesActivity : AppCompatActivity() {
 
     private var loadJob: Job? = null
 
+    /**
+     * Der Stand der gegnerischen Crews, nach Crew-Code.
+     *
+     * Wird beim Laden einmal fuer alle laufenden Battles geholt und nicht je
+     * Karte: zwei Battles gegen dieselbe Crew wuerden sonst zweimal dieselben
+     * Aktivitaeten holen.
+     */
+    private var opponents: Map<String, OpponentProgress> = emptyMap()
+
+    private val pickOpponent =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val crew = BattleOpponentActivity.crewFrom(result.data) ?: return@registerForActivityResult
+            showAddChallengeDialog(crew)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_challenges)
@@ -48,6 +68,9 @@ class CrewChallengesActivity : AppCompatActivity() {
         setUpTopBar(R.string.crew_challenges_title)
         setUpPullToRefresh { load() }
         findViewById<Button>(R.id.btnLaunchChallenge).setOnClickListener { showAddChallengeDialog() }
+        findViewById<Button>(R.id.btnLaunchBattle).setOnClickListener {
+            pickOpponent.launch(BattleOpponentActivity.intent(this, crewCode))
+        }
 
         load()
     }
@@ -60,14 +83,37 @@ class CrewChallengesActivity : AppCompatActivity() {
 
                 // Erst faellige Belohnungen schreiben, dann zeichnen - sonst zeigte
                 // die Rangliste beim naechsten Oeffnen noch die alten Punktstaende.
-                if (repository.awardCompletedChallenges(snapshot)) {
-                    showChallenges(repository.loadCrewSnapshot(crewCode))
-                } else {
-                    showChallenges(snapshot)
-                }
+                val current =
+                    if (repository.awardCompletedChallenges(snapshot)) repository.loadCrewSnapshot(crewCode)
+                    else snapshot
+
+                opponents = loadOpponents(current)
+                showChallenges(current)
             } finally {
                 finishRefreshing()
             }
+        }
+    }
+
+    /**
+     * Holt den Stand aller Crews, gegen die gerade ein Battle laeuft.
+     *
+     * Nebenlaeufig und ohne Doppelungen: bei zwei Battles gegen dieselbe Crew
+     * wird ihr Stand einmal geholt. Ein abgelehnter Battle bleibt aussen vor -
+     * dort gibt es nichts zu vergleichen.
+     */
+    private suspend fun loadOpponents(snapshot: CrewSnapshot): Map<String, OpponentProgress> {
+        val codes = snapshot.challenges
+            .filter { it.isBattle && !CrewBattle.isDeclined(it) }
+            .mapNotNull { CrewBattle.opponentOf(it, crewCode) }
+            .distinct()
+
+        if (codes.isEmpty()) return emptyMap()
+
+        return coroutineScope {
+            codes.map { code -> async { repository.loadOpponentProgress(code) } }
+                .awaitAll()
+                .associateBy { it.crewCode }
         }
     }
 
@@ -99,9 +145,17 @@ class CrewChallengesActivity : AppCompatActivity() {
                 getString(type.progressRes, total, challenge.goal)
 
             showDeadline(view, challenge, done = total >= challenge.goal)
+            showBattle(view, challenge, total, type)
 
-            view.findViewById<ImageButton>(R.id.btnDeleteChallenge).setOnClickListener {
-                deleteChallenge(challenge.id)
+            // Loeschen darf nur, wem die Zeile gehoert. Die herausgeforderte
+            // Crew wuerde sonst den Battle der anderen aus der Welt schaffen;
+            // ihr Weg heraus ist das Ablehnen.
+            val delete = view.findViewById<ImageButton>(R.id.btnDeleteChallenge)
+            if (CrewBattle.wasChallenged(challenge, crewCode)) {
+                delete.visibility = View.GONE
+            } else {
+                delete.visibility = View.VISIBLE
+                delete.setOnClickListener { deleteChallenge(challenge.id) }
             }
 
             showContributions(
@@ -124,6 +178,140 @@ class CrewChallengesActivity : AppCompatActivity() {
             }
 
             container.addView(view)
+        }
+    }
+
+    /**
+     * Alles, was einen Crew-Battle von einer gewoehnlichen Challenge
+     * unterscheidet: die Marke oben, der zweite Balken, der Stand und - bei
+     * der herausgeforderten Crew - die Antwort.
+     *
+     * Solange nicht angenommen wurde, steht kein Balken der Gegenseite da.
+     * Dort ist noch nichts zu vergleichen, und ein Balken bei null saehe aus
+     * wie eine Crew, die nichts tut, statt wie eine, die noch nicht zugesagt
+     * hat.
+     */
+    private fun showBattle(view: View, challenge: Challenge, myTotal: Int, type: ChallengeType) {
+        val label = view.findViewById<TextView>(R.id.tvBattleLabel)
+        val opponentBox = view.findViewById<View>(R.id.llBattleOpponent)
+        val standing = view.findViewById<TextView>(R.id.tvBattleStanding)
+        val answer = view.findViewById<View>(R.id.llBattleAnswer)
+
+        if (!challenge.isBattle) {
+            label.visibility = View.GONE
+            opponentBox.visibility = View.GONE
+            standing.visibility = View.GONE
+            answer.visibility = View.GONE
+            return
+        }
+
+        val opponentCode = CrewBattle.opponentOf(challenge, crewCode)
+        val opponent = opponentCode?.let { opponents[it] }
+        // Der Name kann fehlen, wenn die Crew inzwischen geloescht wurde. Dann
+        // steht der Code da - besser als eine leere Zeile.
+        val opponentName = opponent?.name ?: opponentCode.orEmpty()
+
+        label.visibility = View.VISIBLE
+        label.text =
+            if (opponentName.isEmpty()) getString(R.string.battle_label_unknown)
+            else getString(R.string.battle_label, opponentName)
+
+        // Im Battle bekommt auch der eigene Balken eine Beschriftung - sonst
+        // waere nicht zu sehen, welcher der beiden der eigene ist.
+        view.findViewById<TextView>(R.id.tvChallengeProgress).text = getString(
+            R.string.battle_side,
+            getString(R.string.battle_us),
+            getString(type.progressRes, myTotal, challenge.goal)
+        )
+
+        standing.visibility = View.VISIBLE
+        answer.visibility = View.GONE
+        opponentBox.visibility = View.GONE
+
+        when {
+            CrewBattle.isDeclined(challenge) -> {
+                standing.setText(R.string.battle_declined)
+                standing.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+            }
+
+            CrewBattle.isPending(challenge) -> {
+                val challenged = CrewBattle.wasChallenged(challenge, crewCode)
+                standing.text =
+                    if (challenged) getString(R.string.battle_pending_received, opponentName)
+                    else getString(R.string.battle_pending_sent, opponentName)
+                standing.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+                if (challenged) showAnswerButtons(answer, challenge)
+            }
+
+            else -> showRunningBattle(view, challenge, myTotal, type, opponent, opponentName)
+        }
+    }
+
+    /** Der laufende Battle: der Balken der Gegenseite und wer vorn liegt. */
+    private fun showRunningBattle(
+        view: View,
+        challenge: Challenge,
+        myTotal: Int,
+        type: ChallengeType,
+        opponent: OpponentProgress?,
+        opponentName: String
+    ) {
+        val standing = view.findViewById<TextView>(R.id.tvBattleStanding)
+
+        if (opponent == null) {
+            // Der Stand der anderen Crew liess sich nicht laden. Lieber nichts
+            // zeigen als eine Null, die wie ein Vorsprung aussaehe.
+            standing.visibility = View.GONE
+            return
+        }
+
+        val theirs = ChallengeManager.progressOfOpponent(challenge, opponent)
+
+        view.findViewById<View>(R.id.llBattleOpponent).visibility = View.VISIBLE
+        view.findViewById<TextView>(R.id.tvBattleOpponentProgress).text = getString(
+            R.string.battle_side,
+            opponentName,
+            getString(type.progressRes, theirs, challenge.goal)
+        )
+
+        val bar = view.findViewById<LinearProgressIndicator>(R.id.pbBattleOpponent)
+        bar.max = challenge.goal.coerceAtLeast(1)
+        bar.setProgressCompat(theirs.coerceAtMost(bar.max), true)
+
+        val (textRes, colorRes) = when (CrewBattle.standingOf(myTotal, theirs, challenge.goal)) {
+            CrewBattle.Standing.WON -> R.string.battle_won to R.color.accent
+            CrewBattle.Standing.LOST -> R.string.battle_lost to R.color.error
+            CrewBattle.Standing.LEADING -> R.string.battle_leading to R.color.accent
+            CrewBattle.Standing.BEHIND -> R.string.battle_behind to R.color.error
+            CrewBattle.Standing.TIED -> R.string.battle_tied to R.color.text_secondary
+        }
+        standing.visibility = View.VISIBLE
+        standing.setText(textRes)
+        standing.setTextColor(ContextCompat.getColor(this, colorRes))
+    }
+
+    private fun showAnswerButtons(answer: View, challenge: Challenge) {
+        answer.visibility = View.VISIBLE
+        answer.findViewById<MaterialButton>(R.id.btnBattleAccept).setOnClickListener {
+            answerBattle(challenge, CrewBattle.STATUS_ACCEPTED)
+        }
+        answer.findViewById<MaterialButton>(R.id.btnBattleDecline).setOnClickListener {
+            answerBattle(challenge, CrewBattle.STATUS_DECLINED)
+        }
+    }
+
+    private fun answerBattle(challenge: Challenge, status: String) {
+        lifecycleScope.launch {
+            if (!repository.setBattleStatus(challenge.id, status)) {
+                toast(R.string.battle_answer_failed)
+                return@launch
+            }
+            toast(
+                if (status == CrewBattle.STATUS_ACCEPTED) R.string.battle_accepted_toast
+                else R.string.battle_declined_toast
+            )
+            load()
         }
     }
 
@@ -194,7 +382,17 @@ class CrewChallengesActivity : AppCompatActivity() {
         }
     }
 
-    private fun showAddChallengeDialog() {
+    /**
+     * Die Einrichtung einer Challenge - fuer die eigene Crew oder als Battle.
+     *
+     * Derselbe Dialog fuer beides: Art, Ziel und Frist werden gleich gewaehlt,
+     * und ein zweiter Dialog mit denselben drei Feldern waere nur eine zweite
+     * Stelle zum Pflegen. Nur die Ueberschrift sagt, gegen wen es geht.
+     *
+     * @param opponent die herausgeforderte Crew, oder null fuer eine
+     *        gewoehnliche Challenge.
+     */
+    private fun showAddChallengeDialog(opponent: Crew? = null) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_challenge_setup, null)
         val etType = dialogView.findViewById<EditText>(R.id.etChallengeType)
         val tilGoal = dialogView.findViewById<TextInputLayout>(R.id.tilChallengeGoal)
@@ -224,7 +422,10 @@ class CrewChallengesActivity : AppCompatActivity() {
         }
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.create_challenge_title)
+            .setTitle(
+                if (opponent == null) getString(R.string.create_challenge_title)
+                else getString(R.string.battle_label, opponent.name)
+            )
             .setView(dialogView)
             .setPositiveButton(R.string.add_btn) { _, _ ->
                 val goal = InputRules.challengeGoalOrNull(etGoal.text.toString(), type.maxGoal)
@@ -241,7 +442,7 @@ class CrewChallengesActivity : AppCompatActivity() {
                     ).show()
                     return@setPositiveButton
                 }
-                addChallenge(type, goal.toDouble(), deadline)
+                addChallenge(type, goal.toDouble(), deadline, opponent)
             }
             .setNegativeButton(R.string.cancel_btn, null)
             .show()
@@ -259,15 +460,44 @@ class CrewChallengesActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun addChallenge(type: ChallengeType, goal: Double, deadline: String?) {
+    private fun addChallenge(
+        type: ChallengeType,
+        goal: Double,
+        deadline: String?,
+        opponent: Crew?
+    ) {
         lifecycleScope.launch {
             val reward = ChallengeCalculator.calculateTotalChallengePoints(type, goal)
-            if (repository.addCrewChallenge(crewCode, type.name, goal.toInt(), reward, deadline)) {
-                toast(R.string.challenge_added)
-                load()
-            } else {
-                toast(R.string.challenge_add_failed)
+
+            val added =
+                if (opponent == null) {
+                    repository.addCrewChallenge(crewCode, type.name, goal.toInt(), reward, deadline)
+                } else {
+                    repository.addCrewBattle(
+                        crewCode,
+                        opponent.id,
+                        type.name,
+                        goal.toInt(),
+                        reward,
+                        deadline
+                    )
+                }
+
+            if (!added) {
+                toast(if (opponent == null) R.string.challenge_add_failed else R.string.battle_add_failed)
+                return@launch
             }
+
+            if (opponent == null) {
+                toast(R.string.challenge_added)
+            } else {
+                Toast.makeText(
+                    this@CrewChallengesActivity,
+                    getString(R.string.battle_sent, opponent.name),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            load()
         }
     }
 

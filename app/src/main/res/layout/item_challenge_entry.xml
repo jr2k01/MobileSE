@@ -13,6 +13,31 @@
         android:orientation="vertical"
         android:padding="@dimen/card_padding">
 
+        <!--
+            Die Marke, an der ein Crew-Battle zu erkennen ist.
+
+            Ganz oben und nicht als Zusatz im Titel: eine Challenge gegen eine
+            andere Crew ist etwas anderes als eine im eigenen Kreis, und das
+            soll man sehen, bevor man den Namen liest. Bei gewoehnlichen
+            Challenges ist die Zeile gone.
+        -->
+        <TextView
+            android:id="@+id/tvBattleLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_battle_badge"
+            android:drawablePadding="6dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="?attr/colorOnErrorContainer"
+            app:drawableStartCompat="@drawable/ic_battle"
+            app:drawableTint="?attr/colorOnErrorContainer"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,6 +92,69 @@
             app:trackCornerRadius="5dp"
             app:indicatorColor="?attr/colorPrimary"
             app:trackColor="?attr/colorSurfaceContainerHighest" />
+
+        <!-- Der Stand der anderen Crew. Nur bei einem Battle sichtbar. -->
+        <LinearLayout
+            android:id="@+id/llBattleOpponent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvBattleOpponentProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/pbBattleOpponent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:trackThickness="10dp"
+                app:trackCornerRadius="5dp"
+                app:indicatorColor="?attr/colorError"
+                app:trackColor="?attr/colorSurfaceContainerHighest" />
+        </LinearLayout>
+
+        <!-- Fuehrt, liegt zurueck, gewonnen, verloren - oder wartet noch auf
+             die Antwort der anderen Crew. -->
+        <TextView
+            android:id="@+id/tvBattleStanding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:visibility="gone" />
+
+        <!-- Nur bei der herausgeforderten Crew, und nur solange sie noch nicht
+             geantwortet hat. -->
+        <LinearLayout
+            android:id="@+id/llBattleAnswer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBattleDecline"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/battle_decline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBattleAccept"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/battle_accept" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvChallengeStatus"

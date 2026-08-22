@@ -1055,14 +1055,51 @@ class AppRepository private constructor(context: Context) {
         emptyList()
     }
 
-    private suspend fun selectCrewChallenges(crewCode: String): List<Challenge> = try {
+    /**
+     * Die Challenges einer Crew - die eigenen und die, zu denen sie
+     * herausgefordert wurde.
+     *
+     * Ein Battle steht nur einmal in der Tabelle, bei der herausfordernden
+     * Crew. Ohne den zweiten Zweig saehe die herausgeforderte Crew ihn nie und
+     * koennte ihn auch nicht annehmen.
+     *
+     * Fehlt die Spalte, faellt die Abfrage auf die eigenen Challenges zurueck:
+     * eine Datenbank ohne die Battle-Spalten soll die Challenges weiterhin
+     * anzeigen, statt einen leeren Bildschirm zu zeigen.
+     */
+    private suspend fun selectCrewChallenges(crewCode: String): List<Challenge> {
+        return try {
+            client.postgrest["challenges"].select {
+                filter {
+                    or {
+                        eq("crew_id", crewCode)
+                        eq("opponent_crew_id", crewCode)
+                    }
+                }
+            }.decodeList<Challenge>()
+                // Feste Reihenfolge: die ID ist der Anlagezeitpunkt in
+                // Millisekunden. Vorher wurde ein Set zurueckgegeben, wodurch
+                // die Challenges bei jedem Neuladen in anderer Reihenfolge auf
+                // dem Bildschirm standen.
+                .sortedBy { it.id }
+        } catch (e: Exception) {
+            if (isMissingColumn(e, "opponent_crew_id")) {
+                Log.w(
+                    "SupabaseDB",
+                    "Loading without the crew battles, the opponent_crew_id column is " +
+                            "missing. See the documentation for the required ALTER TABLE."
+                )
+                return selectOwnChallenges(crewCode)
+            }
+            Log.e("SupabaseDB", "Could not load challenges: ${e.message}")
+            emptyList()
+        }
+    }
+
+    private suspend fun selectOwnChallenges(crewCode: String): List<Challenge> = try {
         client.postgrest["challenges"].select {
             filter { eq("crew_id", crewCode) }
-        }.decodeList<Challenge>()
-            // Feste Reihenfolge: die ID ist der Anlagezeitpunkt in Millisekunden.
-            // Vorher wurde ein Set zurueckgegeben, wodurch die Challenges bei
-            // jedem Neuladen in anderer Reihenfolge auf dem Bildschirm standen.
-            .sortedBy { it.id }
+        }.decodeList<Challenge>().sortedBy { it.id }
     } catch (e: Exception) {
         Log.e("SupabaseDB", "Could not load challenges: ${e.message}")
         emptyList()
@@ -1922,6 +1959,86 @@ class AppRepository private constructor(context: Context) {
             }
         }
 
+    /**
+     * Fordert eine andere Crew heraus.
+     *
+     * Die Zeile gehoert der eigenen Crew; die herausgeforderte steht in
+     * `opponent_crew_id` und findet sie darueber. Sie zaehlt erst, wenn die
+     * andere Seite zugestimmt hat - deshalb der Status.
+     *
+     * Anders als bei der Frist gibt es hier keinen Rueckfall auf ein Insert
+     * ohne die Spalten: eine Challenge ohne Gegner waere kein Battle, sondern
+     * stillschweigend eine gewoehnliche Challenge. Fehlen die Spalten,
+     * scheitert das Anlegen, und der Nutzer erfaehrt es.
+     */
+    suspend fun addCrewBattle(
+        crewCode: String,
+        opponentCrewCode: String,
+        type: String,
+        goal: Int,
+        reward: Int,
+        deadline: String?
+    ): Boolean = withContext(Dispatchers.IO) {
+        try {
+            client.postgrest["challenges"].insert(
+                Challenge(
+                    id = System.currentTimeMillis().toString(),
+                    crewId = crewCode,
+                    type = type,
+                    goal = goal,
+                    reward = reward,
+                    deadline = deadline,
+                    opponentCrewId = opponentCrewCode,
+                    battleStatus = CrewBattle.STATUS_PENDING
+                )
+            )
+            true
+        } catch (e: Exception) {
+            Log.e("SupabaseDB", "Adding the crew battle failed: ${e.message}")
+            false
+        }
+    }
+
+    /** Annehmen oder ablehnen - siehe [CrewBattle] fuer die Werte. */
+    suspend fun setBattleStatus(challengeId: String, status: String): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                client.postgrest["challenges"].update({ set("battle_status", status) }) {
+                    filter { eq("id", challengeId) }
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("SupabaseDB", "Could not answer the crew battle: ${e.message}")
+                false
+            }
+        }
+
+    /**
+     * Der Fortschritt der gegnerischen Crew.
+     *
+     * Nur, was fuer den Balken noetig ist - Mitglieder, Aktivitaeten und
+     * Schritte. Ein voller Snapshot laedt zusaetzlich deren Challenges und
+     * Belohnungen, die hier niemand ansieht.
+     */
+    suspend fun loadOpponentProgress(crewCode: String): OpponentProgress =
+        withContext(Dispatchers.IO) {
+            coroutineScope {
+                // Die Schritte haengen an den Mitgliedern, muessen also warten.
+                // Name und Aktivitaeten laufen daneben her.
+                val nameAsync = async { getCrew(crewCode)?.name }
+                val activitiesAsync = async { selectCrewActivities(crewCode) }
+                val memberIds = selectMemberIds(crewCode)
+
+                OpponentProgress(
+                    crewCode = crewCode,
+                    name = nameAsync.await(),
+                    memberIds = memberIds,
+                    activities = activitiesAsync.await(),
+                    stepDays = selectStepDays(memberIds)
+                )
+            }
+        }
+
     suspend fun deleteCrewChallenge(challengeId: String): Boolean = withContext(Dispatchers.IO) {
         val deleted = try {
             client.postgrest["challenges"].delete {
@@ -1960,6 +2077,11 @@ class AppRepository private constructor(context: Context) {
         var awarded = false
 
         for (challenge in snapshot.challenges) {
+            // Ein Battle zaehlt erst, wenn die andere Crew zugestimmt hat.
+            // Sonst koennte man sich Punkte holen, indem man eine Crew
+            // herausfordert, die nie geantwortet hat.
+            if (challenge.isBattle && !CrewBattle.isRunning(challenge)) continue
+
             val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
             val award = ChallengeManager.pendingAward(challenge, total, memberIds, snapshot)
                 ?: continue
@@ -2105,6 +2227,22 @@ data class ActivityFeedback(
     val comments: List<ActivityComment> = emptyList(),
     /** Profil je Kennung, fuer alle, die reagiert oder kommentiert haben. */
     val authors: Map<String, UserProfile> = emptyMap()
+)
+
+/**
+ * Der Fortschritt der gegnerischen Crew in einem Battle.
+ *
+ * Absichtlich schmaler als ein [CrewSnapshot]: von der anderen Crew wird nur
+ * gezeigt, wie weit sie ist - keine Namen ihrer Mitglieder, keine Beitraege
+ * einzelner Personen. Ein Battle ist ein Vergleich zwischen Crews, kein
+ * Einblick in eine fremde Crew.
+ */
+data class OpponentProgress(
+    val crewCode: String,
+    val name: String?,
+    val memberIds: List<String>,
+    val activities: List<Activity>,
+    val stepDays: List<StepDay>
 )
 
 /**

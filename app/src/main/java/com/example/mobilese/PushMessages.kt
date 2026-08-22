@@ -16,6 +16,9 @@ object PushMessages {
     const val TYPE_OVERTAKE = "overtake"
     const val TYPE_LEAD = "lead"
 
+    /** Eine andere Crew hat die eigene zu einem Battle herausgefordert. */
+    const val TYPE_BATTLE = "battle"
+
     data class Content(val channelId: String, val title: String, val text: String, val id: Int)
 
     /**
@@ -49,6 +52,19 @@ object PushMessages {
                 id = ID_RANKING
             )
 
+            TYPE_BATTLE -> Content(
+                channelId = Notifications.CHANNEL_BATTLE,
+                title = strings.battleTitle(),
+                // Der Name der Crew steht in "crew" und nicht in "name": es ist
+                // keine Person, die herausfordert, sondern eine Crew.
+                text = strings.battleText(
+                    data["crew"].orEmpty().ifBlank { strings.unknownCrew() },
+                    data["challenge_type"].orEmpty(),
+                    data["goal"]?.toIntOrNull() ?: 0
+                ),
+                id = ID_BATTLE
+            )
+
             // Eine Art, die diese Version nicht kennt - etwa weil der Server
             // schon weiter ist als die installierte App. Nichts anzeigen ist
             // besser als eine leere Meldung.
@@ -64,8 +80,18 @@ object PushMessages {
         fun rankingTitle(): String
         fun overtakeText(name: String, rank: Int): String
         fun leadText(name: String): String
+        fun unknownCrew(): String
+        fun battleTitle(): String
+
+        /**
+         * @param type der in der Datenbank gespeicherte Name der Challenge-Art.
+         *        Uebersetzt wird er erst hier - der Server kennt die
+         *        Sprachdateien der App nicht.
+         */
+        fun battleText(crew: String, type: String, goal: Int): String
     }
 
     private const val ID_ACTIVITY = 3001
     private const val ID_RANKING = 3002
+    private const val ID_BATTLE = 3003
 }

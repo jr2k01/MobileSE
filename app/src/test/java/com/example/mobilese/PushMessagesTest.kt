@@ -25,6 +25,9 @@ class PushMessagesTest {
         override fun rankingTitle() = "Ranking"
         override fun overtakeText(name: String, rank: Int) = "$name overtook, now $rank"
         override fun leadText(name: String) = "$name leads"
+        override fun unknownCrew() = "Unknown Crew"
+        override fun battleTitle() = "Challenged"
+        override fun battleText(crew: String, type: String, goal: Int) = "$crew|$type|$goal"
     }
 
     @Test
@@ -42,6 +45,31 @@ class PushMessagesTest {
         assertEquals(Notifications.CHANNEL_ACTIVITIES, content?.channelId)
         assertEquals("New workout", content?.title)
         assertEquals("Jannik R.|Padel|60", content?.text)
+    }
+
+    @Test
+    fun `a battle message goes to the battle channel`() {
+        val content = PushMessages.from(
+            mapOf(
+                "type" to PushMessages.TYPE_BATTLE,
+                "crew" to "Die starken Maenner",
+                "challenge_type" to "DISTANCE",
+                "goal" to "50"
+            ),
+            strings
+        )
+
+        assertEquals(Notifications.CHANNEL_BATTLE, content?.channelId)
+        assertEquals("Challenged", content?.title)
+        assertEquals("Die starken Maenner|DISTANCE|50", content?.text)
+    }
+
+    /** Ohne Crew-Namen soll eine duerftige Meldung stehen, keine leere. */
+    @Test
+    fun `a battle without a crew name falls back`() {
+        val content = PushMessages.from(mapOf("type" to PushMessages.TYPE_BATTLE), strings)
+
+        assertEquals("Unknown Crew|" + "|0", content?.text)
     }
 
     @Test

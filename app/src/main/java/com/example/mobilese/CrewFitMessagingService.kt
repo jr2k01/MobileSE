@@ -52,6 +52,19 @@ class CrewFitMessagingService : FirebaseMessagingService() {
             context.getString(R.string.push_overtake_text, name, rank)
 
         override fun leadText(name: String) = context.getString(R.string.push_lead_text, name)
+
+        override fun unknownCrew() = context.getString(R.string.unknown_crew)
+        override fun battleTitle() = context.getString(R.string.push_battle_title)
+
+        /**
+         * Die Art kommt als gespeicherter Name herein und wird hier
+         * uebersetzt. contributionRes ist der Text mit der blossen Einheit -
+         * aus 50 und DISTANCE wird "50 km".
+         */
+        override fun battleText(crew: String, type: String, goal: Int): String {
+            val target = context.getString(ChallengeType.fromStored(type).contributionRes, goal)
+            return context.getString(R.string.push_battle_text, crew, target)
+        }
     }
 
     private companion object {

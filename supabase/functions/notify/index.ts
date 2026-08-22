@@ -229,17 +229,81 @@ async function send(
 
 // --- Ablauf ---
 
-Deno.serve(async (request) => {
-  const payload = await request.json();
-  const activity = payload.record;
-  if (!activity?.crew_id) return new Response("no crew", { status: 200 });
-
-  const supabase = createClient(
+/** Der Zugang zur Datenbank mit vollen Rechten. */
+function admin() {
+  return createClient(
     Deno.env.get("SUPABASE_URL")!,
     // Der Service-Role-Key darf nur hier liegen, nie in der App: er umgeht
     // saemtliche Row-Level-Security-Regeln.
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+}
+
+/**
+ * Eine Crew wurde herausgefordert.
+ *
+ * Benachrichtigt wird nur die herausgeforderte Seite: die andere hat den
+ * Battle gerade selbst angelegt. Und nur bei einer neuen Herausforderung -
+ * spaetere Aenderungen an derselben Zeile, etwa das Annehmen, loesen den
+ * Trigger nicht aus, weil er an INSERT haengt.
+ */
+async function handleBattle(challenge: any): Promise<Response> {
+  if (!challenge?.opponent_crew_id) return new Response("no opponent", { status: 200 });
+
+  const supabase = admin();
+
+  const [{ data: memberRows }, { data: crew }] = await Promise.all([
+    supabase.from("crew_members").select("user_id").eq("crew_id", challenge.opponent_crew_id),
+    supabase.from("crews").select("name").eq("id", challenge.crew_id).maybeSingle(),
+  ]);
+
+  const memberIds = (memberRows ?? []).map((m: any) => m.user_id);
+  if (memberIds.length === 0) return new Response("empty crew", { status: 200 });
+
+  const { data: tokens } = await supabase
+    .from("device_tokens")
+    .select("token, user_id")
+    .in("user_id", memberIds);
+
+  if (!tokens || tokens.length === 0) return new Response("no devices", { status: 200 });
+
+  const serviceAccount = JSON.parse(Deno.env.get("FIREBASE_SERVICE_ACCOUNT")!);
+  const bearer = await accessToken(serviceAccount);
+
+  for (const row of tokens) {
+    // Wer in beiden Crews ist, hat den Battle womoeglich selbst angelegt.
+    // Ihn trotzdem zu benachrichtigen ist harmlos - er darf ihn ja auch
+    // annehmen, und die App zeigt ihm dieselbe Karte.
+    await send(row.token, serviceAccount.project_id, bearer, {
+      type: "battle",
+      crew: crew?.name ?? "",
+      // Die Art bleibt der gespeicherte Name; uebersetzt wird sie in der App,
+      // die als einzige die Sprachdateien kennt.
+      challenge_type: challenge.type ?? "",
+      goal: String(challenge.goal ?? 0),
+    });
+  }
+
+  return new Response("ok", { status: 200 });
+}
+
+Deno.serve(async (request) => {
+  const payload = await request.json();
+  const record = payload.record;
+
+  // Zwei Ausloeser, eine Funktion: eine neue Aktivitaet und eine neue
+  // Herausforderung. Erkennbar an der Zeile selbst - eine Challenge mit
+  // Gegner hat ein Feld, das eine Aktivitaet nie hat. Eine zweite Funktion
+  // waere ein zweiter Namen, ein zweites Ausrollen und ein zweiter Ort fuer
+  // denselben Firebase-Schluessel.
+  if (payload.table === "challenges" || record?.opponent_crew_id) {
+    return await handleBattle(record);
+  }
+
+  const activity = record;
+  if (!activity?.crew_id) return new Response("no crew", { status: 200 });
+
+  const supabase = admin();
 
   const { data: memberRows } = await supabase
     .from("crew_members")

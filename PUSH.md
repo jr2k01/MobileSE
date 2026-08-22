@@ -178,6 +178,49 @@ jemand davon erfaehrt. `net.http_post` wartet nicht auf die Antwort - das
 Speichern eines Workouts haengt also nicht daran, ob die Benachrichtigung
 klappt.
 
+### Zweiter Trigger: Herausforderungen anderer Crews
+
+Dieselbe Funktion benachrichtigt auch die Crew, die zu einem Battle
+herausgefordert wurde. Sie erkennt am Datensatz selbst, worum es geht - eine
+Challenge mit `opponent_crew_id` ist keine Aktivitaet. Eine zweite Edge Function
+waere ein zweiter Name, ein zweites Ausrollen und ein zweiter Ort fuer denselben
+Firebase-Schluessel.
+
+```sql
+create or replace function notify_on_battle()
+returns trigger
+language plpgsql
+security definer
+as $$
+begin
+    -- Nur Battles, nicht jede gewoehnliche Challenge.
+    if new.opponent_crew_id is null then
+        return new;
+    end if;
+
+    perform net.http_post(
+        url := 'https://ghhtaaoedlvhipmnuziu.supabase.co/functions/v1/notify',
+        headers := '{"Content-Type": "application/json"}'::jsonb,
+        body := jsonb_build_object('record', to_jsonb(new), 'table', 'challenges')
+    );
+    return new;
+end;
+$$;
+
+drop trigger if exists notify_on_battle on challenges;
+create trigger notify_on_battle
+    after insert on challenges
+    for each row execute function notify_on_battle();
+```
+
+Nur `after insert`: benachrichtigt wird die neue Herausforderung. Das spaetere
+Annehmen oder Ablehnen sieht die andere Crew ohnehin in der App, und eine
+Meldung fuer jede Statusaenderung waere Laerm.
+
+**Die Edge Function muss danach neu ausgerollt werden** - der Code im Ordner
+`supabase/functions/notify` ist nur die Vorlage, ausgefuehrt wird, was in
+Supabase liegt.
+
 ### Oder ueber die Oberflaeche
 
 In aelteren Dashboards unter **Database** → **Webhooks**, in neueren unter

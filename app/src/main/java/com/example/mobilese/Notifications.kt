@@ -17,7 +17,7 @@ import androidx.core.content.ContextCompat
 /**
  * Anzeigen der Benachrichtigungen, die per Push hereinkommen.
  *
- * Drei Kanaele, weil Android sie getrennt abschaltbar macht: wen die Workouts
+ * Vier Kanaele, weil Android sie getrennt abschaltbar macht: wen die Workouts
  * der anderen nerven, soll trotzdem erfahren koennen, dass er ueberholt wurde -
  * und umgekehrt. Ein gemeinsamer Kanal waere nur eine Zeile weniger Code und
  * naehme dem Nutzer diese Wahl.
@@ -38,6 +38,15 @@ object Notifications {
      * bekommen, wenn einem der Rest zu viel geworden ist.
      */
     const val CHANNEL_WATCH = "watch_workouts"
+
+    /**
+     * Herausforderungen anderer Crews.
+     *
+     * Ein eigener Kanal, weil es weder eine Nachricht ueber die eigene Crew
+     * noch eine ueber die Rangliste ist: es ist eine Frage, die eine Antwort
+     * braucht.
+     */
+    const val CHANNEL_BATTLE = "crew_battles"
 
     /**
      * Legt die Kanaele an. Mehrfach aufzurufen schadet nicht - ein bereits
@@ -72,6 +81,14 @@ object Notifications {
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply { description = context.getString(R.string.channel_watch_desc) }
         )
+
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_BATTLE,
+                context.getString(R.string.channel_battle),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = context.getString(R.string.channel_battle_desc) }
+        )
     }
 
     /**
@@ -104,6 +121,8 @@ object Notifications {
             // zu tun ist, also soll das Antippen genau dorthin fuehren und
             // nicht auf den Startbildschirm, wo man es noch einmal suchen muss.
             CHANNEL_WATCH -> WorkoutTrackingActivity::class.java
+            // Dorthin, wo angenommen oder abgelehnt wird.
+            CHANNEL_BATTLE -> CrewChallengesActivity::class.java
             else -> MainHubActivity::class.java
         }
 

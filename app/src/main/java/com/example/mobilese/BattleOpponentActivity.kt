@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,14 +55,17 @@ class BattleOpponentActivity : AppCompatActivity() {
         results = findViewById(R.id.llSearchResults)
         hint = findViewById(R.id.tvSearchHint)
 
-        findViewById<EditText>(R.id.etSearch).apply {
-            setHint(R.string.battle_search_hint)
-            addTextChangedListener(object : TextWatcher {
-                override fun afterTextChanged(s: Editable?) = search(s?.toString().orEmpty())
-                override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-                override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-            })
-        }
+        // Die Beschriftung gehoert an das TextInputLayout, nicht an das
+        // Eingabefeld darin. Am Feld gesetzt zeichnet Material beide: seine
+        // eigene schwebende Beschriftung und den Hinweis im Feld - Schrift
+        // ueber Schrift.
+        findViewById<TextInputLayout>(R.id.tilSearch).setHint(R.string.battle_search_hint)
+
+        findViewById<EditText>(R.id.etSearch).addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = search(s?.toString().orEmpty())
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
+        })
     }
 
     private fun search(query: String) {

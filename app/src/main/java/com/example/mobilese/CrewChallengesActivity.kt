@@ -168,7 +168,8 @@ class CrewChallengesActivity : AppCompatActivity() {
                 view.findViewById(R.id.llContributionsContainer),
                 inflater,
                 contributions,
-                type
+                type,
+                challenge.reward
             )
 
             val progressBar = view.findViewById<LinearProgressIndicator>(R.id.pbChallenge)
@@ -359,20 +360,39 @@ class CrewChallengesActivity : AppCompatActivity() {
         )
     }
 
+    /**
+     * Die Beitraege der Mitglieder, mit dem Anteil am Topf daneben.
+     *
+     * Gerechnet wird mit denselben Anteilen, die spaeter ausgezahlt werden -
+     * die Zahl auf der Karte und die Zahl in der Rangliste kommen aus derselben
+     * Funktion und koennen deshalb nicht auseinanderlaufen.
+     */
     private fun showContributions(
         container: LinearLayout,
         inflater: LayoutInflater,
         contributions: List<Pair<UserProfile, Int>>,
-        type: ChallengeType
+        type: ChallengeType,
+        reward: Int
     ) {
         container.removeAllViews()
-        for ((member, value) in contributions) {
-            if (value <= 0) continue
+        val shares = ChallengeCalculator.shareOut(reward, contributions.map { it.second })
+
+        contributions.forEachIndexed { index, (member, value) ->
+            if (value <= 0) return@forEachIndexed
             val row = inflater.inflate(R.layout.item_challenge_contributor_row, container, false)
             row.findViewById<TextView>(R.id.tvContributorName).text =
                 DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
             row.findViewById<TextView>(R.id.tvContributorValue).text =
                 getString(type.contributionRes, value)
+
+            val share = row.findViewById<TextView>(R.id.tvContributorShare)
+            if (shares[index] > 0) {
+                share.visibility = View.VISIBLE
+                share.text = getString(R.string.contribution_share, shares[index])
+            } else {
+                share.visibility = View.GONE
+            }
+
             container.addView(row)
         }
     }

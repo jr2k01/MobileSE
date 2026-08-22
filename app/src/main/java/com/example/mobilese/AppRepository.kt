@@ -2073,7 +2073,6 @@ class AppRepository private constructor(context: Context) {
      *         veraltet ist.
      */
     suspend fun awardCompletedChallenges(snapshot: CrewSnapshot): Boolean {
-        val memberIds = snapshot.members.map { it.id }
         var awarded = false
 
         for (challenge in snapshot.challenges) {
@@ -2082,8 +2081,10 @@ class AppRepository private constructor(context: Context) {
             // herausfordert, die nie geantwortet hat.
             if (challenge.isBattle && !CrewBattle.isRunning(challenge)) continue
 
-            val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
-            val award = ChallengeManager.pendingAward(challenge, total, memberIds, snapshot)
+            // Die Beitraege je Mitglied - aus ihnen ergibt sich sowohl, ob das
+            // Ziel steht, als auch wer wie viel vom Topf bekommt.
+            val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+            val award = ChallengeManager.pendingAward(challenge, contributions, snapshot)
                 ?: continue
             if (awardChallenge(award)) awarded = true
         }
@@ -2101,7 +2102,7 @@ class AppRepository private constructor(context: Context) {
     private suspend fun awardChallenge(award: PendingAward): Boolean = withContext(Dispatchers.IO) {
         try {
             client.postgrest["challenge_rewards"].insert(
-                award.userIds.map { ChallengeReward(award.challengeId, it, award.pointsPerUser) }
+                award.shares.map { ChallengeReward(award.challengeId, it.userId, it.points) }
             )
             true
         } catch (e: Exception) {

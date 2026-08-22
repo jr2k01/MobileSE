@@ -49,20 +49,50 @@ class ChallengeProgressTest {
         val challenge = TestData.challenge(goal = 10, reward = 20)
         val snapshot = TestData.snapshot(members = listOf(TestData.profile("u1", "Ada")))
 
-        assertNull(ChallengeManager.pendingAward(challenge, 9, listOf("u1"), snapshot))
+        assertNull(
+            ChallengeManager.pendingAward(
+                challenge,
+                listOf(TestData.profile("u1", "Ada") to 9),
+                snapshot
+            )
+        )
     }
 
     @Test
-    fun `a completed challenge is split among all members`() {
+    fun `a completed challenge is split by contribution`() {
         val challenge = TestData.challenge(goal = 10, reward = 20)
         val snapshot = TestData.snapshot(
             members = listOf(TestData.profile("u1", "Ada"), TestData.profile("u2", "Linus"))
         )
 
-        val award = ChallengeManager.pendingAward(challenge, 10, listOf("u1", "u2"), snapshot)
+        val award = ChallengeManager.pendingAward(
+            challenge,
+            listOf(TestData.profile("u1", "Ada") to 9, TestData.profile("u2", "Linus") to 1),
+            snapshot
+        )
 
-        assertEquals(10, award?.pointsPerUser)
-        assertEquals(listOf("u1", "u2"), award?.userIds)
+        // Neun Zehntel der Arbeit, neun Zehntel der Punkte.
+        assertEquals(
+            listOf(PendingAward.Share("u1", 18), PendingAward.Share("u2", 2)),
+            award?.shares
+        )
+    }
+
+    /** Wer zugesehen hat, taucht in der Ausschuettung gar nicht erst auf. */
+    @Test
+    fun `a member without a contribution is left out`() {
+        val challenge = TestData.challenge(goal = 10, reward = 20)
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada"), TestData.profile("u2", "Linus"))
+        )
+
+        val award = ChallengeManager.pendingAward(
+            challenge,
+            listOf(TestData.profile("u1", "Ada") to 10, TestData.profile("u2", "Linus") to 0),
+            snapshot
+        )
+
+        assertEquals(listOf(PendingAward.Share("u1", 20)), award?.shares)
     }
 
     @Test
@@ -73,12 +103,15 @@ class ChallengeProgressTest {
             rewards = listOf(ChallengeReward("c1", "u1", 10))
         )
 
-        val award = ChallengeManager.pendingAward(challenge, 12, listOf("u1", "u2"), snapshot)
+        val award = ChallengeManager.pendingAward(
+            challenge,
+            listOf(TestData.profile("u1", "Ada") to 6, TestData.profile("u2", "Linus") to 6),
+            snapshot
+        )
 
-        assertEquals(listOf("u2"), award?.userIds)
-        // Der Anteil bleibt am Belohnungstopf und der Crew-Groesse haengen,
-        // nicht an der Zahl der noch offenen Ausschuettungen.
-        assertEquals(10, award?.pointsPerUser)
+        // Der Anteil richtet sich nach dem Beitrag, nicht nach der Zahl der
+        // noch offenen Ausschuettungen: u2 bekommt seine Haelfte, nicht alles.
+        assertEquals(listOf(PendingAward.Share("u2", 10)), award?.shares)
     }
 
     @Test
@@ -89,7 +122,13 @@ class ChallengeProgressTest {
             rewards = listOf(ChallengeReward("c1", "u1", 20))
         )
 
-        assertNull(ChallengeManager.pendingAward(challenge, 50, listOf("u1"), snapshot))
+        assertNull(
+            ChallengeManager.pendingAward(
+                challenge,
+                listOf(TestData.profile("u1", "Ada") to 50),
+                snapshot
+            )
+        )
     }
 
     @Test

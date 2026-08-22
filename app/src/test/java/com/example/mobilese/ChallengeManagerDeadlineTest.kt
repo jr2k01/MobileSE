@@ -37,9 +37,9 @@ class ChallengeManagerDeadlineTest {
             challenges = listOf(challenge)
         )
 
-        val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
-        assertEquals(30, total)
-        assertNull(ChallengeManager.pendingAward(challenge, total, listOf("u1"), snapshot))
+        val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+        assertEquals(30, contributions.sumOf { it.second })
+        assertNull(ChallengeManager.pendingAward(challenge, contributions, snapshot))
     }
 
     /** Rechtzeitig geschafft heisst Punkte - auch wenn erst spaeter nachgesehen wird. */
@@ -54,11 +54,11 @@ class ChallengeManagerDeadlineTest {
             challenges = listOf(challenge)
         )
 
-        val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
-        assertEquals(55, total)
+        val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+        assertEquals(55, contributions.sumOf { it.second })
 
-        val award = ChallengeManager.pendingAward(challenge, total, listOf("u1"), snapshot)
-        assertEquals(listOf("u1"), award?.userIds)
+        val award = ChallengeManager.pendingAward(challenge, contributions, snapshot)
+        assertEquals(listOf("u1"), award?.shares?.map { it.userId })
     }
 
     /** Ohne Frist bleibt es beim bisherigen Verhalten. */
@@ -74,9 +74,12 @@ class ChallengeManagerDeadlineTest {
             challenges = listOf(challenge)
         )
 
-        val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
-        assertEquals(70, total)
-        assertEquals(listOf("u1"), ChallengeManager.pendingAward(challenge, total, listOf("u1"), snapshot)?.userIds)
+        val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+        assertEquals(70, contributions.sumOf { it.second })
+        assertEquals(
+            listOf("u1"),
+            ChallengeManager.pendingAward(challenge, contributions, snapshot)?.shares?.map { it.userId }
+        )
     }
 
     @Test
@@ -90,8 +93,11 @@ class ChallengeManagerDeadlineTest {
             challenges = listOf(challenge)
         )
 
-        val total = ChallengeManager.progressByMember(challenge, snapshot).sumOf { it.second }
-        assertEquals(50, total)
-        assertEquals(listOf("u1"), ChallengeManager.pendingAward(challenge, total, listOf("u1"), snapshot)?.userIds)
+        val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+        assertEquals(50, contributions.sumOf { it.second })
+        assertEquals(
+            listOf("u1"),
+            ChallengeManager.pendingAward(challenge, contributions, snapshot)?.shares?.map { it.userId }
+        )
     }
 }

@@ -17,6 +17,23 @@
         android:textAppearance="?attr/textAppearanceBodyMedium"
         android:textColor="?attr/colorOnSurface" />
 
+    <!--
+        Der Anteil am Belohnungstopf, der auf diesen Beitrag entfaellt.
+
+        Steht neben dem Beitrag, weil die Regel sonst unsichtbar waere: dass
+        neunzig Prozent der Arbeit auch neunzig Prozent der Punkte bringen,
+        sieht man erst, wenn beide Zahlen nebeneinanderstehen. Solange das Ziel
+        nicht steht, ist es die Aussicht - ausgezahlt wird erst am Ziel.
+    -->
+    <TextView
+        android:id="@+id/tvContributorShare"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tvContributorValue"
         android:layout_width="wrap_content"

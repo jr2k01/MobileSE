@@ -687,6 +687,8 @@
     <string name="crew_level_prestige">Prestige %1$d · Level %2$d</string>
     <string name="crew_level_hint">%1$d of %2$d points into the next level</string>
     <string name="crew_level_battles">Every battle won is worth %1$d points</string>
+    <!-- Der Anteil am Belohnungstopf neben dem Beitrag eines Mitglieds. -->
+    <string name="contribution_share">%1$d pts</string>
     <string name="challenge_added">Challenge added</string>
     <string name="challenge_add_failed">Could not add the challenge</string>
     <string name="challenge_deleted">Challenge deleted</string>

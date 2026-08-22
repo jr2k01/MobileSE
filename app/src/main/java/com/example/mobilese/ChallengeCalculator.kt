@@ -147,10 +147,57 @@ object ChallengeCalculator {
         return (targetGoal * type.rewardMultiplier).roundToInt().coerceAtLeast(1)
     }
 
-    /** Der Anteil einer teilnehmenden Person am Belohnungstopf, kaufmaennisch gerundet. */
-    fun calculatePointsPerParticipant(totalPoints: Int, participantCount: Int): Int {
-        if (participantCount <= 0) return 0
-        return (totalPoints.toDouble() / participantCount).roundToInt()
+    /**
+     * Verteilt den Belohnungstopf nach Leistung.
+     *
+     * Wer neunzig Prozent des Ziels geschafft hat, bekommt neunzig Prozent der
+     * Punkte. Vorher wurde gleichmaessig geteilt, also bekam auch etwas, wer
+     * nichts beigetragen hatte - bei einer Challenge, die eine Person allein
+     * gestemmt hat, war das die Haelfte an jemanden, der zugesehen hat.
+     *
+     * Der Topf wird **auf den Punkt genau** ausgeschuettet. Einzeln zu runden
+     * ergaebe je nach Aufteilung ein oder zwei Punkte zu viel oder zu wenig -
+     * bei einem Topf von 100 sind das sichtbare Prozente. Deshalb bekommt
+     * zuerst jeder seinen abgerundeten Anteil, und die dabei liegengebliebenen
+     * Punkte gehen an die mit dem groessten abgeschnittenen Rest. Bei gleichem
+     * Rest entscheidet der groessere Beitrag, danach die Reihenfolge - damit
+     * dieselbe Eingabe immer dieselbe Aufteilung ergibt.
+     *
+     * @param contributions Beitraege in der Reihenfolge der Mitglieder.
+     * @return Punkte in derselben Reihenfolge. Wer nichts beigetragen hat,
+     *         bekommt null.
+     */
+    fun shareOut(totalPoints: Int, contributions: List<Int>): List<Int> {
+        val positive = contributions.map { it.coerceAtLeast(0) }
+        val total = positive.sum()
+        if (totalPoints <= 0 || total <= 0) return List(contributions.size) { 0 }
+
+        val exact = positive.map { totalPoints.toDouble() * it / total }
+        val shares = exact.map { it.toInt() }.toMutableList()
+
+        // Die Punkte, die beim Abrunden liegengeblieben sind.
+        var left = totalPoints - shares.sum()
+
+        // Nur, wer beigetragen hat: sonst faenden sich Restpunkte bei
+        // jemandem wieder, der nichts getan hat.
+        val order = exact.indices
+            .filter { positive[it] > 0 }
+            .sortedWith(
+                compareByDescending<Int> { exact[it] - shares[it] }
+                    .thenByDescending { positive[it] }
+                    .thenBy { it }
+            )
+
+        // Reihum, falls eine Runde nicht reicht - das kommt bei vielen
+        // Mitgliedern und einem kleinen Topf vor.
+        var index = 0
+        while (left > 0) {
+            shares[order[index % order.size]]++
+            left--
+            index++
+        }
+
+        return shares
     }
 
     /**

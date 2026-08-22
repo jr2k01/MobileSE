@@ -100,6 +100,50 @@ class CrewBattleTest {
         assertEquals(0, CrewBattle.wonBattles(listOf(battle), rewards, listOf("u1", "u2")))
     }
 
+    /**
+     * Im Battle bekommt nur die Siegercrew etwas - und dort nach Leistung.
+     * Die Beitraege, die hereingegeben werden, sind ohnehin nur die der
+     * eigenen Crew.
+     */
+    @Test
+    fun `der Topf eines gewonnenen Battles geht nach Leistung`() {
+        val battle = TestData.battle(id = "b1", goal = 10, reward = 100)
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada"), TestData.profile("u2", "Linus")),
+            challenges = listOf(battle)
+        )
+
+        val award = ChallengeManager.pendingAward(
+            battle,
+            listOf(TestData.profile("u1", "Ada") to 9, TestData.profile("u2", "Linus") to 1),
+            snapshot
+        )
+
+        assertEquals(
+            listOf(PendingAward.Share("u1", 90), PendingAward.Share("u2", 10)),
+            award?.shares
+        )
+    }
+
+    /** Hat die andere Crew schon kassiert, ist der Battle verloren. */
+    @Test
+    fun `nach der Auszahlung an die andere Crew gibt es nichts mehr`() {
+        val battle = TestData.battle(id = "b1", goal = 10, reward = 100)
+        val snapshot = TestData.snapshot(
+            members = listOf(TestData.profile("u1", "Ada")),
+            challenges = listOf(battle),
+            rewards = listOf(ChallengeReward("b1", "fremd", 100))
+        )
+
+        assertNull(
+            ChallengeManager.pendingAward(
+                battle,
+                listOf(TestData.profile("u1", "Ada") to 20),
+                snapshot
+            )
+        )
+    }
+
     /** Eine gewoehnliche Challenge ist kein gewonnener Battle. */
     @Test
     fun `nur Battles zaehlen als gewonnene Battles`() {

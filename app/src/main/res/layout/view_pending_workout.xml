@@ -54,7 +54,7 @@
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorOnTertiaryContainer" />
 
-            <!-- Sportart, Dauer und - wenn gemessen - der Puls. -->
+            <!-- Sportart, Dauer und - wenn gemessen - Puls und Schritte. -->
             <TextView
                 android:id="@+id/tvPendingDetails"
                 android:layout_width="match_parent"

@@ -5,6 +5,29 @@
     <uses-permission android:name="android.permission.BODY_SENSORS" />
 
     <!--
+        Der Schrittzaehler. Zaehlt nur Schritte, verlangt aber trotzdem ein
+        Recht: aus dem Gangbild laesst sich ablesen, was jemand gerade tut, und
+        das gilt seit Android 10 als schuetzenswert. Auch dieses wird zur
+        Laufzeit erfragt.
+    -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
+    <!--
+        Fuer die Meldung des laufenden Workouts. Ohne dieses Recht laeuft der
+        Dienst zwar, seine Meldung bleibt aber unsichtbar - und mit ihr der Weg
+        zurueck ins Training.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+        Der Dienst, der das Workout traegt, auch wenn niemand hinsieht. Die Art
+        `health` ist die vorgesehene fuer ein Training; ab Android 14 verlangt
+        sie zusaetzlich, dass eines der beiden Sensorrechte erteilt ist.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+
+    <!--
         Nur fuer Uhren. Ohne diesen Eintrag boete der Play Store das APK auch
         Telefonen an, wo es nichts zu suchen hat.
     -->
@@ -36,9 +59,37 @@
             </intent-filter>
         </activity>
 
+        <!--
+            Nur eine Anzeige des laufenden Trainings, deshalb `singleTop`: aus
+            der Meldung heraus soll dieselbe wieder nach vorn kommen und keine
+            zweite darueber.
+        -->
         <activity
             android:name=".WorkoutActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <service
+            android:name=".WorkoutService"
+            android:exported="false"
+            android:foregroundServiceType="health" />
+
+        <!--
+            Nimmt die Bestaetigung des Telefons entgegen. Wie auf der anderen
+            Seite von den Play-Diensten gestartet, deshalb `exported`, und ueber
+            den Pfad auf genau diese eine Nachricht eingegrenzt.
+        -->
+        <service
+            android:name=".PhoneAckService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/crewfit/logged" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

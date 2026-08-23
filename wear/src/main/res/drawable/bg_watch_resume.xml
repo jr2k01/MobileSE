@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Der Weg zurueck ins laufende Training. Traegt die Farbe der App und nicht
+     das Grau der Sportarten: es ist keine Auswahl, sondern etwas Offenes. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#3B4279" />
+    <corners android:radius="24dp" />
+</shape>

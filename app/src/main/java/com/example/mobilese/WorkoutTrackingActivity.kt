@@ -387,15 +387,10 @@ class WorkoutTrackingActivity : AppCompatActivity() {
 
         val notice = findViewById<TextView>(R.id.tvWatchNotice)
         notice.visibility = View.VISIBLE
-        // Mehrzahl ueber die Dauer, damit nicht "1 minutes" dasteht.
-        notice.text = when (val average = workout.avgHeartRate) {
-            null -> resources.getQuantityString(
-                R.plurals.watch_notice, workout.minutes, workout.minutes
-            )
-            else -> resources.getQuantityString(
-                R.plurals.watch_notice_pulse, workout.minutes, workout.minutes, average
-            )
-        }
+        notice.text = getString(
+            R.string.watch_notice,
+            WatchFacts.line(this, workout, WatchFacts.SEPARATOR_SENTENCE)
+        )
     }
 
     /**
@@ -579,7 +574,24 @@ class WorkoutTrackingActivity : AppCompatActivity() {
                 JointSession.clear()
                 // Erst jetzt aus der Warteschlange nehmen: waere es vorher
                 // geschehen und der Upload gescheitert, waere das Workout weg.
-                pendingEndedAt?.let { PendingWorkouts.remove(this@WorkoutTrackingActivity, it) }
+                pendingEndedAt?.let { endedAt ->
+                    PendingWorkouts.remove(this@WorkoutTrackingActivity, endedAt)
+                    // Und der Uhr Bescheid geben, die es aufgezeichnet hat.
+                    // Die Punkte wie im Detail eines Workouts gerechnet: ohne
+                    // den Aufschlag fuer eine Serie und ohne den Faktor fuer
+                    // ein gemeinsames Training, damit auf der Uhr dieselbe Zahl
+                    // steht wie in der App.
+                    WatchAck.confirm(
+                        context = this@WorkoutTrackingActivity,
+                        endedAt = endedAt,
+                        sport = sport,
+                        minutes = minutes,
+                        points = PointsCalculator.calculateWorkoutPoints(
+                            minutes,
+                            Sports.intensityFor(sport)
+                        )
+                    )
+                }
                 toast(R.string.activity_saved)
                 finish()
             } else {

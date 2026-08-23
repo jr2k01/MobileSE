@@ -7,30 +7,95 @@
 
     Der Rand ringsum ist grosszuegig, weil das Display rund ist: was in den
     Ecken eines gedachten Rechtecks liegt, ist auf einer runden Uhr
-    abgeschnitten.
+    abgeschnitten. Die drei Zeilen ganz oben tragen zusaetzlichen Rand: dort
+    ist der Kreis am schmalsten, und der Rand der ScrollView allein reicht
+    nicht - Text stand mit beiden Enden im abgeschnittenen Bereich.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#101319"
+    android:fillViewport="true"
     android:paddingStart="24dp"
     android:paddingEnd="24dp"
     android:paddingTop="28dp"
     android:paddingBottom="28dp">
 
+    <!--
+        Mittig statt oben: laeuft ein Training, steht hier nur eine einzige
+        Zeile, und die klebte sonst am oberen Rand des runden Displays. Mit
+        fillViewport waechst der Inhalt bei Bedarf trotzdem ueber die Anzeige
+        hinaus und laesst sich scrollen.
+    -->
     <LinearLayout
-        android:id="@+id/llSports"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:gravity="center">
+
+        <!--
+            Zurueck in ein Training, das noch laeuft. Steht ueber allem
+            anderen: solange es das gibt, ist es das Einzige, was zaehlt - die
+            Liste darunter wird dann ausgeblendet, denn zwei Workouts
+            gleichzeitig gibt es nicht.
+        -->
+        <TextView
+            android:id="@+id/btnResume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:background="@drawable/bg_watch_resume"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="#DCE1FF"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <!-- Die Rueckmeldung des Telefons zum letzten Workout. -->
+        <TextView
+            android:id="@+id/tvLogged"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:textColor="#9FD8A2"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <!-- Steht nur da, wenn das Telefon gerade nicht erreichbar ist. Ein
+             dauerhaftes "verbunden" waere eine Zeile, die man nach dem zweiten
+             Mal nicht mehr liest, und Platz hat die Uhr keinen zu verschenken. -->
+        <TextView
+            android:id="@+id/tvPhoneMissing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="28dp"
+            android:layout_marginEnd="28dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="@string/phone_away"
+            android:textColor="#E5C48A"
+            android:textSize="11sp"
+            android:visibility="gone" />
 
         <TextView
+            android:id="@+id/tvChoose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
             android:text="@string/choose_sport"
             android:textColor="#C6C6D0"
             android:textSize="13sp" />
+
+        <LinearLayout
+            android:id="@+id/llSports"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal" />
     </LinearLayout>
 </ScrollView>

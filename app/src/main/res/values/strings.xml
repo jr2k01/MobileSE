@@ -54,8 +54,8 @@
     <string name="streak_multiplier">x%1$s</string>
     <!-- Workout von der Uhr, das noch Foto und Ort braucht -->
     <string name="pending_workout_title">Waiting from your watch</string>
-    <string name="pending_workout_details">%1$s · %2$d min · tap to log it</string>
-    <string name="pending_workout_details_pulse">%1$s · %2$d min · %3$d bpm · tap to log it</string>
+    <!-- Sportart, dann die Angaben von der Uhr (WatchFacts). -->
+    <string name="pending_workout_details">%1$s · %2$s · tap to log it</string>
     <string name="pending_discard_title">Discard this workout?</string>
     <plurals name="pending_discard_message">
         <item quantity="one">%1$s, %2$d minute from your watch will be gone. Nothing is logged in the crew.</item>
@@ -63,14 +63,16 @@
     </plurals>
     <string name="discard_btn">Discard</string>
     <string name="pending_discarded">Workout discarded</string>
-    <plurals name="watch_notice">
-        <item quantity="one">Recorded on your watch: %1$d minute. Photo and location are still missing.</item>
-        <item quantity="other">Recorded on your watch: %1$d minutes. Photo and location are still missing.</item>
-    </plurals>
-    <plurals name="watch_notice_pulse">
-        <item quantity="one">Recorded on your watch: %1$d minute, %2$d bpm on average. Photo and location are still missing.</item>
-        <item quantity="other">Recorded on your watch: %1$d minutes, %2$d bpm on average. Photo and location are still missing.</item>
-    </plurals>
+    <!--
+        Die einzelnen Angaben von der Uhr. Zusammengesetzt statt als fertige
+        Saetze: sonst braeuchte jede Kombination aus vorhandenem und fehlendem
+        Puls und Schritten einen eigenen Text. Die Einheiten sind gekuerzt,
+        damit die Karte auf dem Startbildschirm eine Zeile bleibt.
+    -->
+    <string name="watch_fact_minutes">%1$s min</string>
+    <string name="watch_fact_bpm">%1$s bpm</string>
+    <string name="watch_fact_steps">%1$s steps</string>
+    <string name="watch_notice">Recorded on your watch: %1$s. Photo and location are still missing.</string>
     <!-- Schritte aus Health Connect -->
     <string name="steps_today_label">Steps today</string>
     <string name="steps_connect">Connect</string>

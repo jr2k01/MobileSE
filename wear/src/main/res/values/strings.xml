@@ -1,12 +1,29 @@
 <resources>
     <string name="app_name">CrewFit</string>
     <string name="choose_sport">What are you training?</string>
+    <string name="phone_away">Phone out of reach – syncs later</string>
+    <string name="resume_workout">Back to %1$s · %2$s</string>
     <string name="stop">Stop</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="paused">Paused</string>
     <string name="heart_rate">%1$d bpm</string>
     <string name="heart_rate_waiting">Measuring…</string>
     <string name="heart_rate_none">No sensor</string>
+    <string name="steps">%1$d steps</string>
     <string name="sensor_permission_needed">CrewFit needs the body sensor for your heart rate</string>
     <string name="sent">Saved – shows up on your phone</string>
+    <string name="sent_later">Saved – shows up once your phone is back</string>
     <string name="not_sent">Could not save the workout</string>
     <string name="too_short">Too short to count</string>
+
+    <!-- Die Meldung, die das laufende Workout begleitet -->
+    <string name="channel_workout">Running workout</string>
+    <string name="notification_running">Recording – tap to go back</string>
+
+    <!-- Die Rueckmeldung vom Telefon -->
+    <string name="channel_logged">Logged in your crew</string>
+    <string name="logged_title">It is in your crew</string>
+    <string name="logged_text">%1$s · %2$d min</string>
+    <string name="logged_text_points">%1$s · %2$d min · +%3$d points</string>
 </resources>

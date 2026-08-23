@@ -196,16 +196,11 @@ class MainHubActivity : AppCompatActivity() {
         }
 
         card.visibility = View.VISIBLE
-        card.findViewById<TextView>(R.id.tvPendingDetails).text =
-            when (val average = workout.avgHeartRate) {
-                null -> getString(R.string.pending_workout_details, workout.sport, workout.minutes)
-                else -> getString(
-                    R.string.pending_workout_details_pulse,
-                    workout.sport,
-                    workout.minutes,
-                    average
-                )
-            }
+        card.findViewById<TextView>(R.id.tvPendingDetails).text = getString(
+            R.string.pending_workout_details,
+            workout.sport,
+            WatchFacts.line(this, workout)
+        )
         card.setOnClickListener {
             startActivity(WorkoutTrackingActivity.intent(this, workout))
         }

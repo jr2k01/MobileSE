@@ -20,6 +20,9 @@ import android.util.Log
  */
 class HeartRateReader(context: Context) : SensorEventListener {
 
+    /** Der Stand des Zaehlers, wie ihn [WorkoutStore] ablegt. */
+    data class State(val sum: Long, val count: Int, val max: Int, val latest: Int)
+
     private val manager = context.getSystemService(SensorManager::class.java)
     private val sensor: Sensor? = manager?.getDefaultSensor(Sensor.TYPE_HEART_RATE)
 
@@ -41,11 +44,22 @@ class HeartRateReader(context: Context) : SensorEventListener {
     /** Ob die Uhr ueberhaupt einen Pulssensor hat. */
     fun isAvailable(): Boolean = sensor != null
 
+    fun state(): State = State(sum, count, max, latest)
+
+    /** Nimmt den Stand aus der Ablage an, nach einem Neustart des Prozesses. */
+    fun restore(state: State) {
+        sum = state.sum
+        count = state.count
+        max = state.max
+        latest = state.latest
+    }
+
     /**
-     * @param onChange wird bei jeder Messung aufgerufen, damit die Anzeige
-     *        mitlaeuft.
+     * @param onChange wird bei jeder Messung aufgerufen. Ohne Angabe wird nur
+     *        gesammelt - der Dienst fragt den Stand im Sekundentakt ab, statt
+     *        sich wecken zu lassen.
      */
-    fun start(onChange: () -> Unit) {
+    fun start(onChange: () -> Unit = {}) {
         listener = onChange
         val available = sensor ?: return
         // SENSOR_DELAY_NORMAL genuegt: ein Puls aendert sich nicht im

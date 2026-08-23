@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Das laufende Workout auf der Uhr: Sportart, Zeit, Puls, Stopp.
+    Das laufende Workout auf der Uhr: Sportart, Zeit, Puls, Schritte, und
+    darunter Pause und Stopp.
 
     Alles mittig und gross - abgelesen wird das im Laufen, mit einem Blick.
     Deshalb steht auch nur das Noetigste da; alles Weitere kommt am Telefon.
+
+    Die beiden Knoepfe teilen sich eine Zeile und je die Haelfte der Breite
+    (layout_weight). Feste Breiten waeren auf jedem zweiten Uhrenmodell falsch,
+    und was ueber den Rand eines runden Displays hinausragt, ist abgeschnitten.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -35,21 +40,55 @@
         android:id="@+id/tvHeartRate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:textColor="#FFB4AB"
         android:textSize="17sp" />
 
+    <!-- Bleibt weg, solange keine Schritte gezaehlt wurden. -->
     <TextView
-        android:id="@+id/btnStop"
+        android:id="@+id/tvSteps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/bg_watch_stop"
-        android:gravity="center"
-        android:minWidth="120dp"
-        android:minHeight="44dp"
-        android:text="@string/stop"
-        android:textColor="#FFDAD6"
-        android:textSize="16sp" />
+        android:layout_marginTop="1dp"
+        android:textColor="#A8ABB4"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btnPause"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_watch_button"
+            android:gravity="center"
+            android:maxLines="1"
+            android:minHeight="42dp"
+            android:text="@string/pause"
+            android:textColor="#E3E2E9"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/btnStop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_watch_stop"
+            android:gravity="center"
+            android:maxLines="1"
+            android:minHeight="42dp"
+            android:text="@string/stop"
+            android:textColor="#FFDAD6"
+            android:textSize="15sp" />
+
+    </LinearLayout>
 
 </LinearLayout>

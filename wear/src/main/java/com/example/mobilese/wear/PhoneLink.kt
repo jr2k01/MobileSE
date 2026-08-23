@@ -5,9 +5,7 @@ import android.util.Log
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.resume
 
 /**
  * Legt das fertige Workout fuer das Telefon ab.
@@ -26,6 +24,8 @@ import kotlin.coroutines.resume
 object PhoneLink {
 
     /**
+     * @param steps waehrend des Workouts gezaehlte Schritte, oder
+     *        [WatchProtocol.NO_STEPS] wenn nicht gezaehlt wurde.
      * @return ob das Workout abgelegt werden konnte. Das heisst noch nicht,
      *         dass das Telefon es schon hat - nur, dass es nicht verloren geht.
      */
@@ -34,7 +34,8 @@ object PhoneLink {
         sport: String,
         minutes: Int,
         averageBpm: Int,
-        maxBpm: Int
+        maxBpm: Int,
+        steps: Int
     ): Boolean = withContext(Dispatchers.IO) {
         val endedAt = System.currentTimeMillis()
         val request = PutDataMapRequest.create("${WatchProtocol.PATH_WORKOUT}/$endedAt").apply {
@@ -42,6 +43,7 @@ object PhoneLink {
             dataMap.putInt(WatchProtocol.KEY_MINUTES, minutes)
             dataMap.putInt(WatchProtocol.KEY_AVG_BPM, averageBpm)
             dataMap.putInt(WatchProtocol.KEY_MAX_BPM, maxBpm)
+            dataMap.putInt(WatchProtocol.KEY_STEPS, steps)
             dataMap.putLong(WatchProtocol.KEY_ENDED_AT, endedAt)
         }.asPutDataRequest()
             // Sofort uebertragen, statt auf einen guenstigen Zeitpunkt zu
@@ -50,28 +52,10 @@ object PhoneLink {
             .setUrgent()
 
         try {
-            await(Wearable.getDataClient(context).putDataItem(request)) != null
+            Wearable.getDataClient(context).putDataItem(request).awaitOrNull() != null
         } catch (e: Exception) {
             Log.e("CrewFitWear", "Could not store the workout: ${e.message}")
             false
         }
     }
-
-    /**
-     * Macht aus einem Task eine suspend-Funktion.
-     *
-     * Von Hand statt ueber kotlinx-coroutines-play-services: die Bibliothek
-     * braechte fuer genau diese zehn Zeilen eine weitere Abhaengigkeit mit.
-     */
-    private suspend fun <T> await(task: com.google.android.gms.tasks.Task<T>): T? =
-        suspendCancellableCoroutine { continuation ->
-            task.addOnCompleteListener { finished ->
-                if (finished.isSuccessful) {
-                    continuation.resume(finished.result)
-                } else {
-                    Log.w("CrewFitWear", "Task failed: ${finished.exception?.message}")
-                    continuation.resume(null)
-                }
-            }
-        }
 }

@@ -47,6 +47,12 @@ class WatchWorkoutService : WearableListenerService() {
                     .takeIf { it > WatchProtocol.NO_BPM },
                 maxHeartRate = data.getInt(WatchProtocol.KEY_MAX_BPM, WatchProtocol.NO_BPM)
                     .takeIf { it > WatchProtocol.NO_BPM },
+                // Bei den Schritten zaehlt die Null mit: beim Yoga ist sie eine
+                // richtige Messung. Fehlend ist nur, was die Uhr als
+                // NO_STEPS geschickt hat - oder was von einer aelteren Fassung
+                // der Uhr-App stammt, die das Feld noch nicht kannte.
+                steps = data.getInt(WatchProtocol.KEY_STEPS, WatchProtocol.NO_STEPS)
+                    .takeIf { it > WatchProtocol.NO_STEPS },
                 endedAt = data.getLong(WatchProtocol.KEY_ENDED_AT, System.currentTimeMillis())
             )
 

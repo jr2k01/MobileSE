@@ -9,8 +9,8 @@ import kotlinx.serialization.json.Json
 /**
  * Ein auf der Uhr aufgezeichnetes Workout, das noch nicht in der Crew steht.
  *
- * Die Uhr weiss Sportart, Dauer und Puls. Foto und Ort fehlen ihr - beides
- * traegt das Telefon nach, und erst dann wird daraus eine Aktivitaet.
+ * Die Uhr weiss Sportart, Dauer, Puls und Schritte. Foto und Ort fehlen ihr -
+ * beides traegt das Telefon nach, und erst dann wird daraus eine Aktivitaet.
  */
 @Serializable
 data class PendingWorkout(
@@ -18,6 +18,15 @@ data class PendingWorkout(
     val minutes: Int,
     val avgHeartRate: Int?,
     val maxHeartRate: Int?,
+    /**
+     * Schritte waehrend des Workouts, oder null wenn die Uhr keine zaehlen
+     * konnte.
+     *
+     * Mit Vorgabe, damit die Eintraege lesbar bleiben, die vor dieser Messung
+     * abgelegt wurden - eine Warteschlange auf dem Telefon darf eine
+     * Aktualisierung der App ueberstehen.
+     */
+    val steps: Int? = null,
     /** Ende des Workouts in Millisekunden. Dient zugleich als Kennung. */
     val endedAt: Long
 )

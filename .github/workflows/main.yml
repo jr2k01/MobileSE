@@ -1,0 +1,29 @@
+name: Generate Architecture Diagram
+
+# Definiert, wann die Action ausgeführt wird
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:        # erlaubt manuelles Starten im Actions-Tab
+
+# Der Generator schreibt das Diagramm ins Repository zurück. Ohne diese
+# Freigabe ist GITHUB_TOKEN nur lesend und der Push scheitert mit 403.
+permissions:
+  contents: write
+
+jobs:
+  diagram_generation:
+    runs-on: ubuntu-latest
+    steps:
+      # Schritt 1: Den Code aus dem Repository auschecken
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Schritt 2: Den Generator ausführen (Code aus dem Marketplace)
+      - name: Architecture Diagram Generator
+        uses: samjhill/diagrammer@v1.0.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          output_path: docs/architecture
+          languages: kotlin,java

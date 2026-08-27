@@ -245,7 +245,21 @@ data class Challenge(
      * Ob die herausgeforderte Crew zugestimmt hat - siehe [CrewBattle].
      * Null bei einer gewoehnlichen Challenge.
      */
-    @SerialName("battle_status") val battleStatus: String? = null
+    @SerialName("battle_status") val battleStatus: String? = null,
+    /**
+     * Ab wann die Challenge zaehlt, als Zeitstempel wie [Activity.timestamp].
+     *
+     * Ohne diese Grenze zaehlte jede Aktivitaet der Crew, auch die von letzter
+     * Woche: eine frisch angelegte Challenge war im selben Moment schon halb
+     * erfuellt, und ein Battle begann mit einem Vorsprung, den niemand
+     * erlaufen hatte.
+     *
+     * Bei einer gewoehnlichen Challenge steht hier der Moment des Anlegens,
+     * bei einem Battle der Moment der **Annahme** - vorher laeuft er nicht.
+     * Null heisst "zaehlt ab jeher" und laesst aeltere Zeilen ohne diese
+     * Spalte unveraendert.
+     */
+    @SerialName("starts_at") val startsAt: String? = null
 ) {
     /** Ob es ein Battle gegen eine andere Crew ist. */
     val isBattle: Boolean get() = !opponentCrewId.isNullOrEmpty()

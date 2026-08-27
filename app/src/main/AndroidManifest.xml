@@ -114,6 +114,7 @@
         <activity android:name=".CreateCrewActivity" android:exported="false" />
         <activity android:name=".MainHubActivity" android:exported="false" />
         <activity android:name=".CrewDetailsActivity" android:exported="false" />
+        <activity android:name=".CrewBattlesActivity" android:exported="false" />
         <activity android:name=".WorkoutHistoryActivity" android:exported="false" />
         <activity android:name=".WorkoutTrackingActivity" android:exported="false" />
         <activity android:name=".LeaderboardActivity" android:exported="false" />

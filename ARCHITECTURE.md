@@ -205,7 +205,7 @@ sequenceDiagram
     B->>A: BLE Advertising — 8-Byte-Kennung
     Note over A,B: Beide scannen und gleichen<br/>gegen die Crew-Liste ab
 
-    Note over A: Nur einer tippt. Tippen beide,<br/>kreuzen sich zwei Versuche.
+    Note over A,B: **Beide** waehlen einander aus.<br/>Wer anruft, ergibt der Vergleich<br/>der Kennungen: die kleinere ruft.
     A->>B: createBond() — Systemkopplung
     B-->>A: Am Geraet bestaetigt
     A->>B: GATT connect
@@ -239,6 +239,22 @@ ihrer 16-Bit-Form.
 Der GATT-Stack von Android bearbeitet genau eine Operation zur Zeit. Ruft man
 beide direkt hintereinander auf, sieht es aus, als funktioniere es, und die
 Verbindung faellt nach Sekunden. Der zweite Aufruf gehoert in `onMtuChanged`.
+
+**Warum beide auswaehlen und trotzdem nur einer anruft.** Frueher tippte nur
+einer, und das war ein Rennen: eine Funkstrecke ist keine Einbahn, der eigene
+GATT-Server meldet dieselbe Verbindung, die man gerade selbst aufbaut. Je
+nachdem, welcher Rueckruf zuerst kam, hielt ein Geraet den eigenen Aufbau fuer
+einen fremden Anruf und wuergte ihn ab - mal ging es, mal haengte die
+Verbindung bis zum Zeitablauf. Jetzt waehlen beide, und wer anruft, entscheidet
+ein Vergleich der Kennungen. Beide Geraete rechnen dasselbe aus, also ruft
+genau einer, ohne dass sie sich verstaendigen muessten.
+
+**Warum jede gescheiterte Verbindung geschlossen werden muss.** 
+fordert bei jedem Aufruf eine neue Registrierung im GATT-Stack an, und Android
+vergibt davon nur eine feste Zahl je Prozess. Ohne  im Fehlerfall
+blieb je Fehlversuch eine haengen; waren sie aufgebraucht, endete jeder weitere
+Aufbau sofort mit Status 133 - erst der zweite Versuch eines Abends, dann
+jeder.
 
 **Warum die Verbindung erst nach dem Schreibvorgang zaehlt.** `CONNECTED` in
 `onConnectionStateChange` heisst nur, dass eine Verbindung steht - nicht, dass

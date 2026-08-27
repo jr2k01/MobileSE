@@ -47,6 +47,36 @@ class TrainingPartnerActivity : AppCompatActivity() {
     /** Die Geraete hinter den gefundenen Namen - ohne sie keine Verbindung. */
     private val devices = mutableMapOf<String, BluetoothDevice>()
 
+    /**
+     * Wen man angetippt hat.
+     *
+     * Frueher tippte nur einer, und wer zuerst kam, fuehrte. Das war ein
+     * Rennen: der eigene GATT-Server meldet dieselbe Strecke, die man selbst
+     * aufbaut, und je nachdem, welcher Rueckruf zuerst kam, wuergte sich das
+     * Geraet den eigenen Aufbau ab. Jetzt tippen **beide**, und wer anruft,
+     * entscheidet ein Vergleich der Kennungen - dasselbe Ergebnis auf beiden
+     * Geraeten, ohne Absprache und ohne Rennen.
+     */
+    private var chosen: UserProfile? = null
+
+    /**
+     * Ruft immer wieder an, bis es steht.
+     *
+     * Ein einzelner Versuch reicht nicht: die Gegenseite tippt vielleicht erst
+     * zwei Sekunden spaeter, und vorher gibt es dort nichts anzurufen.
+     */
+    private val retry = object : Runnable {
+        override fun run() {
+            val target = chosen ?: return
+            if (JointSession.hasPartners()) return
+            val link = link
+            if (link != null && !link.isBusy()) {
+                devices[target.id]?.let { link.connectTo(it, target) }
+            }
+            ticker.postDelayed(this, RETRY_MILLIS)
+        }
+    }
+
     private val watch = Stopwatch()
 
     /** Die eigene Kennung - fuer die Runde, die herumgeschickt wird. */
@@ -141,19 +171,15 @@ class TrainingPartnerActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Die Gegenseite ruft an - ab jetzt wird hier nicht mehr angetippt.
+/**
+     * Die Gegenseite ruft an.
      *
-     * Sonst rufen sich beide gegenseitig an und legen einander auf. Genau das
-     * war die Ursache der Abrisse: Fehler 22 auf der einen, 19 auf der
-     * anderen Seite.
+     * Wer noch nicht angetippt hat, sieht das hier. Wer schon gewaehlt hat,
+     * wartet ohnehin - dann steht der Text bereits richtig da und wird nicht
+     * ueberschrieben.
      */
     private fun incoming() {
-        val container = findViewById<LinearLayout>(R.id.llPartnerFound)
-        for (i in 0 until container.childCount) {
-            container.getChildAt(i).isEnabled = false
-            container.getChildAt(i).setOnClickListener(null)
-        }
+        if (chosen != null) return
         findViewById<TextView>(R.id.tvPartnerStatus).setText(R.string.partner_incoming)
     }
 
@@ -174,7 +200,7 @@ class TrainingPartnerActivity : AppCompatActivity() {
             circular = true,
             placeholder = android.R.drawable.ic_menu_gallery
         )
-        row.setOnClickListener { connect(member) }
+        row.setOnClickListener { choose(member) }
 
         container.addView(row)
     }
@@ -186,16 +212,39 @@ class TrainingPartnerActivity : AppCompatActivity() {
      * Suche und der Verbindungsaufbau teilen sich dieselbe Funkstrecke, und
      * beides zugleich macht den Aufbau langsamer und unzuverlaessiger.
      */
-    private fun connect(member: UserProfile) {
-        val device = devices[member.id]
-        if (device == null) {
-            showProblem(R.string.partner_link_failed)
-            return
+    /**
+     * Jemanden auswaehlen - beide tun das, dann verbinden sich die Geraete.
+     *
+     * Angerufen wird nur von einer Seite, und welche das ist, ergibt der
+     * Vergleich der Kennungen: die kleinere ruft an. Beide Geraete rechnen
+     * dasselbe aus, also ruft genau einer - ohne dass sie sich darueber
+     * verstaendigen muessten. Der andere wartet und nimmt an.
+     *
+     * Die Suche laeuft weiter, denn die Gegenseite muss uns noch finden
+     * koennen, wenn sie erst spaeter antippt.
+     */
+    private fun choose(member: UserProfile) {
+        val me = ownUserId ?: return
+        if (chosen != null) return
+        chosen = member
+
+        val container = findViewById<LinearLayout>(R.id.llPartnerFound)
+        for (i in 0 until container.childCount) {
+            container.getChildAt(i).isEnabled = false
+            container.getChildAt(i).setOnClickListener(null)
         }
 
-        findViewById<TextView>(R.id.tvPartnerStatus).setText(R.string.partner_connecting)
-        beacon?.stop()
-        link?.connectTo(device, member)
+        val name = DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
+        val status = findViewById<TextView>(R.id.tvPartnerStatus)
+
+        if (me < member.id) {
+            status.text = getString(R.string.partner_linking, name)
+            ticker.post(retry)
+        } else {
+            // Wir warten. Der Server laeuft seit dem Oeffnen des Bildschirms,
+            // die Gegenseite kann also jederzeit anklopfen.
+            status.text = getString(R.string.partner_linking_wait, name)
+        }
     }
 
     /**
@@ -208,12 +257,17 @@ class TrainingPartnerActivity : AppCompatActivity() {
      */
     private fun paired(member: UserProfile) {
         val current = link ?: return
+        ticker.removeCallbacks(retry)
+        beacon?.stop()
 
         if (!JointSession.hasPartners()) {
             // Wer angetippt hat, fuehrt: er waehlt die Sportart und bestimmt
             // Beginn und Ende. Angetippt hat, wer das Geraet in der Liste
             // hatte.
-            JointSession.begin(current, isLeader = devices.containsKey(member.id))
+            // Fuehrend ist, wer angerufen hat - dieselbe Regel wie oben,
+            // damit sich beide Geraete einig sind.
+            val me = ownUserId
+            JointSession.begin(current, isLeader = me != null && me < member.id)
             setUpSession()
         }
         JointSession.add(member)
@@ -254,7 +308,7 @@ class TrainingPartnerActivity : AppCompatActivity() {
         if (!JointSession.isLeader || watch.hasStarted) return
 
         MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.train_question)
+            .setTitle(R.string.session_train_question)
             .setItems(Sports.ALL) { _, which ->
                 val sport = Sports.ALL[which]
                 JointSession.sport = sport
@@ -430,6 +484,9 @@ class TrainingPartnerActivity : AppCompatActivity() {
         beacon?.stop()
         beacon = null
         ticker.removeCallbacks(tick)
+        // Sonst ruft der Wiederholversuch weiter an, auch wenn der Bildschirm
+        // laengst zu ist.
+        ticker.removeCallbacks(retry)
 
         // Die Verbindung wird nicht mehr gebraucht: Sportart und Dauer sind
         // ausgetauscht, alles Weitere traegt jeder fuer sich ein. Offen zu
@@ -445,6 +502,16 @@ class TrainingPartnerActivity : AppCompatActivity() {
 
         /** Wie oft die Anzeige der Uhr nachgezogen wird. */
         private const val TICK_MS = 1000L
+
+        /**
+         * Abstand zwischen zwei Anrufversuchen.
+         *
+         * Lang genug, dass ein laufender Aufbau in Ruhe scheitern oder gelingen
+         * kann - der GATT-Stack braucht fuer einen Fehlschlag bis zu dreissig
+         * Sekunden -, und kurz genug, dass niemand das Gefuehl hat, es passiere
+         * nichts.
+         */
+        private const val RETRY_MILLIS = 5000L
 
 
         fun intent(context: Context): Intent =

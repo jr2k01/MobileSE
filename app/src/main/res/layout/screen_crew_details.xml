@@ -262,6 +262,43 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!--
+                Battles daneben, nicht darin: eine Challenge gilt der eigenen
+                Crew, ein Battle richtet sich nach draussen. Wer hier steht,
+                soll zwischen beidem waehlen koennen.
+            -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.CrewFit.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:shapeAppearance="@style/ShapeAppearance.CrewFit.Small">
+
+                <LinearLayout
+                    android:id="@+id/llCrewBattles"
+                    style="@style/Widget.CrewFit.SettingsRow"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/crew_battles_open"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/crew_battles_hint"
+                        android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLeaveCrew"
                 style="@style/Widget.CrewFit.Button.Text"

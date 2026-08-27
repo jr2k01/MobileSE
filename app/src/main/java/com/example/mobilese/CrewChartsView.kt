@@ -100,8 +100,14 @@ class CrewChartsView(private val root: View) {
             // Ein Tag ohne Eintrag bleibt sichtbar, aber zurueckgenommen.
             bar.alpha = if (day.amount > 0) 1f else EMPTY_DAY_ALPHA
 
+            // Fest auf Englisch, nicht in der Sprache des Geraets: die
+            // uebrige Oberflaeche ist englisch, und ein deutsches "D" neben
+            // "Workouts" und "Kilometres" sah nach Versehen aus. Zwei
+            // deutsche Tage teilen sich ohnehin denselben Buchstaben (D fuer
+            // Dienstag und Donnerstag, M fuer Montag und Mittwoch) - im
+            // Englischen ist es nicht besser, aber wenigstens einheitlich.
             view.findViewById<TextView>(R.id.tvBarLabel).text =
-                day.day.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.getDefault())
+                day.day.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.ENGLISH)
 
             (view.layoutParams as LinearLayout.LayoutParams).weight = 1f
             container.addView(view)

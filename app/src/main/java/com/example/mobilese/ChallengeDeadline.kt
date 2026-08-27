@@ -52,6 +52,33 @@ object ChallengeDeadline {
     }
 
     /**
+     * Ob eine Aktivitaet in das Zeitfenster der Challenge faellt.
+     *
+     * Dieselbe Pruefung wie oben, zusaetzlich mit unterer Grenze. Kein Start
+     * heisst "zaehlt ab jeher" - so verhalten sich Zeilen ohne die Spalte wie
+     * bisher.
+     */
+    fun countsTowards(startsAt: String?, deadline: String?, timestamp: String): Boolean {
+        if (!countsTowards(deadline, timestamp)) return false
+        val from = startsAt?.takeIf { it.isNotBlank() } ?: return true
+        val begin = ActivityTime.sortKey(from)
+        // Ein unlesbarer Start darf nicht dazu fuehren, dass gar nichts mehr
+        // zaehlt - dann waere die Challenge unerfuellbar statt nur ungenau.
+        if (begin.isEmpty()) return true
+        val moment = ActivityTime.sortKey(timestamp)
+        return moment.isNotEmpty() && moment >= begin
+    }
+
+    /** Wie oben, fuer Daten mit reinem Tagesdatum - etwa die Schrittzahl. */
+    fun countsOnDay(startsAt: String?, deadline: String?, day: String): Boolean {
+        if (!countsOnDay(deadline, day)) return false
+        val from = startsAt?.takeIf { it.isNotBlank() } ?: return true
+        val begin = ActivityTime.dayOf(from)
+        if (begin.isEmpty()) return true
+        return day >= begin
+    }
+
+    /**
      * Wie [countsTowards], aber fuer Daten, die ihren Tag schon als ISO-Datum
      * tragen - etwa die Schrittzahl. Erspart den Umweg ueber einen
      * Zeitstempel, den es dort gar nicht gibt.

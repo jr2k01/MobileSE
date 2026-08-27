@@ -59,18 +59,26 @@ Mitglieder einer Crew ausgeschuettet, hat diese ihn gewonnen, und die andere
 geht leer aus. Eine Spalte fuer den Sieger waere eine zweite Wahrheit, die mit
 der ersten aus dem Tritt geraten kann.
 
+Und seit wann sie zaehlt. Ohne diese Spalte rechnete eine Challenge **jede**
+Aktivitaet der Crew mit, auch die von letzter Woche: sie war im Moment ihrer
+Anlage schon zum Teil erfuellt, und ein Battle begann mit einem Vorsprung, den
+niemand erlaufen hatte. Bei einer gewoehnlichen Challenge steht dort der Moment
+des Anlegens, bei einem Battle der Moment der **Annahme** - vorher laeuft er
+nicht.
+
 ```sql
 alter table challenges add column if not exists opponent_crew_id text;
 alter table challenges add column if not exists battle_status text;
+alter table challenges add column if not exists starts_at text;
 ```
 
-Zur Kontrolle - erwartet werden genau zwei Zeilen:
+Zur Kontrolle - erwartet werden genau drei Zeilen:
 
 ```sql
 select column_name, data_type
   from information_schema.columns
  where table_name = 'challenges'
-   and column_name in ('opponent_crew_id', 'battle_status');
+   and column_name in ('opponent_crew_id', 'battle_status', 'starts_at');
 ```
 
 **Ohne diese Spalten laeuft die App weiter**, zeigt aber keine Battles: das

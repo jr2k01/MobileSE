@@ -33,13 +33,17 @@ object ChallengeManager {
         // und die Belohnung wird nie faellig. Genau das ist der Sinn einer
         // Frist, und sie braucht dafuer keine eigene Pruefung weiter unten.
         val activitiesByUser = snapshot.activities
-            .filter { ChallengeDeadline.countsTowards(challenge.deadline, it.timestamp) }
+            .filter {
+                ChallengeDeadline.countsTowards(challenge.startsAt, challenge.deadline, it.timestamp)
+            }
             .groupBy { it.userId }
 
         // Schritte tragen ihren Tag schon als Datum, brauchen also keinen
         // Umweg ueber den Zeitstempel.
         val stepsByUser = snapshot.stepDays
-            .filter { day -> ChallengeDeadline.countsOnDay(challenge.deadline, day.day) }
+            .filter { day ->
+                ChallengeDeadline.countsOnDay(challenge.startsAt, challenge.deadline, day.day)
+            }
             .groupBy { it.userId }
 
         return snapshot.members
@@ -67,11 +71,15 @@ object ChallengeManager {
         val type = ChallengeType.fromStored(challenge.type)
 
         val activitiesByUser = opponent.activities
-            .filter { ChallengeDeadline.countsTowards(challenge.deadline, it.timestamp) }
+            .filter {
+                ChallengeDeadline.countsTowards(challenge.startsAt, challenge.deadline, it.timestamp)
+            }
             .groupBy { it.userId }
 
         val stepsByUser = opponent.stepDays
-            .filter { day -> ChallengeDeadline.countsOnDay(challenge.deadline, day.day) }
+            .filter { day ->
+                ChallengeDeadline.countsOnDay(challenge.startsAt, challenge.deadline, day.day)
+            }
             .groupBy { it.userId }
 
         return opponent.memberIds.sumOf { id ->

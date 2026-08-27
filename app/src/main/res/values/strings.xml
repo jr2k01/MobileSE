@@ -520,10 +520,17 @@
     <string name="together_with">With my crew</string>
     <string name="partner_title">Find your crew</string>
     <string name="partner_searching">Searching for crew mates nearby…</string>
-    <string name="partner_hint">The other phone has to be on this screen too. Hold them close together, and let only one of you tap.</string>
+    <string name="partner_hint">The other phone has to be on this screen too. Hold them close together — you both pick each other.</string>
     <string name="partner_none_yet">Nobody found yet.</string>
-    <string name="partner_pick">Tap whoever you are training with. Only one of you taps — the other just waits.</string>
+    <string name="partner_pick">Tap whoever you are training with. Both of you do it.</string>
     <string name="partner_incoming">Someone from your crew is connecting to you…</string>
+    <!--
+        Nach dem Antippen. Wer die kleinere Kennung hat, ruft an; der andere
+        wartet. Beide sehen einen Text, der sagt, dass gerade etwas passiert -
+        ein stiller Bildschirm sieht nach einem Fehler aus.
+    -->
+    <string name="partner_linking">Connecting with %s…</string>
+    <string name="partner_linking_wait">Waiting for %s. Keep the phones close.</string>
     <string name="partner_skip">Train on my own instead</string>
     <string name="partner_chosen">Training with %s — double points</string>
     <string name="partner_banner">Double points: training with %s</string>
@@ -547,6 +554,12 @@
     <string name="session_with">Training with %s</string>
     <string name="session_timer_zero">00:00</string>
     <string name="session_pick_sport">Pick the sport, then start.</string>
+    <!--
+        Eigener Text und nicht train_question: hier steht das Training noch
+        bevor, im Formular liegt es hinter einem. Dieselbe Frage in beiden
+        Zeitformen waere an einer der beiden Stellen falsch.
+    -->
+    <string name="session_train_question">What are you going to train?</string>
     <string name="session_wait_sport">%s is picking the sport.</string>
     <string name="session_wait_start">Waiting for %s to start.</string>
     <string name="session_running">The clock is running. Stop when you are done.</string>
@@ -681,6 +694,24 @@
     <string name="battle_answer_failed">Could not answer the battle</string>
     <string name="battle_accepted_toast">Battle accepted — good luck</string>
     <string name="battle_declined_toast">Battle declined</string>
+    <!--
+        Der eigene Bildschirm fuer Battles. Getrennt von den Challenges der
+        eigenen Crew: ein Battle richtet sich nach draussen und laeuft erst,
+        wenn die Gegenseite zugestimmt hat.
+    -->
+    <string name="crew_battles_title">Crew Battles</string>
+    <string name="crew_battles_open">Crew Battles</string>
+    <string name="crew_battles_hint">Challenge another crew and see open invitations</string>
+    <string name="battle_start">Start Crew Battle</string>
+    <string name="battle_start_hint">The other crew has to accept. Until then nothing counts, and the battle does not show up under Challenges.</string>
+    <string name="battle_pending_title">Pending crew battle invitations</string>
+    <string name="battle_received_label">You were challenged</string>
+    <string name="battle_sent_label">You challenged</string>
+    <string name="battle_none_received">Nobody has challenged your crew.</string>
+    <string name="battle_none_sent">You have not challenged anyone.</string>
+    <string name="battle_invite_line">%1$s · goal %2$s</string>
+    <string name="battle_withdraw">Withdraw</string>
+    <string name="battle_sent_ok">Invitation sent</string>
     <string name="ok_btn">OK</string>
 
     <!-- Das Level der ganzen Crew -->

@@ -1934,13 +1934,29 @@ class AppRepository private constructor(context: Context) {
                 type = type,
                 goal = goal,
                 reward = reward,
-                deadline = deadline
+                deadline = deadline,
+                // Ab jetzt, nicht ab jeher: sonst waere die Challenge im
+                // Moment des Anlegens schon zum Teil erfuellt, mit Trainings,
+                // die niemand dafuer gemacht hat.
+                startsAt = ActivityTime.now()
             )
 
             try {
                 try {
                     client.postgrest["challenges"].insert(challenge)
                 } catch (e: Exception) {
+                    if (isMissingColumn(e, "starts_at")) {
+                        // Die Spalte fuer den Start fehlt. Die Challenge wird
+                        // angelegt und zaehlt dann wie frueher ab jeher - das
+                        // ist ungenau, aber besser als gar keine Challenge.
+                        Log.w(
+                            "SupabaseDB",
+                            "Saving without the start, the starts_at column is missing. " +
+                                    "See the documentation for the required ALTER TABLE."
+                        )
+                        client.postgrest["challenges"].insert(challenge.copy(startsAt = null))
+                        return@withContext true
+                    }
                     if (!isMissingColumn(e, "deadline")) throw e
                     // Die Spalte fehlt in dieser Datenbank. Eine Challenge
                     // anlegen zu koennen ist wichtiger als die Frist; sie
@@ -1989,7 +2005,10 @@ class AppRepository private constructor(context: Context) {
                     reward = reward,
                     deadline = deadline,
                     opponentCrewId = opponentCrewCode,
-                    battleStatus = CrewBattle.STATUS_PENDING
+                    battleStatus = CrewBattle.STATUS_PENDING,
+                    // Bewusst ohne Start: ein Battle laeuft erst ab der
+                    // Annahme, und bis dahin soll nichts zaehlen.
+                    startsAt = null
                 )
             )
             true
@@ -1999,12 +2018,39 @@ class AppRepository private constructor(context: Context) {
         }
     }
 
-    /** Annehmen oder ablehnen - siehe [CrewBattle] fuer die Werte. */
+    /**
+     * Annehmen - siehe [CrewBattle] fuer die Werte.
+     *
+     * Mit der Annahme beginnt der Battle: erst ab diesem Moment zaehlen
+     * Aktivitaeten darauf ein. Ohne das startete er mit dem, was beide Crews
+     * ohnehin schon getan hatten, und der Sieger stand vor dem ersten Training
+     * fest.
+     */
     suspend fun setBattleStatus(challengeId: String, status: String): Boolean =
         withContext(Dispatchers.IO) {
             try {
-                client.postgrest["challenges"].update({ set("battle_status", status) }) {
-                    filter { eq("id", challengeId) }
+                try {
+                    client.postgrest["challenges"].update({
+                        set("battle_status", status)
+                        if (status == CrewBattle.STATUS_ACCEPTED) {
+                            set("starts_at", ActivityTime.now())
+                        }
+                    }) {
+                        filter { eq("id", challengeId) }
+                    }
+                } catch (e: Exception) {
+                    if (!isMissingColumn(e, "starts_at")) throw e
+                    // Die Spalte fehlt in dieser Datenbank. Den Battle
+                    // anzunehmen ist wichtiger als der genaue Startzeitpunkt;
+                    // er zaehlt dann wie frueher ab jeher.
+                    Log.w(
+                        "SupabaseDB",
+                        "Accepting without the start, the starts_at column is missing. " +
+                                "See the documentation for the required ALTER TABLE."
+                    )
+                    client.postgrest["challenges"].update({ set("battle_status", status) }) {
+                        filter { eq("id", challengeId) }
+                    }
                 }
                 true
             } catch (e: Exception) {

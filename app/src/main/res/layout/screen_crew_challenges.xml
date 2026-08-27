@@ -60,16 +60,6 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLaunchBattle"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/add_battle_btn"
-            app:icon="@drawable/ic_battle"
-            app:iconGravity="textStart" />
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLaunchChallenge"
             style="@style/Widget.CrewFit.Button"
             android:layout_width="match_parent"

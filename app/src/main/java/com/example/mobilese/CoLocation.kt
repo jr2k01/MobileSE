@@ -51,6 +51,13 @@ object CoLocation {
      */
     val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000c7f2-0000-1000-8000-00805f9b34fb")
 
+    /**
+     * Der genormte Deskriptor, ueber den Benachrichtigungen eingeschaltet
+     * werden (Client Characteristic Configuration, 0x2902). Die Nummer ist
+     * nicht frei gewaehlt - jeder Bluetooth-Stack erwartet genau diese.
+     */
+    val CONFIG_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     /** So viele Byte der Nutzerkennung reisen mit. */
     const val PAYLOAD_BYTES = 8
 

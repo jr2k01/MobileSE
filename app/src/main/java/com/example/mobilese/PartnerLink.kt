@@ -1,13 +1,16 @@
 package com.example.mobilese
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattServerCallback
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothStatusCodes
 import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -108,6 +111,18 @@ class PartnerLink(
 
     private var server: BluetoothGattServer? = null
 
+    /**
+     * Die eigene Characteristic auf der Serverseite.
+     *
+     * Wird gebraucht, um dem Verbundenen etwas zu schicken: der Angerufene hat
+     * keine Client-Verbindung und kann nicht schreiben - er kann nur
+     * benachrichtigen, und dafuer muss er seine eigene Characteristic kennen.
+     */
+    private var inbox: BluetoothGattCharacteristic? = null
+
+    /** Wer sich fuer Benachrichtigungen angemeldet hat. */
+    private val listeners = mutableSetOf<String>()
+
     /** Alle offenen Verbindungen, nach Geraeteadresse. */
     private val clients = mutableMapOf<String, BluetoothGatt>()
 
@@ -122,6 +137,9 @@ class PartnerLink(
 
     /** Worauf gerade gewartet wird, waehrend das System koppelt. */
     private var pending: Pair<BluetoothDevice, UserProfile>? = null
+
+    /** Ob [adapterReceiver] angemeldet ist - zweimal waere ein Fehler. */
+    private var watchingAdapter = false
 
     /**
      * Mit wem die Verbindung gerade aufgebaut wird.
@@ -148,6 +166,37 @@ class PartnerLink(
      * das Ergebnis kommt als Rundruf zurueck. Ohne diesen Empfaenger wuesste
      * die App nie, ob jemand bestaetigt oder abgelehnt hat.
      */
+    /**
+     * Das eigene Funkmodul wurde abgeschaltet.
+     *
+     * Dann kommt kein `onConnectionStateChange` mehr - die Rueckrufe des
+     * Stacks sterben mit ihm. Ohne diesen Empfaenger merkte ein Geraet nur,
+     * wenn der **andere** wegfiel, und lief nach dem eigenen Ausfall munter
+     * weiter: die Uhr des einen stand, die des anderen zaehlte, und am Ende
+     * hatten zwei gemeinsam Trainierende verschiedene Zeiten. Genau das sollte
+     * die gemeinsame Sitzung verhindern.
+     */
+    private val adapterReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action != BluetoothAdapter.ACTION_STATE_CHANGED) return
+
+            val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
+            if (state != BluetoothAdapter.STATE_TURNING_OFF &&
+                state != BluetoothAdapter.STATE_OFF
+            ) return
+
+            // Aufraeumen, solange der Stack noch antwortet.
+            val had = clients.isNotEmpty() || peers.isNotEmpty()
+            clients.values.forEach { closeQuietly(it) }
+            clients.clear()
+            peers.clear()
+            confirmed.clear()
+            connecting = null
+
+            if (had) onLost()
+        }
+    }
+
     private val bondReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val waiting = pending ?: return
@@ -188,7 +237,18 @@ class PartnerLink(
          */
         override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
-                device?.address?.let { peers.add(it) }
+                val address = device?.address
+                address?.let { peers.add(it) }
+
+                // Der eigene Server sieht **dieselbe** Strecke, die wir gerade
+                // selbst aufbauen - eine Funkverbindung ist keine Einbahn. Das
+                // ist kein Anruf von aussen, und ihn dafuer zu halten hiess,
+                // den eigenen Aufbau abzuwuergen: onMtuChanged kam dann nie,
+                // und nach dreissig Sekunden fiel die Verbindung mit Status 22.
+                // Ob es beide zugleich versuchen, verraet erst eine andere
+                // Adresse als die, die wir gerade anrufen.
+                if (address != null && address == connecting?.first?.address) return
+
                 // Wir sind der Angerufene. Ein eigener Anruf, der noch im
                 // Aufbau ist, kaeme sich mit diesem hier ins Gehege.
                 connecting?.let {
@@ -209,6 +269,30 @@ class PartnerLink(
                 confirmed.isNotEmpty()
             ) {
                 onLost()
+            }
+        }
+
+        /**
+         * Der Verbundene meldet sich fuer Benachrichtigungen an.
+         *
+         * Muss beantwortet werden, sonst wartet die Gegenseite bis zum
+         * Zeitablauf und schickt danach nichts mehr.
+         */
+        override fun onDescriptorWriteRequest(
+            device: BluetoothDevice?,
+            requestId: Int,
+            descriptor: BluetoothGattDescriptor?,
+            preparedWrite: Boolean,
+            responseNeeded: Boolean,
+            offset: Int,
+            value: ByteArray?
+        ) {
+            device?.address?.let { listeners.add(it) }
+            if (!responseNeeded) return
+            try {
+                server?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, value)
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Could not confirm the subscription: ${e.message}")
             }
         }
 
@@ -273,6 +357,16 @@ class PartnerLink(
                 }
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    // Diese Verbindung ist erledigt, gleich ob sie stand oder
+                    // nie zustande kam - ihre Registrierung im GATT-Stack muss
+                    // zurueck. Android vergibt davon nur eine feste Zahl je
+                    // Prozess, und `connect()` fordert bei jedem Aufruf eine
+                    // neue an. Ohne dieses close() blieb je Fehlversuch eine
+                    // haengen; waren sie aufgebraucht, endete jeder weitere
+                    // Aufbau sofort mit Status 133 - erst der zweite Versuch
+                    // eines Abends, dann jeder.
+                    closeQuietly(gatt)
+
                     val address = gatt.device?.address
                     if (address != null && clients.remove(address) != null) {
                         // Eine bestehende Verbindung ist weg.
@@ -295,6 +389,33 @@ class PartnerLink(
             }
         }
 
+        /** Die Anmeldung steht - ab jetzt gilt die Kopplung. */
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt,
+            descriptor: BluetoothGattDescriptor,
+            status: Int
+        ) {
+            settle(gatt)
+        }
+
+        /** Die Gegenseite hat etwas geschickt. */
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic,
+            value: ByteArray
+        ) {
+            onMessage(value)
+        }
+
+        @Deprecated("Vor Android 13 kommt der Inhalt aus der Characteristic.")
+        @Suppress("DEPRECATION")
+        override fun onCharacteristicChanged(
+            gatt: BluetoothGatt,
+            characteristic: BluetoothGattCharacteristic
+        ) {
+            characteristic.value?.let { onMessage(it) }
+        }
+
         /** Die Paketgroesse steht - jetzt duerfen die Dienste gesucht werden. */
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
             try {
@@ -314,7 +435,7 @@ class PartnerLink(
             if (characteristic == null || payload == null) {
                 // Die Gegenseite hat den Dienst nicht - eine aeltere Fassung
                 // der App, oder ein fremdes Geraet mit derselben Kennung.
-                onProblem(R.string.partner_link_failed)
+                giveUp(gatt)
                 return
             }
 
@@ -327,20 +448,19 @@ class PartnerLink(
             status: Int
         ) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                onProblem(R.string.partner_link_failed)
+                giveUp(gatt)
                 return
             }
 
-            // Erst jetzt ist die Kopplung wirklich zustande gekommen: die
-            // Geraete sind verbunden **und** die Gegenseite weiss, wer wir
-            // sind. Vorher zu melden hiess, den Trainingsbildschirm zu
-            // oeffnen, waehrend noch gar nichts stand.
-            connecting?.let { (device, member) ->
-                clients[device.address] = gatt
-                connecting = null
-                confirm(member)
-            }
-            next()
+            // Noch nicht fertig: erst die Benachrichtigungen einschalten,
+            // sonst kann die Gegenseite uns nie etwas sagen. Das ist ein
+            // eigener Vorgang und muss abgewartet werden - der Stack
+            // bearbeitet immer nur einen.
+            if (subscribe(gatt, characteristic)) return
+
+            // Der Deskriptor liess sich nicht schreiben. Dann eben einseitig:
+            // eine halbe Verbindung ist besser als gar keine.
+            settle(gatt)
         }
     }
 
@@ -355,6 +475,14 @@ class PartnerLink(
             return
         }
 
+        if (!watchingAdapter) {
+            context.registerReceiver(
+                adapterReceiver,
+                IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
+            )
+            watchingAdapter = true
+        }
+
         try {
             val opened = manager?.openGattServer(context, serverCallback)
             if (opened == null) {
@@ -363,11 +491,27 @@ class PartnerLink(
             }
             server = opened
 
+            // Schreiben **und** benachrichtigen: ohne Notify koennte nur
+            // der Anrufende etwas sagen. Wer angerufen wurde, haette seine
+            // Uhr nicht anhalten koennen, ohne dass der andere weiterlaeuft.
             val inbox = BluetoothGattCharacteristic(
                 CoLocation.CHARACTERISTIC_UUID,
-                BluetoothGattCharacteristic.PROPERTY_WRITE,
+                BluetoothGattCharacteristic.PROPERTY_WRITE or
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_WRITE
-            )
+            ).apply {
+                // Der genormte Deskriptor, ueber den ein Client die
+                // Benachrichtigungen einschaltet. Ohne ihn nimmt der Stack
+                // die Anmeldung gar nicht erst entgegen.
+                addDescriptor(
+                    BluetoothGattDescriptor(
+                        CoLocation.CONFIG_UUID,
+                        BluetoothGattDescriptor.PERMISSION_READ or
+                                BluetoothGattDescriptor.PERMISSION_WRITE
+                    )
+                )
+            }
+            this.inbox = inbox
             val service = BluetoothGattService(
                 CoLocation.SERVICE_UUID,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY
@@ -393,12 +537,20 @@ class PartnerLink(
             return
         }
         if (clients.containsKey(device.address)) return
+        // Schon in Arbeit oder schon vorgemerkt. Ohne diese Sperre legte der
+        // Wiederholversuch bei jedem Anlauf einen weiteren Wunsch in die
+        // Schlange, und nach einer Minute standen dort fuenfzehn.
+        if (connecting?.first?.address == device.address) return
+        if (queue.any { it.first.address == device.address }) return
 
         queue.addLast(device to member)
         // Laeuft schon einer, kommt dieser hier hinterher. Zwei
         // Verbindungsaufbauten zugleich bringt den Stack durcheinander.
         if (pending == null && connecting == null) next()
     }
+
+    /** Ob gerade ein Aufbau laeuft - der Wiederholversuch haelt sich daran. */
+    fun isBusy(): Boolean = pending != null || connecting != null
 
     /** Nimmt den naechsten Wunsch aus der Schlange, wenn gerade nichts laeuft. */
     private fun next() {
@@ -451,6 +603,78 @@ class PartnerLink(
         }
     }
 
+    /**
+     * Schaltet die Benachrichtigungen der Gegenseite ein.
+     *
+     * @return true, wenn der Vorgang laeuft - dann geht es in [onDescriptorWrite]
+     *         weiter. false, wenn er gar nicht erst begonnen werden konnte.
+     */
+    private fun subscribe(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic
+    ): Boolean {
+        val descriptor = characteristic.getDescriptor(CoLocation.CONFIG_UUID) ?: return false
+        return try {
+            if (!gatt.setCharacteristicNotification(characteristic, true)) return false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                gatt.writeDescriptor(
+                    descriptor,
+                    BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                ) == BluetoothStatusCodes.SUCCESS
+            } else {
+                @Suppress("DEPRECATION")
+                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                @Suppress("DEPRECATION")
+                gatt.writeDescriptor(descriptor)
+            }
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Could not subscribe: ${e.message}")
+            false
+        }
+    }
+
+    /** Die Kopplung gilt: eintragen, melden, den naechsten aus der Schlange. */
+    private fun settle(gatt: BluetoothGatt) {
+        connecting?.let { (device, member) ->
+            clients[device.address] = gatt
+            connecting = null
+            confirm(member)
+        }
+        next()
+    }
+
+    /**
+     * Bricht den laufenden Verbindungsaufbau ab und macht den Weg frei.
+     *
+     * Frueher meldeten die Fehlerpfade nur das Problem und kehrten zurueck.
+     * [connecting] blieb dabei belegt, und weil [next] nichts anfaengt,
+     * solange dort etwas steht, verschluckte das Geraet **jeden weiteren
+     * Versuch stillschweigend** - bis die App neu gestartet wurde. Auf dem
+     * Bildschirm stand dann noch die alte Meldung, und es sah aus, als
+     * reagiere das Antippen nicht mehr.
+     */
+    private fun giveUp(gatt: BluetoothGatt) {
+        closeQuietly(gatt)
+        onProblem(R.string.partner_link_failed)
+        connecting = null
+        retried = false
+        next()
+    }
+
+    /**
+     * Gibt eine Verbindung samt ihrer Registrierung im GATT-Stack frei.
+     *
+     * `disconnect()` allein genuegt nicht: es trennt die Funkverbindung, laesst
+     * die Anmeldung des Clients aber stehen. Erst `close()` gibt sie zurueck.
+     */
+    private fun closeQuietly(gatt: BluetoothGatt) {
+        try {
+            gatt.close()
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Could not release the connection: ${e.message}")
+        }
+    }
+
     private fun write(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
@@ -483,11 +707,39 @@ class PartnerLink(
      * holt der andere ihn ab.
      */
     fun send(message: ByteArray) {
+        // Als Anrufender: schreiben.
         clients.values.forEach { gatt ->
             val characteristic = gatt
                 .getService(CoLocation.SERVICE_UUID)
                 ?.getCharacteristic(CoLocation.CHARACTERISTIC_UUID)
             if (characteristic != null) write(gatt, characteristic, message)
+        }
+
+        // Als Angerufener: benachrichtigen. Frueher fehlte das, und wer
+        // angerufen worden war, konnte nichts zurueckschicken - sein "Stopp"
+        // erreichte den anderen nie, dessen Uhr lief weiter.
+        notifyListeners(message)
+    }
+
+    private fun notifyListeners(message: ByteArray) {
+        val characteristic = inbox ?: return
+        val open = server ?: return
+
+        listeners.toList().forEach { address ->
+            val device = open.getService(CoLocation.SERVICE_UUID)
+                ?.let { manager?.adapter?.getRemoteDevice(address) } ?: return@forEach
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    open.notifyCharacteristicChanged(device, characteristic, false, message)
+                } else {
+                    @Suppress("DEPRECATION")
+                    characteristic.value = message
+                    @Suppress("DEPRECATION")
+                    open.notifyCharacteristicChanged(device, characteristic, false)
+                }
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Could not notify: ${e.message}")
+            }
         }
     }
 
@@ -504,6 +756,10 @@ class PartnerLink(
      * zieht auf beiden Geraeten Akku - auch wenn niemand mehr hinsieht.
      */
     fun close(client: Boolean = true, server: Boolean = true) {
+        if (server && watchingAdapter) {
+            runCatching { context.unregisterReceiver(adapterReceiver) }
+            watchingAdapter = false
+        }
         if (pending != null || server) {
             // Abmelden, auch wenn nie etwas ankam: ein Empfaenger, der die
             // Activity ueberlebt, ist ein Leck und faellt spaeter als Absturz
@@ -524,6 +780,8 @@ class PartnerLink(
             if (server) {
                 this.server?.close()
                 this.server = null
+                this.inbox = null
+                listeners.clear()
             }
         } catch (e: SecurityException) {
             Log.e(TAG, "Could not close cleanly: ${e.message}")

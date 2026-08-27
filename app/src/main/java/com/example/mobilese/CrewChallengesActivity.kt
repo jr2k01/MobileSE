@@ -50,12 +50,6 @@ class CrewChallengesActivity : AppCompatActivity() {
      */
     private var opponents: Map<String, OpponentProgress> = emptyMap()
 
-    private val pickOpponent =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            val crew = BattleOpponentActivity.crewFrom(result.data) ?: return@registerForActivityResult
-            showAddChallengeDialog(crew)
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_challenges)
@@ -68,9 +62,6 @@ class CrewChallengesActivity : AppCompatActivity() {
         setUpTopBar(R.string.crew_challenges_title)
         setUpPullToRefresh { load() }
         findViewById<Button>(R.id.btnLaunchChallenge).setOnClickListener { showAddChallengeDialog() }
-        findViewById<Button>(R.id.btnLaunchBattle).setOnClickListener {
-            pickOpponent.launch(BattleOpponentActivity.intent(this, crewCode))
-        }
 
         load()
     }
@@ -134,10 +125,22 @@ class CrewChallengesActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         val accent = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.accent))
 
-        for (challenge in snapshot.challenges) {
+        // Offene Battles stehen im eigenen Bildschirm. Hier gehoert hin,
+        // was laeuft: die Ziele der eigenen Crew und angenommene Battles.
+        for (challenge in snapshot.challenges.filter {
+            !it.isBattle || CrewBattle.isRunning(it)
+        }) {
             val view = inflater.inflate(R.layout.item_challenge_entry, container, false)
             val type = ChallengeType.fromStored(challenge.type)
-            val contributions = ChallengeManager.progressByMember(challenge, snapshot)
+            // Ein Battle, den die Gegenseite noch nicht angenommen hat,
+            // laeuft nicht - und zeigt deshalb auch nichts. Vorher stand dort
+            // der volle Stand der eigenen Crew, und der Battle sah aus, als
+            // sei er in vollem Gange, bevor der andere ueberhaupt gefragt
+            // worden war.
+            val running = !challenge.isBattle || CrewBattle.isRunning(challenge)
+            val contributions =
+                if (running) ChallengeManager.progressByMember(challenge, snapshot)
+                else emptyList()
             val total = contributions.sumOf { it.second }
 
             view.findViewById<TextView>(R.id.tvChallengeTitle).setText(type.labelRes)
@@ -148,7 +151,7 @@ class CrewChallengesActivity : AppCompatActivity() {
             // der noch nicht angenommen oder abgelehnt wurde, laeuft nicht -
             // dann meldete die Karte einen Erfolg, den es nicht gibt, bloss
             // weil die eigene Crew das Ziel ohnehin schon ueberschritten hat.
-            val counts = !challenge.isBattle || CrewBattle.isRunning(challenge)
+            val counts = running
 
             showDeadline(view, challenge, done = counts && total >= challenge.goal)
             showBattle(view, challenge, total, type)
@@ -308,9 +311,26 @@ class CrewChallengesActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Annehmen oder ablehnen.
+     *
+     * Abgelehnt wird nicht vermerkt, sondern geloescht. Vorher blieb die Zeile
+     * mit dem Vermerk stehen - und zwar bei **beiden** Crews, denn es ist
+     * dieselbe Zeile. Die herausfordernde Seite behielt damit auf Dauer einen
+     * Battle in der Liste, an dem nichts mehr passieren konnte, und wegraeumen
+     * konnte sie ihn auch nicht. Weg ist hier ehrlicher als ein Vermerk, den
+     * niemand mehr braucht.
+     */
     private fun answerBattle(challenge: Challenge, status: String) {
         lifecycleScope.launch {
-            if (!repository.setBattleStatus(challenge.id, status)) {
+            val done =
+                if (status == CrewBattle.STATUS_ACCEPTED) {
+                    repository.setBattleStatus(challenge.id, status)
+                } else {
+                    repository.deleteCrewChallenge(challenge.id)
+                }
+
+            if (!done) {
                 toast(R.string.battle_answer_failed)
                 return@launch
             }
@@ -419,62 +439,11 @@ class CrewChallengesActivity : AppCompatActivity() {
      *        gewoehnliche Challenge.
      */
     private fun showAddChallengeDialog(opponent: Crew? = null) {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_challenge_setup, null)
-        val etType = dialogView.findViewById<EditText>(R.id.etChallengeType)
-        val tilGoal = dialogView.findViewById<TextInputLayout>(R.id.tilChallengeGoal)
-        val etGoal = dialogView.findViewById<EditText>(R.id.etChallengeGoal)
-        val etDeadline = dialogView.findViewById<EditText>(R.id.etChallengeDeadline)
-
-        var type = ChallengeType.DISTANCE
-        // Die Beschriftung des Zielfeldes nennt die Einheit und wechselt mit
-        // der Art - sonst stuende bei einer Schritt-Challenge "Ziel in
-        // Kilometern".
-        val applyType: (ChallengeType) -> Unit = { chosen ->
-            type = chosen
-            etType.setText(getString(chosen.labelRes))
-            tilGoal.hint = getString(chosen.goalHintRes)
+        ChallengeSetup.show(this, opponent) { type, goal, deadline ->
+            addChallenge(type, goal, deadline, opponent)
         }
-        applyType(type)
-        etType.setOnClickListener { askForChallengeType(applyType) }
-
-        // Das Feld haelt die Frist in Anzeigeform; gespeichert wird ISO.
-        // Deshalb steht der gewaehlte Wert daneben und nicht im Text.
-        var deadline: String? = null
-        etDeadline.setOnClickListener {
-            DeadlinePicker.show(this, deadline) { picked ->
-                deadline = picked
-                etDeadline.setText(ChallengeDeadline.toDisplay(picked))
-            }
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle(
-                if (opponent == null) getString(R.string.create_challenge_title)
-                else getString(R.string.battle_label, opponent.name)
-            )
-            .setView(dialogView)
-            .setPositiveButton(R.string.add_btn) { _, _ ->
-                val goal = InputRules.challengeGoalOrNull(etGoal.text.toString(), type.maxGoal)
-
-                if (goal == null) {
-                    Toast.makeText(
-                        this,
-                        getString(
-                            R.string.error_challenge_goal_range,
-                            InputRules.MIN_CHALLENGE_GOAL,
-                            type.maxGoal
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return@setPositiveButton
-                }
-                addChallenge(type, goal.toDouble(), deadline, opponent)
-            }
-            .setNegativeButton(R.string.cancel_btn, null)
-            .show()
     }
 
-    /** Die Auswahl der Art, als Liste mit Symbolen wie bei der Sportart. */
     private fun askForChallengeType(onChosen: (ChallengeType) -> Unit) {
         val types = ChallengeType.entries
         val choices = types.map { ChoiceAdapter.Entry(getString(it.labelRes), it.iconRes) }

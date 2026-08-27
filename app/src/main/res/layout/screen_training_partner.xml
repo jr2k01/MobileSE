@@ -79,7 +79,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="@string/train_question"
+                    android:hint="@string/session_train_question"
                     app:endIconMode="custom"
                     app:endIconDrawable="@drawable/ic_arrow_drop_down"
                     app:endIconTint="?attr/colorOnSurfaceVariant">

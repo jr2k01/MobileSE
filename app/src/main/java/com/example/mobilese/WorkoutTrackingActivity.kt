@@ -302,6 +302,23 @@ class WorkoutTrackingActivity : AppCompatActivity() {
      * nach einer Bildschirmdrehung verloren: die Activity wird dabei neu
      * erzeugt, und die Pfade standen nur in Feldern.
      */
+    /**
+     * Das Formular wird endgueltig verlassen.
+     *
+     * Wer abbricht oder zurueckgeht, verwirft damit auch das gemeinsame
+     * Training. Ohne das blieb die Sitzung im Speicher stehen: die naechste
+     * Aufnahme fragte nicht mehr, ob man zusammen trainiert hat, und trug
+     * stillschweigend den alten Partner und die alte Dauer ein - ein Workout,
+     * das nie stattgefunden hat, mit doppelten Punkten.
+     *
+     * Nur bei [isFinishing]: eine Drehung zerstoert die Activity ebenfalls,
+     * und dabei soll die Sitzung gerade nicht verloren gehen.
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isFinishing) JointSession.clear()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(STATE_PHOTO_PATH, photoPath)

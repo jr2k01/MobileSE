@@ -32,7 +32,7 @@ flowchart TB
     phone <-->|"HTTPS — PostgREST, Auth, Storage"| supabase
     phone -->|"liest Schritte und Puls"| health
     phone -->|"laedt Kacheln"| osm
-    supabase -->|"Webhook bei neuer Aktivitaet"| fcm
+    supabase -->|"Edge Function notify<br/>neue Aktivitaet oder Herausforderung"| fcm
     fcm -->|"Push"| phone
 
     style phone fill:#4c5fd7,color:#fff
@@ -47,12 +47,23 @@ Dauer, Puls - und uebergibt das dem Telefon, wo Kamera, Tastatur und Crew sind.
 Das Workout reist als *Data Item* und nicht als Nachricht: eine Nachricht kaeme
 nur an, solange das Telefon in Reichweite ist, und genau ohne Telefon
 loszulaufen ist der Sinn einer Uhr. Das Item wartet auf der Uhr, bis sich beide
-wiedertreffen. Naeheres in [WEAR.md](WEAR.md).
+wiedertreffen.
+
+Getragen wird das laufende Training von einem Vordergrunddienst der Art
+`health` (`WorkoutService`), nicht von der Activity - eine Handflaeche auf dem
+Display reicht sonst, und das System raeumt den Bildschirm samt Workout ab. Der
+Dienst ist aber auch kein Versprechen, deshalb liegt der Zustand zusaetzlich in
+den Preferences. Der Rueckweg ist neu: sobald das Telefon die Aktivitaet
+wirklich gespeichert hat, legt es eine Bestaetigung unter `/crewfit/logged` ab,
+und die Uhr meldet Sportart, Dauer und Punkte. Vorher endete das Training mit
+"uebergeben" und danach kam nichts mehr. Naeheres in [WEAR.md](WEAR.md).
 
 **Warum Push ueber einen Webhook laeuft.** Die App verschickt keine
-Benachrichtigungen. Sie entstehen in Supabase, sobald in `activities` eine Zeile
-angelegt wird. Ein Telefon, das gerade aus ist, muss dafuer nichts tun.
-Naeheres in [PUSH.md](PUSH.md).
+Benachrichtigungen. Sie entstehen in Supabase - eine Edge Function `notify`
+haengt an zwei Triggern: einer neuen Zeile in `activities` und einer neuen
+Herausforderung in `challenges`. Welcher es war, erkennt sie an der Zeile
+selbst; eine Challenge mit Gegner ist keine Aktivitaet. Ein Telefon, das gerade
+aus ist, muss dafuer nichts tun. Naeheres in [PUSH.md](PUSH.md).
 
 ## 2. Schichten in der Telefon-App
 
@@ -144,6 +155,7 @@ erDiagram
     crews ||--o{ crew_members : "hat"
     crews ||--o{ activities : "sammelt"
     crews ||--o{ challenges : "stellt"
+    crews ||--o{ challenges : "wird herausgefordert"
     crews ||--o| crew_memes : "zeigt"
     crews ||--o{ crew_join_requests : "erhaelt"
 
@@ -152,7 +164,15 @@ erDiagram
     activities ||--o{ activity_comments : "bekommt"
 ```
 
-Zwei Dinge, die das Bild nicht zeigen kann:
+Drei Dinge, die das Bild nicht zeigen kann:
+
+**Ein Battle ist eine Zeile, keine zwei.** `crews` haengt zweimal an
+`challenges`: einmal als die Crew, die sie stellt, und einmal ueber
+`opponent_crew_id` als die, die herausgefordert wird. Zwei Zeilen - eine je
+Crew - waeren die naheliegende Alternative und die schlechtere gewesen: Ziel,
+Frist oder Art koennten auseinanderlaufen, und der Battle waere kein Battle
+mehr, sondern zwei Challenges, die sich zufaellig aehneln. Wer gewonnen hat,
+steht nirgends als Spalte, sondern ergibt sich aus `challenge_rewards`.
 
 **Die Crew-Kennung ist ein Code, kein Fremdschluessel.** `crew_id` ist Text -
 der Code, den man weitergibt oder als QR-Code scannt. Die Beziehungen oben sind

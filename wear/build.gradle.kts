@@ -16,10 +16,13 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mobilese"
-        // Wear OS 3 setzt Android 11 voraus. Aeltere Uhren laufen auf einer
-        // ganz anderen Grundlage und werden von Google selbst nicht mehr
-        // bedient.
-        minSdk = 30
+        // Dieselbe Grundlage wie die Telefon-App.
+        //
+        // Vorher stand hier 30, also Wear OS 3. Das schliesst jede aeltere Uhr
+        // aus - und aeltere Uhren sind die, die die Leute tatsaechlich am
+        // Handgelenk haben. Gebraucht wurde die Stufe nie: was neuer ist als
+        // Android 8, steht ohnehin hinter einer Abfrage der Version.
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"

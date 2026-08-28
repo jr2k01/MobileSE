@@ -72,7 +72,7 @@
         <service
             android:name=".WorkoutService"
             android:exported="false"
-            android:foregroundServiceType="health" />
+            android:foregroundServiceType="dataSync|health" />
 
         <!--
             Nimmt die Bestaetigung des Telefons entgegen. Wie auf der anderen

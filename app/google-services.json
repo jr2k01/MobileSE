@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "547385906415",
+    "project_id": "crewfit-6342e",
+    "storage_bucket": "crewfit-6342e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:547385906415:android:171310e2c1d25aa7bb771a",
+        "android_client_info": {
+          "package_name": "com.example.mobilese"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "547385906415-2ucbgtm7vbm41uefm69fg1qao14pqr0n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvGhkYTub_ZsRsB6LOMWMpuAcCAoIyN0Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "547385906415-2ucbgtm7vbm41uefm69fg1qao14pqr0n.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

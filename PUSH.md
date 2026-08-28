@@ -5,10 +5,16 @@ wenn sich dadurch die Rangliste verschiebt. Verschickt werden die Nachrichten
 nicht von der App, sondern von Supabase - ausgeloest von einem Webhook, sobald
 in `activities` eine Zeile entsteht.
 
-**Ohne die folgenden Schritte laeuft die App vollstaendig, nur eben ohne
-Benachrichtigungen.** Das Projekt baut auch ohne Firebase-Datei: das
-google-services-Plugin wird nur angewendet, wenn `app/google-services.json`
-tatsaechlich daliegt (siehe `app/build.gradle.kts`).
+**Wer im Team arbeitet, muss hier nichts tun.** Die Client-Datei
+`app/google-services.json` liegt im Repository, das Projekt ist eingerichtet,
+und nach dem Klonen kommen die Benachrichtigungen an. Die folgenden Abschnitte
+sind fuer den, der das Projekt neu aufsetzt - oder nachsehen will, warum etwas
+nicht ankommt.
+
+Das Projekt baut auch **ohne** Firebase-Datei: das google-services-Plugin wird
+nur angewendet, wenn `app/google-services.json` tatsaechlich daliegt (siehe
+`app/build.gradle.kts`). Ohne sie laeuft die App vollstaendig, nur eben ohne
+Benachrichtigungen - und ohne eine einzige Fehlermeldung.
 
 Was wo hingehoert, in einem Satz: der **Firebase-Client** kommt in die App, der
 **Firebase-Dienstkontoschluessel** ausschliesslich in die Edge Function.
@@ -59,19 +65,50 @@ Geraet jemand anderes an, wandert die Zeile per Upsert zum neuen Konto.
 
 ---
 
-## 2. Firebase-Projekt anlegen
+## 2. Firebase-Projekt
+
+**Ein Projekt fuer das ganze Team.** Das Team benutzt `crewfit-6342e`, und die
+zugehoerige `app/google-services.json` liegt im Repository. Wer klont, hat sie
+damit schon; ein Gradle-Sync genuegt.
+
+Das ist keine Bequemlichkeit, sondern Bedingung: die Edge Function haelt den
+Dienstkontoschluessel **eines** Projekts. Legt sich jeder sein eigenes Firebase-
+Projekt an, bekommt seine App zwar ein Token, aber es gehoert zu einem anderen
+Projekt - und die Funktion kann es nicht adressieren. Es kommt dann nichts an,
+und im Log steht auf beiden Seiten nichts Auffaelliges.
+
+Genau das ist uns passiert: die Datei stand in `.gitignore`, jeder sollte sich
+nach dieser Anleitung ein eigenes Projekt anlegen, und Benachrichtigungen kamen
+nur auf dem Rechner an, auf dem auch die Edge Function eingerichtet worden war.
+Seit sie im Repository liegt, gilt fuer alle dasselbe Projekt.
+
+### Ist die Datei geheim?
+
+Nein. Sie enthaelt Projektnummer, App-ID und einen Android-API-Key. Damit laesst
+sich **keine** Nachricht verschicken - dafuer braucht es den Dienstkonto-
+schluessel aus Abschnitt 3, und der liegt ausschliesslich in der Edge Function.
+Google sieht diese Datei ausdruecklich als Teil der App und nicht als Geheimnis.
+
+Weil das Repository oeffentlich ist, sollte der Schluessel trotzdem eingegrenzt
+sein: Google Cloud Console → **APIs & Dienste** → **Anmeldedaten** → den
+Android-Key → **Anwendungseinschraenkungen: Android-Apps** → Paketname
+`com.example.mobilese` und die SHA-1 jedes Debug-Keystores, mit dem gebaut wird.
+Ohne diese Eingrenzung laesst sich der Key fuer andere Google-Dienste desselben
+Projekts missbrauchen.
+
+### Ein eigenes Projekt aufsetzen
+
+Nur noetig, wer das Projekt ausserhalb dieses Teams betreiben will:
 
 1. https://console.firebase.google.com → **Projekt hinzufuegen**, Name z. B.
    `CrewFit`. Google Analytics kann aus bleiben.
 2. Im Projekt auf das **Android**-Symbol: Paketname genau
    `com.example.mobilese` eintragen, registrieren.
-3. Die angebotene **`google-services.json`** herunterladen und in den Ordner
-   **`app/`** legen - also `app/google-services.json`, neben `build.gradle.kts`.
-4. Android Studio → Gradle-Sync. Ab jetzt wird das Plugin angewendet.
-
-Die Datei enthaelt keinen geheimen Schluessel; sie gehoert in die App. Trotzdem
-steht sie in `.gitignore`, weil sie zu deinem Firebase-Projekt gehoert und nicht
-zum Quelltext.
+3. Die angebotene **`google-services.json`** herunterladen und die vorhandene in
+   **`app/`** damit ersetzen.
+4. Android Studio → Gradle-Sync.
+5. Weiter mit Abschnitt 3 - der Dienstkontoschluessel muss aus **demselben**
+   Projekt stammen.
 
 ---
 
@@ -246,6 +283,12 @@ zweimal und die Benachrichtigung kommt doppelt.
 
 Kommt nichts an, in dieser Reihenfolge nachsehen:
 
+- Was das Geraet selbst meldet: `adb logcat -s CrewFitPush`. Dort steht genau
+  eine von drei Zeilen - `Device registered for push` (Kennung liegt in der
+  Datenbank), `Push is not set up` (keine `google-services.json`) oder
+  `No push token` (Datei da, Firebase gibt trotzdem keine Kennung heraus).
+- Steht in `device_tokens` eine Zeile fuer dieses Konto? Ohne sie hat die
+  Funktion kein Ziel.
 - Supabase → **Edge Functions** → `notify` → **Logs**. Dort steht, ob die
   Funktion ueberhaupt lief und was FCM geantwortet hat.
 - Lief sie gar nicht, hat der Trigger nicht ausgeloest. Was er getan hat, steht

@@ -154,6 +154,37 @@ Dates are the commit dates in the Git repository.
 | 16.8 | 2026-08-27 | Crew battles get their own screen, reachable from the crew tab beside the challenges. "Start Crew Battle" plus the pending invitations, split into the ones you sent and the ones you received | A battle nobody has accepted no longer sits among the running goals with a full progress bar | Declining deletes the row instead of marking it. It is one row for both crews, so a "declined" note stayed with the challenger forever and could not be cleared away |
 | 16.9 | 2026-08-27 | The weekday letters in the analytics are fixed to English | The rest of the app is English; a German "D" next to "Kilometres" read like an oversight | They came from the device locale, which is right in principle and wrong in effect |
 
+| 17.0 | 2026-08-28 | The analytics week runs Monday to Sunday and always marks the current day | The week used to start on whatever day it happened to be — Friday, in the screenshot that made us look | The bars came from the last seven entries in a map instead of from a calendar. Now the week is built from its Monday, and days without a workout are drawn empty rather than left out |
+| 17.1 | 2026-08-28 | **Bug, and the one that mattered.** Joint training only ever worked right after a fresh system pairing. Once the two devices stayed bonded, the connection came up in about a second and then nothing happened at all | Two weeks of "sometimes it works" ended. For a marker who tries the feature a few times, one success in ten is worse than none | With a bonded peer, `discoverServices()` returns `true` and never calls back — twice over, six seconds each, until the link times out after thirty. Without a bond the same lookup answers in a second. `refresh()` does not help: the second lookup comes back unchanged after eleven milliseconds. An existing bond is therefore dropped before connecting, and the pair is made fresh |
+| 17.2 | 2026-08-28 | The scan stops while a connection is being built — on the caller when they pick someone, on the other side as soon as somebody knocks | Whoever tapped first used to call into a device that was still scanning at full power. **That order failed reproducibly; the reverse order worked** | A scan in `SCAN_MODE_LOW_LATENCY` listens practically without pause, and the new connection gets almost no radio time. Advertising continues, or the other side could not accept at all |
+| 17.3 | 2026-08-28 | Service discovery has a deadline and one retry instead of waiting for a callback that may never come | The screen used to sit still for thirty seconds and then report a dropped connection | `discoverServices()` returns `false` when the stack is busy and sometimes `true` without ever calling back. Both looked identical from the outside: nothing |
+| 17.4 | 2026-08-28 | `requestMtu` removed entirely | Writes reported success and arrived nowhere | An unanswered MTU request blocks the GATT queue, which handles one operation at a time. Twenty bytes per message is enough for sport, start and stop |
+| 17.5 | 2026-08-28 | **Bug.** The pairing broadcast was matched against the advertised address | The app waited out the full twelve-second deadline although the pairing had long been confirmed on both devices | `ACTION_BOND_STATE_CHANGED` carries the device's real address, while the request went to the random one from the advertisement. A strict comparison threw the good news away |
+| 17.6 | 2026-08-28 | The watch app builds against Android 8 instead of Android 11 | Android 11 means Wear OS 3 and newer — which ruled out most watches people actually wear | Nothing needed the higher bar: lint reports no call above the new minimum, and the three places that do use something newer already ask for the version first. The foreground service now declares `dataSync` beside `health`, so older systems get a type they understand |
+| 17.7 | 2026-08-28 | Fourteen full runs of the joint training in a row, in both directions, with the app kept open and with it closed | Connect, sport, start, and stop from the *other* side — the whole chain, every time | Each run pairs freshly, so every attempt is the same as the first. That is also what it looks like to the people using it: the system asks on both devices, both confirm |
+
+### 5.1.1 The last two days, in before and after
+
+The four commits of 27 and 28 August are the end of the project, and they are
+where the feature that had never been dependable became dependable. The table
+says what the app did before and what it does now.
+
+| What | Before (up to 26 August) | Now | Commit |
+| --- | --- | --- | --- |
+| Joint training, second attempt | Worked once after a fresh pairing. Every attempt after that hung in "Connecting…" for 60 to 90 seconds and then failed | Pairs freshly every time, with the system prompt on both devices. **14 runs in a row without a failure**, phone-first and tablet-first, app open and app closed | `9dfe1b8` |
+| Who taps | One person tapped the other's name | Both pick each other; who calls is decided by comparing the identifiers, so exactly one calls and there is no race | `2078226` |
+| While connecting | Both devices kept scanning at `LOW_LATENCY` throughout | Both stop scanning the moment a partner is picked or somebody knocks; advertising continues | `9dfe1b8` |
+| Service discovery | Waited for a callback that sometimes never came, for thirty seconds | Deadline, one retry, then a clean abort with a message | `9dfe1b8` |
+| Packet size | `requestMtu(128)` in the critical path, blocking the GATT queue when unanswered | Not requested at all | `9dfe1b8` |
+| Stopping a shared workout | Only the caller could stop it for both | Either side can; the other's clock stops too | `2078226` |
+| Bluetooth switched off mid-session | Only the peer noticed; the two clocks drifted apart (01:02 against 03:24) | Noticed locally too, and the session ends on both | `2078226` |
+| Crew battles | Sat among the running challenges with a progress bar before anyone had accepted | Own screen with "Start Crew Battle" and pending invitations split into sent and received; a battle appears under Challenges only once accepted, and declining deletes the row | `2078226` |
+| Challenge points | Counted every activity the crew had ever logged, so a challenge was part-finished the moment it was created | Counted from `starts_at` — creation for a challenge, **acceptance** for a battle | `2078226` |
+| Analytics week | Started on whatever weekday it happened to be, with German letters | Monday to Sunday, English letters, current day marked | `2078226`, `17.0` |
+| Leaving the workout form | Kept the joint session in memory, so the next recording silently filed the old partner and duration | Cleared when the form is really finished, kept across a rotation | `2078226` |
+| Watch app | Required Android 11, i.e. Wear OS 3 and newer | Runs from Android 8; checked on an emulator through sport, sensor prompt, stopwatch with heart rate, pause, resume and stop | `a67c4ea` |
+| Documentation | The diagrams still showed the MTU handshake and one paragraph had lost its method names | Bluetooth section rewritten around what the devices actually did, with the trace that proved it | `dd644e8`, this commit |
+
 **[FILL IN]** — add your own and Timo's milestones from before 5 August if you
 want the early phase in more detail; the table above is reconstructed from
 commit messages and does not know who did what.
@@ -187,6 +218,10 @@ app, and several were caused by it as well.
 | 16 | 16.1-16.4 | The joint training over Bluetooth had been unreliable for two weeks. The assistant had blamed distance, radio interference and a stale GATT cache in turn. | Each diagnosis sounded plausible. | All three were wrong, and it only got there by reading the logcat of both devices at once and `dumpsys bluetooth_manager`: four leaked interfaces, and a server callback that mistook the device's own link for someone else's call. Three separate defects in one feature, none of them visible from the code alone. |
 | 17 | 16.8 | The assistant reported that the challenged crew could not see a pending battle at all. | "The row does not arrive - the query must be wrong." | Wrong, and it caught itself: a temporary log line showed all three rows arriving correctly. The card was simply below the fold and it had not scrolled. A bug report that would have cost an afternoon of looking in the wrong place. |
 | 18 | 16.5 | We redesigned the pairing ourselves: both pick each other instead of one tapping. | The assistant had built the "only one taps" rule and defended it. | Our version is better and simpler. Because both choose, the app can decide who calls by comparing the identifiers - the same answer on both devices, no agreement needed, no race. The rule the assistant had added was a workaround for a bug it had not found yet. |
+| 19 | 17.1 | **AI-caused, and the worst stretch of the project.** Over several hours the assistant tried unbonding, `refresh()`, an MTU deadline, dropping MTU, a fallback caller and a persistent GATT server on the Bluetooth problem. Some of it made things worse: unbonding via the rotating advertised address broke address resolution and every attempt ended in status 133; the fallback caller brought back the crossing calls that had been fixed days earlier. | Each step came with a confident explanation. | Timo stopped it — "I have the feeling we are going in circles" — and that was right. What ended it was not another idea but six temporary log lines through the connection path. They showed in one run what hours of reasoning had not: bonded, connected in 1.3 seconds, `discoverServices()` started, and then nothing at all. The lesson is the same as incident 13, learned again the hard way: measure the step that fails instead of replacing the steps around it. |
+| 20 | 17.1 | **AI-caused.** The assistant's own test script restarted the app before every run — and so never reproduced the failure Timo was reporting, which happens when you finish a workout and go again *without* closing the app. | Four passes in a row, reported as proof that the problem was fixed. | It was not proof of anything; Timo tested by hand and it failed immediately. Several other "failures" pointed the other way and were also the harness: a fixed tap coordinate for the sport list that only fits the phone, a `Cancel` button below the fold, and screenshots taken before a screen had finished loading. A test that does not do what a person does can only mislead. |
+| 21 | 17.1 | Timo had said days earlier what the fix turned out to be: "every time the pairing prompt, and unpair after finishing, so every attempt is the same." | The assistant had tried it once, hit status 133, and set the idea aside as disproven. | It was the right idea with one detail wrong — after unbonding it kept using the old advertised address, which is only resolvable while the bond exists. Making the scan report every sighting instead of only the first was all that was missing. Recorded because the user's instinct about the *behaviour* beat the assistant's reading of the *protocol*, and because a failed experiment was treated as a closed question when the fault was in the experiment. |
+
 **Working style, and how it changed.** In the first weeks AI was used for
 isolated pieces of code that we pasted in. From August onwards the assistant
 worked in the repository directly and could build, install, and drive the app on
@@ -336,16 +371,61 @@ matched against the crew list rather than trusted on its own.
 Discovery alone would have been "the other phone is nearby". The devices
 therefore bond at system level (`createBond()`) and then open a GATT
 connection, over which each writes its identifier to the other. That is what
-makes the pairing real: it appears in the Android Bluetooth settings and can be
-undone there.
+makes the pairing real: it appears in the Android Bluetooth settings, and the
+system asks on both devices before anything is shared.
 
-Two things about Android's GATT stack are not obvious and cost us an evening
-each. First, it processes exactly one operation at a time — calling
-`discoverServices()` right after `requestMtu()` appears to work and then drops
-the link after a few seconds; the second call belongs in `onMtuChanged`. Second,
-a connection only counts once the write has been acknowledged in
-`onCharacteristicWrite`, not when `onConnectionStateChange` reports CONNECTED.
-Confirming earlier meant the app believed in a partner it could not yet talk to.
+**The finding that cost the most, and taught the most.** For two weeks the
+feature worked right after a fresh pairing and not afterwards. Every plausible
+explanation — distance, interference, a stale service cache — turned out to be
+wrong, and what settled it was six temporary log lines through the connection
+path:
+
+```
+beginWith bond=12          <- already bonded
+connected status=0         <- link up after 1.3 seconds
+lookForServices started=true
+   ... six seconds, no answer
+   ... six seconds, no answer
+The services stayed silent
+```
+
+With a bonded peer, `discoverServices()` returns `true` and **never calls
+back**. Without a bond, the same lookup answers in about a second. The
+documented remedy, the hidden `refresh()`, does nothing here: the second lookup
+came back unchanged after eleven milliseconds, straight from the cache.
+
+So the app drops an existing bond before connecting and pairs freshly each
+time. One detail makes or breaks that: the address a device advertises is a
+*random* one, and Android only resolves it to the real identity while the bond
+exists. An earlier attempt kept using that address after unbonding and every
+connect ended in status 133. The scan therefore reports every sighting instead
+of only the first, so the next attempt has a current address.
+
+The result is also the better behaviour: before every shared workout the system
+asks on both devices, both confirm, and every attempt is identical to the first.
+**Fourteen consecutive runs** — connect, sport, start, and stop from the other
+side — in both directions, with the app kept open and with it closed.
+
+Three more things about Android's GATT stack are not obvious. First, it
+processes exactly one operation at a time, and an unanswered `requestMtu()`
+blocks the queue: the link stands, writes report success, and nothing arrives.
+We dropped the request entirely; the default twenty bytes carry sport, start and
+stop. Second, a scan in `SCAN_MODE_LOW_LATENCY` listens almost continuously and
+starves a connection being built alongside it — whoever tapped first used to
+call into a device still scanning at full power, and *that* order failed
+reproducibly while the reverse worked. Both sides now stop scanning and keep
+advertising. Third, a connection only counts once the write has been
+acknowledged in `onCharacteristicWrite`, not when `onConnectionStateChange`
+reports CONNECTED; confirming earlier meant the app believed in a partner it
+could not yet talk to.
+
+Two smaller traps are worth recording because both cost real time. Every
+`connectGatt()` claims a registration in the GATT stack and Android hands out a
+fixed number per process — without `close()` on failure they leak, and once they
+are gone every further attempt ends in status 133; one failed evening left
+thirteen of them side by side. And `ACTION_BOND_STATE_CHANGED` carries the
+device's *real* address while the request went to the advertised random one, so
+a strict comparison discards the very message that says the pairing succeeded.
 
 For a group, connections are opened one after another rather than all at once,
 and whoever did the connecting broadcasts the roster — otherwise the third

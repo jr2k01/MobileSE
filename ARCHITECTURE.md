@@ -206,12 +206,14 @@ sequenceDiagram
     Note over A,B: Beide scannen und gleichen<br/>gegen die Crew-Liste ab
 
     Note over A,B: **Beide** waehlen einander aus.<br/>Wer anruft, ergibt der Vergleich<br/>der Kennungen: die kleinere ruft.
+    Note over A,B: Beide halten ihren Scan an —<br/>die Funkzeit gehoert jetzt der Verbindung
+    A->>A: removeBond() — eine alte Kopplung wird geloest
+    Note over A: Warten auf eine frische Adresse<br/>aus der Werbung
     A->>B: createBond() — Systemkopplung
-    B-->>A: Am Geraet bestaetigt
+    B-->>A: Auf **beiden** Geraeten bestaetigt
     A->>B: GATT connect
-    A->>B: requestMtu(128)
-    B-->>A: onMtuChanged
-    A->>B: discoverServices()
+    A->>B: discoverServices() — mit Frist und einem zweiten Anlauf
+    B-->>A: onServicesDiscovered
     A->>B: schreibt eigene Kennung
     B-->>A: onCharacteristicWrite — jetzt gilt die Verbindung
     A->>B: Teilnehmerliste (Roster)
@@ -235,10 +237,65 @@ deshalb nur ihre obere Haelfte, und sie wird gegen die Crew-Liste abgeglichen
 statt fuer sich genommen geglaubt. Aus demselben Grund steht die Dienst-UUID in
 ihrer 16-Bit-Form.
 
-**Warum `requestMtu` und `discoverServices` nicht nacheinander stehen duerfen.**
-Der GATT-Stack von Android bearbeitet genau eine Operation zur Zeit. Ruft man
-beide direkt hintereinander auf, sieht es aus, als funktioniere es, und die
-Verbindung faellt nach Sekunden. Der zweite Aufruf gehoert in `onMtuChanged`.
+**Warum vor jedem gemeinsamen Training neu gekoppelt wird.** Das ist die
+wichtigste Erkenntnis des ganzen Projekts, und sie liess sich lange nicht
+fassen: Nach einer frischen Kopplung lief alles einwandfrei, beim naechsten
+Versuch nichts mehr. Der Mitschnitt am Geraet zeigt, warum.
+
+```
+beginWith bond=12          <- gekoppelt
+connected status=0         <- Verbindung steht nach 1,3 Sekunden
+lookForServices started=true
+   ... sechs Sekunden, keine Antwort
+   ... sechs Sekunden, keine Antwort
+The services stayed silent
+```
+
+Ist die Gegenseite gekoppelt, liefert `discoverServices()` zwar `true`, ruft
+aber **nie** zurueck. Ohne Kopplung antwortet dieselbe Suche in einer Sekunde.
+`refresh()` half nicht - die zweite Suche kam nach elf Millisekunden
+unveraendert aus dem Zwischenspeicher zurueck.
+
+Also wird eine bestehende Kopplung geloest, bevor verbunden wird. Ein frueherer
+Anlauf daran scheiterte an einer Feinheit: die Adresse, mit der ein Geraet
+wirbt, ist eine **zufaellige**, und Android loest sie nur zur echten Identitaet
+auf, solange die Kopplung besteht. Wer nach dem Entkoppeln dieselbe Adresse
+weiterbenutzt, ruft ins Leere - jeder Aufbau endete mit Status 133. Der Scan
+meldet deshalb jede Sichtung und nicht nur die erste; der naechste Anlauf nimmt
+die frische Adresse und koppelt sauber neu.
+
+Nebenbei ist das genau das Verhalten, das man sich wuenscht: Vor jedem
+gemeinsamen Training fragt das System auf **beiden** Geraeten nach, und beide
+bestaetigen. Jeder Versuch ist derselbe.
+
+**Warum waehrend des Verbindungsaufbaus nicht gesucht wird.** Ein Scan im Modus
+`SCAN_MODE_LOW_LATENCY` horcht praktisch ohne Pause; daneben bleibt fuer die
+Funkfenster einer gerade entstehenden Verbindung kaum etwas uebrig, und die
+Dienstsuche verhungert. Wer zuerst tippte, rief in ein Geraet hinein, das noch
+mit voller Leistung suchte - **diese Reihenfolge scheiterte reproduzierbar,
+die umgekehrte gelang.** Angehalten wird deshalb auf beiden Seiten: beim
+Anrufer, sobald er jemanden auswaehlt, und beim Angerufenen, sobald jemand
+anklopft. Geworben wird weiter, sonst koennte die Gegenseite gar nicht
+annehmen.
+
+**Warum die Dienstsuche eine Frist hat.** `discoverServices()` gibt `false`
+zurueck, wenn der Stack beschaeftigt ist, und manchmal `true`, ohne dass je ein
+Rueckruf kommt. Beides sah vorher gleich aus: nichts, dreissig Sekunden lang,
+bis die Verbindung von selbst abriss. Jetzt laeuft eine Frist, danach ein
+zweiter Anlauf, und erst dann wird sauber abgebrochen.
+
+**Warum `requestMtu` gar nicht mehr vorkommt.** Der GATT-Stack bearbeitet genau
+eine Operation zur Zeit, und eine unbeantwortete MTU-Anfrage blockiert die
+Schlange: die Verbindung stand, Schreibvorgaenge meldeten Erfolg und kamen
+nirgends an. Mit der voreingestellten Paketgroesse passen zwanzig Byte in eine
+Nachricht - genug fuer Sportart, Start und Stopp. Die Anfrage ist ersatzlos
+entfallen.
+
+**Warum die Meldung ueber die geglueckte Kopplung nicht auf die Adresse passt.**
+`ACTION_BOND_STATE_CHANGED` traegt die **echte** Adresse des Geraets, angefragt
+wurde aber mit der zufaelligen aus der Werbung. Ein strenger Vergleich verwarf
+die Meldung, und die App wartete anschliessend die volle Frist ab, obwohl
+laengst alles bestaetigt war.
 
 **Warum beide auswaehlen und trotzdem nur einer anruft.** Frueher tippte nur
 einer, und das war ein Rennen: eine Funkstrecke ist keine Einbahn, der eigene
@@ -249,12 +306,13 @@ Verbindung bis zum Zeitablauf. Jetzt waehlen beide, und wer anruft, entscheidet
 ein Vergleich der Kennungen. Beide Geraete rechnen dasselbe aus, also ruft
 genau einer, ohne dass sie sich verstaendigen muessten.
 
-**Warum jede gescheiterte Verbindung geschlossen werden muss.** 
-fordert bei jedem Aufruf eine neue Registrierung im GATT-Stack an, und Android
-vergibt davon nur eine feste Zahl je Prozess. Ohne  im Fehlerfall
-blieb je Fehlversuch eine haengen; waren sie aufgebraucht, endete jeder weitere
-Aufbau sofort mit Status 133 - erst der zweite Versuch eines Abends, dann
-jeder.
+**Warum jede gescheiterte Verbindung geschlossen werden muss.**
+`connectGatt()` fordert bei jedem Aufruf eine neue Registrierung im GATT-Stack
+an, und Android vergibt davon nur eine feste Zahl je Prozess. Ohne `close()` im
+Fehlerfall blieb je Fehlversuch eine haengen; waren sie aufgebraucht, endete
+jeder weitere Aufbau sofort mit Status 133 - erst der zweite Versuch eines
+Abends, dann jeder. Im Protokoll eines misslungenen Abends standen dreizehn
+solcher Registrierungen nebeneinander.
 
 **Warum die Verbindung erst nach dem Schreibvorgang zaehlt.** `CONNECTED` in
 `onConnectionStateChange` heisst nur, dass eine Verbindung steht - nicht, dass

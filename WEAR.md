@@ -14,6 +14,15 @@ Telefon hat Kamera, Tastatur und die Verbindung zur Datenbank.
 **Ohne Uhr laeuft die App unveraendert.** Das `wear`-Modul ist ein eigenes APK
 und wird gar nicht erst installiert.
 
+**Auf welchen Uhren es laeuft.** Das Modul verlangte urspruenglich Android 11,
+also Wear OS 3 und neuer - damit fielen die meisten Uhren heraus, die Leute
+tatsaechlich tragen. Gebraucht wurde die Stufe nie: Lint findet keinen Aufruf
+oberhalb von Android 8, und die drei Stellen, die etwas Neueres benutzen,
+fragen ohnehin vorher die Version ab. Seit dem 28. August steht die Untergrenze
+auf **Android 8**, derselben wie bei der Telefon-App. Geprueft am Uhr-Emulator:
+Sportauswahl, Sensorabfrage, laufende Stoppuhr mit Puls, Pause, Fortsetzen und
+Stopp - ohne Absturz.
+
 ---
 
 ## 1. Was wo liegt
@@ -147,7 +156,9 @@ Vordergrunddienst - das Training laeuft dann nur, solange die Activity lebt.
 Das ist die ehrlichere Antwort als ein Dienst, der nichts misst: ohne Sensoren
 ist die Uhr ein Wecker, und ein Wecker braucht keinen Dienst, der ihn
 ueberlebt. Auf Uhren vor Android 14 wird die Art im Aufruf weggelassen - das
-System kennt sie dort nicht und wiese den Dienst sonst ab.
+System kennt sie dort nicht und wiese den Dienst sonst ab. Im Manifest steht
+seit dem 28. August `dataSync|health`: `health` gibt es erst ab Android 14, und
+aeltere Systeme brauchen eine Art, die sie kennen.
 
 **Und wenn auch der Dienst stirbt?** Dann greift `WorkoutStore`: Sportart,
 Uhrstand, Puls und Schritte liegen in den SharedPreferences, in einzelnen

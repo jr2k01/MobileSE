@@ -65,12 +65,29 @@ class TrainingPartnerActivity : AppCompatActivity() {
      * Ein einzelner Versuch reicht nicht: die Gegenseite tippt vielleicht erst
      * zwei Sekunden spaeter, und vorher gibt es dort nichts anzurufen.
      */
+    /** Wie oft schon vergeblich angerufen wurde. */
+    private var attempts = 0
+
     private val retry = object : Runnable {
         override fun run() {
             val target = chosen ?: return
             if (JointSession.hasPartners()) return
+
+            // Irgendwann ist gut. Ohne Obergrenze lief der Kreis endlos, und
+            // auf dem Bildschirm stand minutenlang dasselbe.
+            if (attempts >= MAX_ATTEMPTS) {
+                showStep(R.string.linking_step_failed)
+                // Aufgegeben - dann darf wieder gesucht werden, sonst findet
+                // ein neuer Anlauf niemanden mehr.
+                beacon?.resumeScanning()
+                return
+            }
+            attempts++
             val link = link
-            if (link != null && !link.isBusy()) {
+            // Nicht dazwischenfunken: laeuft schon ein eigener Aufbau, oder
+            // haengt die Gegenseite bereits an unserem Server, waere ein
+            // Anruf jetzt genau das Kreuzen, das die Strecke zerreisst.
+            if (link != null && !link.isBusy() && !link.hasPeers()) {
                 devices[target.id]?.let { link.connectTo(it, target) }
             }
             ticker.postDelayed(this, RETRY_MILLIS)
@@ -155,6 +172,15 @@ class TrainingPartnerActivity : AppCompatActivity() {
                 it.onProblem = { res -> runOnUiThread { showProblem(res) } }
                 it.onMessage = { message -> runOnUiThread { received(message) } }
                 it.onIncoming = { runOnUiThread { incoming() } }
+                it.onNeedsFreshAddress = {
+                    runOnUiThread {
+                        // Nach dem Entkoppeln taugt die gemerkte Adresse
+                        // nichts mehr. Also wieder suchen, bis eine neue
+                        // hereinkommt; der naechste Anlauf nimmt sie dann.
+                        showStep(R.string.linking_step_pairing)
+                        beacon?.resumeScanning()
+                    }
+                }
                 it.startServer()
             }
 
@@ -179,12 +205,27 @@ class TrainingPartnerActivity : AppCompatActivity() {
      * ueberschrieben.
      */
     private fun incoming() {
+        // Jemand klopft an - und ab hier muss das Funkmodul frei sein.
+        //
+        // Ein Scan im Modus LOW_LATENCY horcht ununterbrochen; die gerade
+        // aufgebaute Verbindung bekommt daneben kaum Funkfenster, und ihre
+        // Dienstsuche bleibt unbeantwortet. Anhalten muss deshalb der
+        // Angerufene, sobald angeklopft wird - nicht erst, wenn er selbst
+        // tippt. Wer zuerst tippte, rief sonst in ein Geraet hinein, das noch
+        // mit voller Leistung suchte, und genau diese Reihenfolge scheiterte
+        // reproduzierbar.
+        beacon?.pauseScanning()
+
         if (chosen != null) return
         findViewById<TextView>(R.id.tvPartnerStatus).setText(R.string.partner_incoming)
     }
 
     private fun addFound(member: UserProfile, device: BluetoothDevice) {
-        devices[member.id] = device
+        // Die Adresse wird bei jeder Sichtung aufgefrischt, die Zeile aber
+        // nur einmal angelegt - sonst stuende derselbe Name mehrfach da.
+        val known = devices.put(member.id, device) != null
+        if (known) return
+
         val container = findViewById<LinearLayout>(R.id.llPartnerFound)
         findViewById<View>(R.id.tvPartnerEmpty).visibility = View.GONE
         findViewById<TextView>(R.id.tvPartnerStatus).setText(R.string.partner_pick)
@@ -227,23 +268,45 @@ class TrainingPartnerActivity : AppCompatActivity() {
         val me = ownUserId ?: return
         if (chosen != null) return
         chosen = member
+        attempts = 0
 
-        val container = findViewById<LinearLayout>(R.id.llPartnerFound)
-        for (i in 0 until container.childCount) {
-            container.getChildAt(i).isEnabled = false
-            container.getChildAt(i).setOnClickListener(null)
-        }
+        // Ab hier wird nicht mehr gesucht: der Partner ist gefunden, und ein
+        // laufender Scan nimmt dem Verbindungsaufbau die Funkzeit weg.
+        beacon?.pauseScanning()
 
         val name = DisplayName.of(member).ifEmpty { getString(R.string.unknown_member) }
+
+        // Die Liste weicht einem eigenen Bildschirm. Vorher blieben die Namen
+        // stehen und darueber wechselte eine Zeile Text - man sah nicht, ob
+        // ueberhaupt etwas geschieht, und tippte im Zweifel noch einmal.
+        findViewById<View>(R.id.llSearch).visibility = View.GONE
+        findViewById<View>(R.id.llLinking).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvLinkingTitle).text =
+            getString(R.string.linking_title, name)
+        showStep(R.string.linking_step_search)
+
         val status = findViewById<TextView>(R.id.tvPartnerStatus)
 
         if (me < member.id) {
             status.text = getString(R.string.partner_linking, name)
             ticker.post(retry)
         } else {
-            // Wir warten. Der Server laeuft seit dem Oeffnen des Bildschirms,
-            // die Gegenseite kann also jederzeit anklopfen.
+            // Wir warten erst einmal ab: der mit der kleineren Kennung ruft an,
+            // und solange beide getippt haben, ist gleich alles fertig. Der
+            // Server laeuft seit dem Oeffnen des Bildschirms, die Gegenseite
+            // kann also jederzeit anklopfen.
             status.text = getString(R.string.partner_linking_wait, name)
+            showStep(R.string.linking_step_wait)
+
+            // Und wir rufen **nicht** an. Das ist der ganze Sinn der
+            // Aufteilung: rufen beide, kreuzen sich die Anrufe und legen
+            // einander auf - im Protokoll steht dann Fehler 22 auf der einen
+            // und 133 auf der anderen Seite, und der Kreis dreht sich alle
+            // paar Sekunden neu. Ein Rueckfall, der nach einer Weile doch
+            // anruft, hat genau das wieder eingeschleppt.
+            //
+            // Wer wartet, wartet also. Der Server laeuft seit dem Oeffnen des
+            // Bildschirms; sobald der andere tippt, steht die Verbindung.
         }
     }
 
@@ -259,15 +322,16 @@ class TrainingPartnerActivity : AppCompatActivity() {
         val current = link ?: return
         ticker.removeCallbacks(retry)
         beacon?.stop()
+        findViewById<View>(R.id.llLinking).visibility = View.GONE
 
         if (!JointSession.hasPartners()) {
             // Wer angetippt hat, fuehrt: er waehlt die Sportart und bestimmt
             // Beginn und Ende. Angetippt hat, wer das Geraet in der Liste
             // hatte.
-            // Fuehrend ist, wer angerufen hat - dieselbe Regel wie oben,
-            // damit sich beide Geraete einig sind.
-            val me = ownUserId
-            JointSession.begin(current, isLeader = me != null && me < member.id)
+            // Fuehrend ist, wer angerufen hat. Beide Geraete kommen zum
+            // selben Ergebnis, denn genau eines von ihnen hat die Verbindung
+            // aufgebaut - und es weiss das von sich selbst.
+            JointSession.begin(current, isLeader = current.didWeCall())
             setUpSession()
         }
         JointSession.add(member)
@@ -438,13 +502,17 @@ class TrainingPartnerActivity : AppCompatActivity() {
 
         val action = findViewById<MaterialButton>(R.id.btnSessionAction)
         action.setText(if (watch.isRunning) R.string.session_stop else R.string.session_start)
-        // Der Folgende schaut zu: Beginn und Ende bestimmt der Fuehrende.
-        action.visibility = if (leader) View.VISIBLE else View.GONE
+        // Angefangen wird vom Fuehrenden - sonst koennte die Sportart noch
+        // wechseln, waehrend beim anderen die Uhr schon laeuft. **Beendet**
+        // wird von beiden: wer fertig ist, ist fertig, und der andere soll
+        // nicht warten muessen. Der Stopp erreicht die Gegenseite jetzt auch
+        // vom Angerufenen aus - vorher konnte der gar nichts zurueckschicken,
+        // und seine Uhr lief nach dem Stopp allein weiter.
+        action.visibility = if (leader || watch.isRunning) View.VISIBLE else View.GONE
         action.isEnabled = JointSession.connected
 
         findViewById<TextView>(R.id.tvSessionHint).text = when {
-            watch.isRunning && leader -> getString(R.string.session_running)
-            watch.isRunning -> getString(R.string.session_running_follower, partnerName)
+            watch.isRunning -> getString(R.string.session_running)
             leader -> getString(R.string.session_pick_sport)
             JointSession.sport == null -> getString(R.string.session_wait_sport, partnerName)
             else -> getString(R.string.session_wait_start, partnerName)
@@ -459,6 +527,20 @@ class TrainingPartnerActivity : AppCompatActivity() {
             String.format(Locale.getDefault(), "%02d:%02d", seconds / 60, seconds % 60)
     }
 
+    /**
+     * Sagt, woran gerade gearbeitet wird.
+     *
+     * Drei Schritte statt einer wandernden Textzeile: suchen, koppeln,
+     * verbinden. Wer wartet, soll sehen koennen, wo es steht - und ob er
+     * gerade etwas tun muss.
+     */
+    private fun showStep(textRes: Int) {
+        val step = findViewById<TextView>(R.id.tvLinkingStep) ?: return
+        if (findViewById<View>(R.id.llLinking).visibility == View.VISIBLE) {
+            step.setText(textRes)
+        }
+    }
+
     private fun toast(res: Int) = Toast.makeText(this, res, Toast.LENGTH_SHORT).show()
 
     /**
@@ -468,7 +550,21 @@ class TrainingPartnerActivity : AppCompatActivity() {
      * findet man die anderen weiterhin, wird nur selbst nicht gefunden - die
      * Liste kann sich also trotzdem noch fuellen.
      */
+    /**
+     * Meldungen des Verbindungsaufbaus auch auf dem Wartebildschirm zeigen.
+     *
+     * "Pairing… confirm on both devices" ist keine Fehlermeldung, sondern
+     * eine Aufforderung - sie gehoert dorthin, wo der Nutzer gerade hinsieht.
+     */
+    private fun showStepFor(messageRes: Int) {
+        when (messageRes) {
+            R.string.partner_pairing -> showStep(R.string.linking_step_pairing)
+            R.string.partner_connecting -> showStep(R.string.linking_step_link)
+        }
+    }
+
     private fun showProblem(messageRes: Int) {
+        showStepFor(messageRes)
         // Waehrend gekoppelt wird, dreht sich der Kreis weiter: es passiert ja
         // etwas, nur ausserhalb der App. Bei allem anderen haelt er an.
         val busy = messageRes == R.string.partner_pairing
@@ -511,7 +607,11 @@ class TrainingPartnerActivity : AppCompatActivity() {
          * Sekunden -, und kurz genug, dass niemand das Gefuehl hat, es passiere
          * nichts.
          */
-        private const val RETRY_MILLIS = 5000L
+        private const val RETRY_MILLIS = 4000L
+
+        /** Nach so vielen vergeblichen Anlaeufen wird abgebrochen. */
+        private const val MAX_ATTEMPTS = 6
+
 
 
         fun intent(context: Context): Intent =

@@ -16,6 +16,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Handler
+import android.os.Looper
 import android.os.Build
 import android.util.Log
 
@@ -106,6 +108,12 @@ class PartnerLink(
      */
     var onIncoming: () -> Unit = {}
 
+    /**
+     * Die gemerkte Adresse ist unbrauchbar geworden - es muss neu gesucht
+     * werden, bevor der naechste Anlauf Sinn hat.
+     */
+    var onNeedsFreshAddress: () -> Unit = {}
+
 
     private val manager = context.getSystemService(BluetoothManager::class.java)
 
@@ -123,8 +131,22 @@ class PartnerLink(
     /** Wer sich fuer Benachrichtigungen angemeldet hat. */
     private val listeners = mutableSetOf<String>()
 
+    /**
+     * Eine offene Verbindung samt der Stelle, an die geschrieben wird.
+     *
+     * Die Characteristic wird beim Verbinden gemerkt und nicht spaeter neu
+     * gesucht: `getService()` fragt den zwischengespeicherten Dienstkatalog,
+     * und der war nach dem Aufbau ploetzlich leer - `send()` fand nichts mehr
+     * und schrieb still gar nicht. Die Sportart kam beim anderen nie an,
+     * obwohl die Verbindung stand.
+     */
+    private class Peer(
+        val gatt: BluetoothGatt,
+        val inbox: BluetoothGattCharacteristic
+    )
+
     /** Alle offenen Verbindungen, nach Geraeteadresse. */
-    private val clients = mutableMapOf<String, BluetoothGatt>()
+    private val clients = mutableMapOf<String, Peer>()
 
     /** Noch abzuarbeitende Verbindungswuensche. */
     private val queue = ArrayDeque<Pair<BluetoothDevice, UserProfile>>()
@@ -135,11 +157,76 @@ class PartnerLink(
     /** Wen wir schon gemeldet haben - Rueckrufe koennen sich wiederholen. */
     private val confirmed = mutableSetOf<String>()
 
+    /**
+     * Ob **wir** die Verbindung aufgebaut haben.
+     *
+     * Entscheidet, wer die Sitzung fuehrt. Frueher rechnete der Bildschirm das
+     * aus einem Vergleich der Kennungen aus - dann fuehrte immer dasselbe
+     * Geraet, auch wenn das andere angerufen hatte. Wer anruft, fuehrt: das
+     * ist die Regel, die man erwartet, wenn man selbst auf den Namen tippt.
+     */
+    private var weCalled = false
+
+    /** Wer angerufen hat - erst nach [onPartner] aussagekraeftig. */
+    fun didWeCall(): Boolean = weCalled
+
+    /**
+     * Ob fuer diese Verbindung schon einmal der Katalog verworfen wurde.
+     *
+     * Nur ein Versuch: findet sich die Characteristic auch nach einer frischen
+     * Suche nicht, hat die Gegenseite den Dienst wirklich nicht, und ein
+     * zweiter Anlauf wuerde sich nur im Kreis drehen.
+     */
+    private var cacheDropped = false
+
+    /** Ob gerade jemand an unserem Server haengt. */
+    fun hasPeers(): Boolean = peers.isNotEmpty()
+
     /** Worauf gerade gewartet wird, waehrend das System koppelt. */
     private var pending: Pair<BluetoothDevice, UserProfile>? = null
 
     /** Ob [adapterReceiver] angemeldet ist - zweimal waere ein Fehler. */
     private var watchingAdapter = false
+
+    /** Zaehlt die Frist ab, die der Kopplung eingeraeumt wird. */
+    private val bondTimer = Handler(Looper.getMainLooper())
+
+    /**
+     * Wartet darauf, dass die Paketgroesse ausgehandelt wird.
+     *
+     * Androids Stack beantwortet `requestMtu()` nicht immer. Kam keine
+     * Antwort, stand die Kette still: `discoverServices()` folgt erst auf
+     * `onMtuChanged`, und ohne das geschah gar nichts mehr - die Verbindung
+     * war offen, aber nichts passierte. Diese Frist geht danach trotzdem
+     * weiter, mit der voreingestellten Paketgroesse.
+     */
+    private val mtuTimer = Handler(Looper.getMainLooper())
+
+    /** Die Verbindung, auf deren Paketgroesse gerade gewartet wird. */
+    private var awaitingMtu: BluetoothGatt? = null
+
+    /** Zaehlt die Frist ab, die der Dienstsuche eingeraeumt wird. */
+    private val discoveryTimer = Handler(Looper.getMainLooper())
+
+    /** Die Verbindung, deren Dienste gerade gesucht werden. */
+    private var awaitingDiscovery: BluetoothGatt? = null
+
+    /** Ob die Dienstsuche fuer diese Verbindung schon einmal wiederholt wurde. */
+    private var discoveryRetried = false
+
+    /** Ob gerade eine alte Kopplung geloest wird, bevor neu gekoppelt wird. */
+    private var unbonding = false
+
+    /** Die Characteristic der Verbindung, die gerade fertig wird. */
+    private var pendingInbox: BluetoothGattCharacteristic? = null
+
+    /**
+     * Ob die alte Kopplung in dieser Sitzung schon einmal geloest wurde.
+     *
+     * Nur einmal: sonst loeste jeder Wiederholversuch sie erneut, und die
+     * beiden Geraete kamen aus dem Koppeln gar nicht mehr heraus.
+     */
+    private var bondRefreshed = false
 
     /**
      * Mit wem die Verbindung gerade aufgebaut wird.
@@ -187,10 +274,15 @@ class PartnerLink(
 
             // Aufraeumen, solange der Stack noch antwortet.
             val had = clients.isNotEmpty() || peers.isNotEmpty()
-            clients.values.forEach { closeQuietly(it) }
+            clients.values.forEach { closeQuietly(it.gatt) }
             clients.clear()
             peers.clear()
             confirmed.clear()
+            weCalled = false
+            cacheDropped = false
+            unbonding = false
+            bondRefreshed = false
+            pendingInbox = null
             connecting = null
 
             if (had) onLost()
@@ -201,19 +293,46 @@ class PartnerLink(
         override fun onReceive(context: Context?, intent: Intent?) {
             val waiting = pending ?: return
             val device = intentDevice(intent) ?: return
-            if (device.address != waiting.first.address) return
+
+            // Die Adresse aus dieser Meldung ist die **echte** des Geraets,
+            // waehrend wir mit der zufaelligen aus der Werbung angefragt
+            // haben. Beide sind verschieden, und ein strenger Vergleich hat
+            // die geglueckte Kopplung deshalb verworfen: die App wartete
+            // danach noch die vollen zwoelf Sekunden Frist ab, obwohl laengst
+            // alles bestaetigt war. Bei einer Kopplung, die wir selbst
+            // angestossen haben, zaehlt daher die Meldung selbst - und zwar
+            // mit ihrer Adresse, denn die bleibt stabil.
+            val same = device.address == waiting.first.address
 
             when (intent?.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1)) {
                 BluetoothDevice.BOND_BONDED -> {
+                    bondTimer.removeCallbacks(giveUpOnBond)
                     pending = null
-                    openConnection(waiting.first, waiting.second)
+                    openConnection(if (same) waiting.first else device, waiting.second)
                 }
                 BluetoothDevice.BOND_NONE -> {
-                    // Abgelehnt, weggetippt oder fehlgeschlagen. Kein
-                    // stiller Abbruch - sonst dreht sich der Kreis weiter.
-                    pending = null
-                    onProblem(R.string.partner_pair_failed)
-                    next()
+                    if (!same) return
+                    if (unbonding) {
+                        // Die alte Kopplung ist geloest - jetzt frisch koppeln.
+                        // Damit baut Android auch den Dienstkatalog neu auf.
+                        unbonding = false
+                        bondTimer.removeCallbacks(giveUpOnBond)
+                        bondTimer.postDelayed(giveUpOnBond, BOND_WAIT_MILLIS)
+                        try {
+                            if (!device.createBond()) giveUpOnBond.run()
+                        } catch (e: SecurityException) {
+                            Log.e(TAG, "Could not pair: ${e.message}")
+                            giveUpOnBond.run()
+                        }
+                        return
+                    }
+
+                    // Abgelehnt, weggetippt oder fehlgeschlagen. Frueher war
+                    // hier Schluss. Jetzt wird trotzdem verbunden: wer die
+                    // Abfrage wegtippt, will meistens trainieren und nicht
+                    // seine Bluetooth-Einstellungen pflegen.
+                    bondTimer.removeCallbacks(giveUpOnBond)
+                    giveUpOnBond.run()
                 }
             }
         }
@@ -255,7 +374,7 @@ class PartnerLink(
                     connecting = null
                     queue.clear()
                     try {
-                        clients.values.forEach { gatt -> gatt.disconnect() }
+                        clients.values.forEach { peer -> peer.gatt.disconnect() }
                     } catch (e: SecurityException) {
                         Log.e(TAG, "Could not drop our own attempt: ${e.message}")
                     }
@@ -346,14 +465,28 @@ class PartnerLink(
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     retried = false
-                    try {
-                        // Die Voreinstellung laesst nur 20 Byte je Nachricht
-                        // zu - ein Standort allein braucht schon 17.
-                        gatt.requestMtu(MTU)
-                    } catch (e: SecurityException) {
-                        Log.e(TAG, "Could not ask for a bigger packet: ${e.message}")
-                        onProblem(R.string.partner_permission_missing)
-                    }
+                    discoveryRetried = false
+
+                    // Nicht sofort suchen.
+                    //
+                    // Ist das Geraet schon gekoppelt, verschluesselt der Stack
+                    // die Strecke unmittelbar nach dem Verbinden. Ein
+                    // `discoverServices()` in genau dieses Fenster hinein wird
+                    // verworfen - ohne Fehler, ohne Rueckruf, ohne irgendetwas.
+                    // Danach steht die Verbindung offen da und es geschieht
+                    // nichts mehr, bis sie nach dreissig Sekunden abbricht.
+                    //
+                    // Das ist der Grund, warum es immer nur beim ersten Mal
+                    // ging: nach einer frischen Kopplung ist die
+                    // Verschluesselung schon ausgehandelt, das Fenster gibt es
+                    // dann gar nicht. Bei jedem spaeteren Versuch schon.
+                    val settle =
+                        if (gatt.device?.bondState == BluetoothDevice.BOND_BONDED) {
+                            ENCRYPTION_SETTLE_MILLIS
+                        } else {
+                            0L
+                        }
+                    discoveryTimer.postDelayed({ lookForServices(gatt) }, settle)
                 }
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
@@ -365,6 +498,8 @@ class PartnerLink(
                     // haengen; waren sie aufgebraucht, endete jeder weitere
                     // Aufbau sofort mit Status 133 - erst der zweite Versuch
                     // eines Abends, dann jeder.
+                    discoveryTimer.removeCallbacksAndMessages(null)
+                    awaitingDiscovery = null
                     closeQuietly(gatt)
 
                     val address = gatt.device?.address
@@ -389,13 +524,28 @@ class PartnerLink(
             }
         }
 
+        /**
+         * Die Gegenseite meldet, dass sich ihre Dienste geaendert haben.
+         *
+         * Dann ist der Zwischenspeicher hin, und es muss neu gesucht werden -
+         * sonst arbeitet man mit einem Katalog weiter, den es so nicht mehr
+         * gibt.
+         */
+        override fun onServiceChanged(gatt: BluetoothGatt) {
+            try {
+                gatt.discoverServices()
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Could not look again after a change: ${e.message}")
+            }
+        }
+
         /** Die Anmeldung steht - ab jetzt gilt die Kopplung. */
         override fun onDescriptorWrite(
             gatt: BluetoothGatt,
             descriptor: BluetoothGattDescriptor,
             status: Int
         ) {
-            settle(gatt)
+            pendingInbox?.let { settle(gatt, it) }
         }
 
         /** Die Gegenseite hat etwas geschickt. */
@@ -416,23 +566,49 @@ class PartnerLink(
             characteristic.value?.let { onMessage(it) }
         }
 
-        /** Die Paketgroesse steht - jetzt duerfen die Dienste gesucht werden. */
+        /**
+         * Die Paketgroesse steht. Mehr passiert hier nicht mehr - gesucht wird
+         * schon beim Verbinden, damit ein ausbleibender Rueckruf den Aufbau
+         * nicht anhaelt.
+         */
         override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-            try {
-                gatt.discoverServices()
-            } catch (e: SecurityException) {
-                Log.e(TAG, "Could not look for services: ${e.message}")
-                onProblem(R.string.partner_permission_missing)
-            }
+            Log.i(TAG, "Packet size is now $mtu")
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            discoveryTimer.removeCallbacksAndMessages(null)
+            awaitingDiscovery = null
+
             val characteristic = gatt
                 .getService(CoLocation.SERVICE_UUID)
                 ?.getCharacteristic(CoLocation.CHARACTERISTIC_UUID)
 
             val payload = CoLocation.payloadFor(ownUserId)
             if (characteristic == null || payload == null) {
+                // Womoeglich ist der Katalog nur veraltet. Android merkt sich
+                // die Dienste eines Geraets und liefert sie beim naechsten Mal
+                // aus dem Zwischenspeicher - eine "Suche", die sieben
+                // Millisekunden dauert, hat gar nicht gesucht. Aendert sich
+                // der Dienst danach, sieht die Gegenseite auf ewig den alten
+                // Stand: bei uns fand ein Geraet die Characteristic nie, das
+                // andere sofort.
+                //
+                // refresh() wirft den Zwischenspeicher weg. Die Methode ist
+                // nicht Teil der oeffentlichen Schnittstelle, deshalb ueber
+                // Reflexion und mit Rueckfall - klappt sie nicht, bleibt es
+                // beim bisherigen Verhalten.
+                if (!cacheDropped && payload != null && dropCache(gatt)) {
+                    cacheDropped = true
+                    Log.w(TAG, "Service unknown, dropped the cache and looking again")
+                    try {
+                        gatt.discoverServices()
+                    } catch (e: SecurityException) {
+                        Log.e(TAG, "Could not look again: ${e.message}")
+                        giveUp(gatt)
+                    }
+                    return
+                }
+
                 // Die Gegenseite hat den Dienst nicht - eine aeltere Fassung
                 // der App, oder ein fremdes Geraet mit derselben Kennung.
                 giveUp(gatt)
@@ -456,11 +632,16 @@ class PartnerLink(
             // sonst kann die Gegenseite uns nie etwas sagen. Das ist ein
             // eigener Vorgang und muss abgewartet werden - der Stack
             // bearbeitet immer nur einen.
+            // Ab hier steht die Verbindung. Die Characteristic wandert mit
+            // in die Liste - spaeter ist sie ueber den Katalog nicht mehr
+            // verlaesslich zu finden.
+            pendingInbox = characteristic
+
             if (subscribe(gatt, characteristic)) return
 
             // Der Deskriptor liess sich nicht schreiben. Dann eben einseitig:
             // eine halbe Verbindung ist besser als gar keine.
-            settle(gatt)
+            settle(gatt, characteristic)
         }
     }
 
@@ -483,13 +664,24 @@ class PartnerLink(
             watchingAdapter = true
         }
 
+        // Ab hier hoert der geteilte Server auf uns.
+        GattServerHost.delegate = serverCallback
+
+        // Steht er schon, wird er weiterbenutzt - siehe GattServerHost.
+        GattServerHost.server?.let {
+            server = it
+            inbox = GattServerHost.inbox
+            return
+        }
+
         try {
-            val opened = manager?.openGattServer(context, serverCallback)
+            val opened = manager?.openGattServer(context.applicationContext, GattServerHost.callback)
             if (opened == null) {
                 onProblem(R.string.partner_link_failed)
                 return
             }
             server = opened
+            GattServerHost.server = opened
 
             // Schreiben **und** benachrichtigen: ohne Notify koennte nur
             // der Anrufende etwas sagen. Wer angerufen wurde, haette seine
@@ -512,6 +704,7 @@ class PartnerLink(
                 )
             }
             this.inbox = inbox
+            GattServerHost.inbox = inbox
             val service = BluetoothGattService(
                 CoLocation.SERVICE_UUID,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY
@@ -559,12 +752,52 @@ class PartnerLink(
         beginWith(device, member)
     }
 
+    /**
+     * Beginnt mit der Kopplung - aber sie darf den Aufbau nicht aufhalten.
+     *
+     * Gekoppelt wird weiterhin: das ist das Merkmal, um das es geht, und die
+     * Verbindung steht danach in den Bluetooth-Einstellungen beider Geraete.
+     * Nur **warten** darf die App nicht mehr darauf. Bluetooth Low Energy
+     * wirbt mit wechselnden Zufallsadressen; bei jedem Suchlauf sieht die App
+     * eine andere Adresse desselben Geraets, und `bondState` steht darauf auf
+     * BOND_NONE - auch wenn die beiden laengst gekoppelt sind. Mal loest der
+     * Stack die Adresse zur bekannten Identitaet auf, mal nicht. Im zweiten
+     * Fall verlangte die App eine neue Kopplung, die binnen Sekunden auf
+     * **beiden** Geraeten bestaetigt sein wollte; wer das verpasste, sah nur
+     * "could not connect". Das war die Ursache dafuer, dass das gemeinsame
+     * Training mal ging und mal nicht.
+     *
+     * Jetzt laeuft eine Frist mit: wird binnen [BOND_WAIT_MILLIS] bestaetigt,
+     * geht es wie bisher mit einer richtig gekoppelten Strecke weiter.
+     * Bestaetigt niemand, wird trotzdem verbunden - die Characteristic ist
+     * unverschluesselt, und der Nachweis der Naehe haengt am Funkkontakt und
+     * am Austausch der Kennungen, nicht am Eintrag in den Einstellungen.
+     */
     private fun beginWith(device: BluetoothDevice, member: UserProfile) {
         try {
-            // Schon gekoppelt - etwa vom letzten gemeinsamen Training. Dann
-            // entfaellt der Dialog und es geht direkt weiter.
+            // Eine bestehende Kopplung wird geloest, bevor verbunden wird.
+            //
+            // Das ist der Kern der ganzen Sache, und es ist am Geraet belegt:
+            // ist die Gegenseite gekoppelt, steht die Verbindung binnen einer
+            // Sekunde - und `discoverServices()` liefert zwar true, ruft aber
+            // nie zurueck. Zweimal sechs Sekunden gewartet, nichts. Ohne
+            // Kopplung antwortet dieselbe Suche sofort.
+            //
+            // Ein frueherer Anlauf scheiterte daran, dass danach die alte
+            // Adresse weiterverwendet wurde: die aus der Werbung ist zufaellig
+            // und nur solange aufloesbar, wie die Kopplung besteht - jeder
+            // Aufbau endete mit Status 133. Deshalb wird hier nicht sofort
+            // weitergemacht, sondern neu gesucht; der naechste Anlauf nimmt
+            // die frische Adresse und koppelt dann sauber neu, mit Abfrage auf
+            // beiden Geraeten.
             if (device.bondState == BluetoothDevice.BOND_BONDED) {
-                openConnection(device, member)
+                connecting = null
+                if (!bondRefreshed) {
+                    bondRefreshed = true
+                    dropBond(device)
+                    onProblem(R.string.partner_pairing)
+                }
+                onNeedsFreshAddress()
                 return
             }
 
@@ -575,15 +808,33 @@ class PartnerLink(
             )
             onProblem(R.string.partner_pairing)
 
+            // Ohne diese Frist wartete die App unbegrenzt auf einen Dialog,
+            // den vielleicht niemand sieht.
+            bondTimer.postDelayed(giveUpOnBond, BOND_WAIT_MILLIS)
+
             if (!device.createBond()) {
-                pending = null
-                onProblem(R.string.partner_pair_failed)
-                next()
+                // Manche Geraete lehnen das rundheraus ab. Dann eben ohne.
+                Log.w(TAG, "createBond refused, connecting without a bond")
+                giveUpOnBond.run()
             }
         } catch (e: SecurityException) {
             Log.e(TAG, "Could not pair: ${e.message}")
             onProblem(R.string.partner_permission_missing)
         }
+    }
+
+    /**
+     * Die Frist ist um: verbinden, auch ohne Kopplung.
+     *
+     * Der Empfaenger bleibt angemeldet - bestaetigt jemand die Abfrage spaeter
+     * doch noch, sind die Geraete beim naechsten Mal gekoppelt und der Dialog
+     * bleibt aus.
+     */
+    private val giveUpOnBond = Runnable {
+        val waitingFor = pending ?: return@Runnable
+        pending = null
+        Log.w(TAG, "Nobody confirmed the pairing, connecting anyway")
+        openConnection(waitingFor.first, waitingFor.second)
     }
 
     /**
@@ -634,9 +885,23 @@ class PartnerLink(
     }
 
     /** Die Kopplung gilt: eintragen, melden, den naechsten aus der Schlange. */
-    private fun settle(gatt: BluetoothGatt) {
+    private fun settle(gatt: BluetoothGatt, inbox: BluetoothGattCharacteristic) {
+        weCalled = true
+
+        // Bewusst **keine** MTU-Anfrage mehr.
+        //
+        // Androids Stack beantwortet sie auf diesen Geraeten nicht, und ein
+        // unbeantworteter Vorgang blockiert die Warteschlange: jeder Schreib-
+        // versuch danach lief ins Leere. Die Sportart kam beim anderen nie an,
+        // obwohl die Verbindung stand und send() aufgerufen wurde.
+        //
+        // Mit der Voreinstellung passen 20 Byte in eine Nachricht. Das reicht
+        // fuer Sportart, Start und Stopp und fuer eine Runde zu zweit; erst
+        // eine groessere Gruppe waere knapp - und eine Verbindung, die
+        // funktioniert, ist mehr wert als eine, die groessere Pakete koennte.
+
         connecting?.let { (device, member) ->
-            clients[device.address] = gatt
+            clients[device.address] = Peer(gatt, inbox)
             connecting = null
             confirm(member)
         }
@@ -654,11 +919,110 @@ class PartnerLink(
      * reagiere das Antippen nicht mehr.
      */
     private fun giveUp(gatt: BluetoothGatt) {
+        mtuTimer.removeCallbacks(mtuGaveUp)
+        awaitingMtu = null
+        discoveryTimer.removeCallbacksAndMessages(null)
+        awaitingDiscovery = null
         closeQuietly(gatt)
         onProblem(R.string.partner_link_failed)
         connecting = null
         retried = false
         next()
+    }
+
+    /**
+     * Sucht die Dienste der Gegenseite - und gibt nicht stillschweigend auf.
+     *
+     * `discoverServices()` liefert false, wenn der Stack gerade beschaeftigt
+     * ist, und manchmal true, ohne dass je ein Rueckruf kommt. Beides sah
+     * bisher gleich aus: nichts. Darum eine Frist, und danach ein zweiter
+     * Anlauf, bevor die Verbindung sauber beendet wird.
+     */
+    private fun lookForServices(gatt: BluetoothGatt) {
+        awaitingDiscovery = gatt
+        val started = try {
+            gatt.discoverServices()
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Could not look for services: ${e.message}")
+            onProblem(R.string.partner_permission_missing)
+            return
+        }
+        if (!started) Log.w(TAG, "The stack refused the service lookup")
+        discoveryTimer.removeCallbacks(discoveryGaveUp)
+        discoveryTimer.postDelayed(discoveryGaveUp, DISCOVERY_WAIT_MILLIS)
+    }
+
+    /**
+     * Auf die Dienstsuche kam keine Antwort.
+     *
+     * Ein zweiter Anlauf - inzwischen ist die Strecke verschluesselt und der
+     * Stack wieder frei. Hilft auch der nicht, wird abgebrochen statt dreissig
+     * Sekunden lang auf einen Rueckruf zu warten, der nicht kommt.
+     */
+    private val discoveryGaveUp = Runnable {
+        val gatt = awaitingDiscovery ?: return@Runnable
+        if (!discoveryRetried) {
+            discoveryRetried = true
+            Log.w(TAG, "No answer to the service lookup, asking once more")
+            lookForServices(gatt)
+            return@Runnable
+        }
+        Log.w(TAG, "The services stayed silent, dropping this connection")
+        awaitingDiscovery = null
+        giveUp(gatt)
+    }
+
+    /**
+     * Die Antwort auf die MTU-Anfrage bleibt aus - trotzdem weitermachen.
+     *
+     * Mit der voreingestellten Paketgroesse passen zwanzig Byte in eine
+     * Nachricht. Das reicht fuer Sportart, Start und Stopp und fuer eine
+     * Runde zu zweit; erst eine groessere Gruppe braucht mehr. Eine
+     * Verbindung, die etwas kann, ist besser als eine, die dasteht.
+     */
+    private val mtuGaveUp = Runnable {
+        val gatt = awaitingMtu ?: return@Runnable
+        awaitingMtu = null
+        Log.w(TAG, "No answer to the MTU request, looking for services anyway")
+        try {
+            gatt.discoverServices()
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Could not look for services: ${e.message}")
+            onProblem(R.string.partner_permission_missing)
+        }
+    }
+
+    /**
+     * Loest eine bestehende Kopplung.
+     *
+     * `removeBond()` gehoert nicht zur oeffentlichen Schnittstelle - es gibt
+     * dafuer keinen Ersatz. Klappt es nicht, wird false zurueckgegeben und
+     * ganz normal mit der bestehenden Kopplung verbunden.
+     */
+    private fun dropBond(device: BluetoothDevice): Boolean = try {
+        val remove = device.javaClass.getMethod("removeBond")
+        (remove.invoke(device) as? Boolean ?: false).also {
+            if (it) Log.i(TAG, "Dropped the old bond so the services are read again")
+        }
+    } catch (e: Exception) {
+        Log.w(TAG, "Could not drop the bond: ${e.message}")
+        false
+    }
+
+    /**
+     * Wirft den zwischengespeicherten Dienstkatalog eines Geraets weg.
+     *
+     * `BluetoothGatt.refresh()` gehoert nicht zur oeffentlichen Schnittstelle;
+     * es gibt dafuer auch keinen Ersatz. Klappt der Aufruf nicht - etwa weil
+     * eine neuere Android-Fassung ihn versperrt -, wird false zurueckgegeben
+     * und der Aufrufer macht ohne weiter.
+     */
+    private fun dropCache(gatt: BluetoothGatt): Boolean = try {
+        val refresh = gatt.javaClass.getMethod("refresh")
+        refresh.invoke(gatt) as? Boolean ?: false
+    } catch (e: Exception) {
+        Log.w(TAG, "Could not drop the service cache: ${e.message}")
+        false
     }
 
     /**
@@ -682,7 +1046,7 @@ class PartnerLink(
     ) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                gatt.writeCharacteristic(
+                val r = gatt.writeCharacteristic(
                     characteristic,
                     payload,
                     BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
@@ -691,7 +1055,7 @@ class PartnerLink(
                 @Suppress("DEPRECATION")
                 characteristic.value = payload
                 @Suppress("DEPRECATION")
-                gatt.writeCharacteristic(characteristic)
+                val ok = gatt.writeCharacteristic(characteristic)
             }
         } catch (e: SecurityException) {
             Log.e(TAG, "Could not write: ${e.message}")
@@ -707,13 +1071,8 @@ class PartnerLink(
      * holt der andere ihn ab.
      */
     fun send(message: ByteArray) {
-        // Als Anrufender: schreiben.
-        clients.values.forEach { gatt ->
-            val characteristic = gatt
-                .getService(CoLocation.SERVICE_UUID)
-                ?.getCharacteristic(CoLocation.CHARACTERISTIC_UUID)
-            if (characteristic != null) write(gatt, characteristic, message)
-        }
+        // Als Anrufender: schreiben - an die beim Verbinden gemerkte Stelle.
+        clients.values.forEach { peer -> write(peer.gatt, peer.inbox, message) }
 
         // Als Angerufener: benachrichtigen. Frueher fehlte das, und wer
         // angerufen worden war, konnte nichts zurueckschicken - sein "Stopp"
@@ -756,6 +1115,11 @@ class PartnerLink(
      * zieht auf beiden Geraeten Akku - auch wenn niemand mehr hinsieht.
      */
     fun close(client: Boolean = true, server: Boolean = true) {
+        bondTimer.removeCallbacks(giveUpOnBond)
+        mtuTimer.removeCallbacks(mtuGaveUp)
+        awaitingMtu = null
+        discoveryTimer.removeCallbacksAndMessages(null)
+        awaitingDiscovery = null
         if (server && watchingAdapter) {
             runCatching { context.unregisterReceiver(adapterReceiver) }
             watchingAdapter = false
@@ -770,19 +1134,46 @@ class PartnerLink(
         try {
             if (client) {
                 clients.values.forEach {
-                    it.disconnect()
-                    it.close()
+                    it.gatt.disconnect()
+                    it.gatt.close()
                 }
                 clients.clear()
                 queue.clear()
                 connecting = null
             }
             if (server) {
-                this.server?.close()
+                // Die Strecken werden gekappt, der Server bleibt stehen.
+                //
+                // `close()` allein gibt nur das Server-Objekt frei - die
+                // Funkverbindung zur Gegenseite bleibt bestehen. Beim naechsten
+                // gemeinsamen Training traf `connectGatt` dann auf ein Geraet,
+                // zu dem die Strecke noch stand, und der Aufbau lief ins Leere.
+                // Dafuer gibt es cancelConnection.
+                val open = this.server
+                if (open != null) {
+                    peers.toList().forEach { address ->
+                        manager?.adapter?.getRemoteDevice(address)?.let { device ->
+                            open.cancelConnection(device)
+                        }
+                    }
+                }
+
+                // Und hier wird **nicht** geschlossen. Warum, steht bei
+                // GattServerHost: geschlossen und neu geoeffnet wandern die
+                // Attributnummern, und die Gegenseite schreibt aus ihrem
+                // Zwischenspeicher an die alte Nummer ins Leere.
+                GattServerHost.delegate = null
                 this.server = null
                 this.inbox = null
                 listeners.clear()
             }
+
+            // Ohne dieses Aufraeumen haelt eine neue Sitzung die alten
+            // Bekanntschaften fuer erledigt: `confirmed` sperrt jede zweite
+            // Meldung desselben Partners, und der Trainingsbildschirm ginge
+            // nie auf.
+            peers.clear()
+            confirmed.clear()
         } catch (e: SecurityException) {
             Log.e(TAG, "Could not close cleanly: ${e.message}")
         }
@@ -791,7 +1182,112 @@ class PartnerLink(
     private companion object {
         const val TAG = "PartnerLink"
 
+        /**
+         * Wie lange auf die Bestaetigung der Kopplung gewartet wird.
+         *
+         * Lang genug, dass zwei Leute, die nebeneinander stehen, beide OK
+         * tippen koennen - und kurz genug, dass es nicht nach einem Fehler
+         * aussieht, wenn niemand hinschaut.
+         */
+        const val BOND_WAIT_MILLIS = 12_000L
+
+        /**
+         * Wie lange auf die ausgehandelte Paketgroesse gewartet wird.
+         *
+         * Kommt die Antwort, dauert es Millisekunden. Kommt sie nicht, soll
+         * niemand vor einem Bildschirm sitzen, auf dem sich nichts regt.
+         */
+        const val MTU_WAIT_MILLIS = 3000L
+
+        /**
+         * Wie lange nach dem Verbinden gewartet wird, bevor gesucht wird.
+         *
+         * Nur bei einem bereits gekoppelten Geraet: so lange braucht der
+         * Stack, um die Strecke zu verschluesseln. Wer frueher fragt, bekommt
+         * keine Antwort - und merkt es nicht einmal.
+         */
+        const val ENCRYPTION_SETTLE_MILLIS = 900L
+
+        /**
+         * Wie lange auf das Ergebnis der Dienstsuche gewartet wird.
+         *
+         * Gelingt sie, dauert sie ein bis zwei Sekunden; kommt sie aus dem
+         * Zwischenspeicher, Millisekunden. Wer danach noch nichts gehoert hat,
+         * wird auch nichts mehr hoeren.
+         */
+        const val DISCOVERY_WAIT_MILLIS = 6000L
+
         /** Reicht fuer jede Nachricht aus [TrainingProtocol]. */
         const val MTU = 128
+    }
+}
+
+/**
+ * Haelt den GATT-Server ueber die einzelne Sitzung hinaus.
+ *
+ * Ein GATT-Dienst ist nach aussen nicht die UUID, sondern eine Nummer: der
+ * Stack vergibt beim Anlegen fortlaufende Attributnummern, und die Gegenseite
+ * merkt sich, unter welcher Nummer unsere Characteristic zu erreichen war.
+ * Diesen Zwischenspeicher raeumt Android nur beim Koppeln - `refresh()` half
+ * nachweislich nicht, die zweite Suche kam nach elf Millisekunden unveraendert
+ * zurueck.
+ *
+ * Wurde der Server also beim Verlassen des Bildschirms geschlossen und beim
+ * naechsten Mal neu geoeffnet, konnten die Nummern andere sein. Das Ergebnis
+ * war die Fehlerbeschreibung, die sich durch die ganze Fehlersuche zog: die
+ * Verbindung stand, `writeCharacteristic` meldete Erfolg - und beim anderen
+ * kam nie etwas an. Nur nach einer frischen Kopplung ging es, weil die den
+ * Zwischenspeicher neu aufbaut.
+ *
+ * Darum wird er einmal geoeffnet und bleibt offen. Die Verbindungen werden
+ * beim Beenden sehr wohl gekappt; stehen bleibt nur der Dienst, und der
+ * kostet nichts, solange niemand verbunden ist. Der Rueckruf reicht an die
+ * gerade offene [PartnerLink] weiter - oder an niemanden, wenn keine offen
+ * ist.
+ */
+private object GattServerHost {
+
+    /** Der eine Server, einmal geoeffnet. */
+    var server: BluetoothGattServer? = null
+
+    /** Seine Characteristic - ebenso einmalig wie ihre Nummer. */
+    var inbox: BluetoothGattCharacteristic? = null
+
+    /** Die Sitzung, die gerade zuhoert. Ausserhalb eines Trainings: keine. */
+    var delegate: BluetoothGattServerCallback? = null
+
+    val callback = object : BluetoothGattServerCallback() {
+
+        override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
+            delegate?.onConnectionStateChange(device, status, newState)
+        }
+
+        override fun onDescriptorWriteRequest(
+            device: BluetoothDevice?,
+            requestId: Int,
+            descriptor: BluetoothGattDescriptor?,
+            preparedWrite: Boolean,
+            responseNeeded: Boolean,
+            offset: Int,
+            value: ByteArray?
+        ) {
+            delegate?.onDescriptorWriteRequest(
+                device, requestId, descriptor, preparedWrite, responseNeeded, offset, value
+            )
+        }
+
+        override fun onCharacteristicWriteRequest(
+            device: BluetoothDevice?,
+            requestId: Int,
+            characteristic: BluetoothGattCharacteristic?,
+            preparedWrite: Boolean,
+            responseNeeded: Boolean,
+            offset: Int,
+            value: ByteArray?
+        ) {
+            delegate?.onCharacteristicWriteRequest(
+                device, requestId, characteristic, preparedWrite, responseNeeded, offset, value
+            )
+        }
     }
 }

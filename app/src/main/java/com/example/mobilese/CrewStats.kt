@@ -29,7 +29,15 @@ object CrewStats {
      * Der Wert heisst nicht "minutes", weil dieselbe Reihe zweimal gebraucht
      * wird: einmal fuer Trainingsminuten, einmal fuer Schritte.
      */
-    data class DayBar(val day: LocalDate, val amount: Int)
+    /**
+     * Ein Tag der Wochenuebersicht.
+     *
+     * [isToday] steht hier und wird nicht in der Ansicht ausgerechnet: die
+     * Reihe weiss, auf welchen Tag sie sich bezieht, die Ansicht nicht - sie
+     * bekaeme sonst ein zweites "heute", das an einem Datumswechsel um
+     * Mitternacht vom ersten abweichen kann.
+     */
+    data class DayBar(val day: LocalDate, val amount: Int, val isToday: Boolean = false)
 
     /** Ein Stueck der Sportarten-Verteilung. */
     data class SportShare(val sport: String, val minutes: Int)
@@ -83,25 +91,39 @@ object CrewStats {
     )
 
     /**
-     * Die Minuten der Crew an den letzten sieben Tagen, aeltester zuerst.
+     * Die Minuten der Crew in der laufenden Woche, Montag bis Sonntag.
+     *
+     * Nicht die letzten sieben Tage: die begannen an einem beliebigen
+     * Wochentag, und eine Reihe, die mit Freitag anfaengt, liest sich wie ein
+     * Zufall. Eine Woche beginnt am Montag - dann steht jeder Balken immer an
+     * derselben Stelle, und man vergleicht Montag mit Montag.
      *
      * Tage ohne Training kommen mit null Minuten vor und fallen nicht weg -
      * sonst haette die Woche eine unterschiedliche Zahl Balken und man saehe
-     * die Luecken nicht, um die es gerade geht.
+     * die Luecken nicht, um die es gerade geht. Die Tage nach heute stehen
+     * ebenfalls da, leer: die Woche ist noch nicht vorbei.
      */
     fun lastWeek(snapshot: CrewSnapshot, today: LocalDate = LocalDate.now()): List<DayBar> {
         val minutesByDay = snapshot.activities
             .groupBy { ActivityTime.dayOf(it.timestamp) }
             .mapValues { (_, list) -> list.sumOf { it.duration } }
 
-        return (WEEK_DAYS - 1 downTo 0).map { back ->
-            val day = today.minusDays(back.toLong())
-            DayBar(day, minutesByDay[day.toString()] ?: 0)
+        val monday = mondayOf(today)
+        return (0 until WEEK_DAYS).map { offset ->
+            val day = monday.plusDays(offset.toLong())
+            DayBar(day, minutesByDay[day.toString()] ?: 0, isToday = day == today)
         }
     }
 
     /**
-     * Die Schritte der ganzen Crew an den letzten sieben Tagen.
+     * Der Montag der Woche, in der [day] liegt - er selbst, wenn er ein
+     * Montag ist.
+     */
+    fun mondayOf(day: LocalDate): LocalDate =
+        day.minusDays(((day.dayOfWeek.value + 6) % 7).toLong())
+
+    /**
+     * Die Schritte der ganzen Crew in der laufenden Woche, Montag bis Sonntag.
      *
      * Bisher waren Schritte nur als heutiger Stand zu sehen - ein Wert, der
      * morgen wieder bei null anfaengt. Als Reihe zeigen sie, ob die Crew
@@ -115,9 +137,10 @@ object CrewStats {
             .groupBy { it.day }
             .mapValues { (_, list) -> list.sumOf { it.steps } }
 
-        return (WEEK_DAYS - 1 downTo 0).map { back ->
-            val day = today.minusDays(back.toLong())
-            DayBar(day, stepsByDay[day.toString()] ?: 0)
+        val monday = mondayOf(today)
+        return (0 until WEEK_DAYS).map { offset ->
+            val day = monday.plusDays(offset.toLong())
+            DayBar(day, stepsByDay[day.toString()] ?: 0, isToday = day == today)
         }
     }
 

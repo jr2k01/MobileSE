@@ -531,6 +531,18 @@
     -->
     <string name="partner_linking">Connecting with %s…</string>
     <string name="partner_linking_wait">Waiting for %s. Keep the phones close.</string>
+    <!--
+        Der eigene Bildschirm waehrend des Verbindens. Vorher stand nur eine
+        Zeile ueber der Namensliste, und man wusste nicht, ob ueberhaupt etwas
+        geschieht.
+    -->
+    <string name="linking_title">Connecting with %s</string>
+    <string name="linking_hint">Keep the two phones close together. This screen closes by itself once they are connected.</string>
+    <string name="linking_step_search">Looking for the other phone…</string>
+    <string name="linking_step_pairing">Confirm the pairing on both phones</string>
+    <string name="linking_step_link">Setting up the connection…</string>
+    <string name="linking_step_wait">Waiting for the other phone to pick you too…</string>
+    <string name="linking_step_failed">Could not connect. Go back and try again.</string>
     <string name="partner_skip">Train on my own instead</string>
     <string name="partner_chosen">Training with %s — double points</string>
     <string name="partner_banner">Double points: training with %s</string>

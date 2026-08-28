@@ -1,6 +1,7 @@
 package com.example.mobilese
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.LocalDate
@@ -43,12 +44,43 @@ class CrewStatsTest {
     // === Woche ===
 
     @Test
-    fun `the week always has seven days, ending today`() {
-        val week = CrewStats.lastWeek(TestData.snapshot(), LocalDate.of(2026, 8, 17))
+    fun `the week runs from Monday to Sunday, whatever day it is`() {
+        // Mittwoch. Die Woche beginnt trotzdem am Montag und endet am Sonntag -
+        // auch die Tage, die noch kommen, stehen schon da.
+        val week = CrewStats.lastWeek(TestData.snapshot(), LocalDate.of(2026, 8, 19))
 
         assertEquals(7, week.size)
-        assertEquals(LocalDate.of(2026, 8, 11), week.first().day)
-        assertEquals(LocalDate.of(2026, 8, 17), week.last().day)
+        assertEquals(LocalDate.of(2026, 8, 17), week.first().day)
+        assertEquals(LocalDate.of(2026, 8, 23), week.last().day)
+    }
+
+    /** Am Montag selbst beginnt die Woche mit ihm, nicht mit der Woche davor. */
+    @Test
+    fun `on a Monday the week starts that same day`() {
+        val week = CrewStats.lastWeek(TestData.snapshot(), LocalDate.of(2026, 8, 17))
+
+        assertEquals(LocalDate.of(2026, 8, 17), week.first().day)
+        assertEquals(LocalDate.of(2026, 8, 23), week.last().day)
+    }
+
+    /** Und am Sonntag endet sie mit ihm. */
+    @Test
+    fun `on a Sunday the week ends that same day`() {
+        val week = CrewStats.lastWeek(TestData.snapshot(), LocalDate.of(2026, 8, 23))
+
+        assertEquals(LocalDate.of(2026, 8, 17), week.first().day)
+        assertEquals(LocalDate.of(2026, 8, 23), week.last().day)
+    }
+
+    /** Genau ein Balken ist der heutige - er wird hervorgehoben. */
+    @Test
+    fun `exactly one day is marked as today`() {
+        val week = CrewStats.lastWeek(TestData.snapshot(), LocalDate.of(2026, 8, 19))
+
+        assertEquals(1, week.count { it.isToday })
+        assertEquals(LocalDate.of(2026, 8, 19), week.first { it.isToday }.day)
+        // Mittwoch ist der dritte Balken.
+        assertTrue(week[2].isToday)
     }
 
     /** Ein Tag ohne Training faellt nicht weg, sondern steht mit null da. */
@@ -56,27 +88,46 @@ class CrewStatsTest {
     fun `days without training stay in the week with zero minutes`() {
         val snapshot = TestData.snapshot(
             activities = listOf(
-                TestData.activity("u1", duration = 40, timestamp = "2026-08-17T09:00:00")
+                TestData.activity("u1", duration = 40, timestamp = "2026-08-19T09:00:00")
             )
         )
 
-        val week = CrewStats.lastWeek(snapshot, LocalDate.of(2026, 8, 17))
+        val week = CrewStats.lastWeek(snapshot, LocalDate.of(2026, 8, 19))
         assertEquals(7, week.size)
-        assertEquals(40, week.last().amount)
-        assertEquals(0, week[0].amount)
+        // Mittwoch traegt, Montag und Sonntag stehen leer da.
+        assertEquals(40, week[2].amount)
+        assertEquals(0, week.first().amount)
+        assertEquals(0, week.last().amount)
     }
 
     @Test
     fun `minutes of one day are added up across members`() {
         val snapshot = TestData.snapshot(
             activities = listOf(
-                TestData.activity("u1", duration = 30, timestamp = "2026-08-16T07:00:00"),
-                TestData.activity("u2", duration = 20, timestamp = "2026-08-16T19:00:00")
+                TestData.activity("u1", duration = 30, timestamp = "2026-08-18T07:00:00"),
+                TestData.activity("u2", duration = 20, timestamp = "2026-08-18T19:00:00")
             )
         )
 
-        val week = CrewStats.lastWeek(snapshot, LocalDate.of(2026, 8, 17))
-        assertEquals(50, week[5].amount)
+        val week = CrewStats.lastWeek(snapshot, LocalDate.of(2026, 8, 19))
+        // Der 18. ist der Dienstag, also der zweite Balken.
+        assertEquals(50, week[1].amount)
+    }
+
+    /**
+     * Der Sonntag davor gehoert zur vorigen Woche. Frueher - als die Reihe die
+     * letzten sieben Tage zeigte - waere er noch dabei gewesen.
+     */
+    @Test
+    fun `the day before Monday belongs to the previous week`() {
+        val snapshot = TestData.snapshot(
+            activities = listOf(
+                TestData.activity("u1", duration = 60, timestamp = "2026-08-16T09:00:00")
+            )
+        )
+
+        val week = CrewStats.lastWeek(snapshot, LocalDate.of(2026, 8, 19))
+        assertEquals(0, week.sumOf { it.amount })
     }
 
     @Test
@@ -200,16 +251,16 @@ class CrewStatsTest {
     fun `steps of one day are added up across members`() {
         val snapshot = TestData.snapshot(
             stepDays = listOf(
-                TestData.stepDay("u1", "2026-08-16", 8_000),
-                TestData.stepDay("u2", "2026-08-16", 3_500),
-                TestData.stepDay("u1", "2026-08-17", 1_000)
+                TestData.stepDay("u1", "2026-08-18", 8_000),
+                TestData.stepDay("u2", "2026-08-18", 3_500),
+                TestData.stepDay("u1", "2026-08-19", 1_000)
             )
         )
 
-        val week = CrewStats.lastWeekSteps(snapshot, LocalDate.of(2026, 8, 17))
+        val week = CrewStats.lastWeekSteps(snapshot, LocalDate.of(2026, 8, 19))
         assertEquals(7, week.size)
-        assertEquals(11_500, week[5].amount)
-        assertEquals(1_000, week.last().amount)
+        assertEquals(11_500, week[1].amount)
+        assertEquals(1_000, week[2].amount)
     }
 
     /** Ohne Schrittdaten steht die Reihe leer da, statt zu fehlen. */

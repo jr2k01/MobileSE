@@ -1,5 +1,6 @@
 package com.example.mobilese
 
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
@@ -9,6 +10,7 @@ import androidx.core.content.ContextCompat
 import java.text.NumberFormat
 import java.time.format.TextStyle
 import java.util.Locale
+import com.google.android.material.color.MaterialColors
 
 /**
  * Fuellt die Auswertung auf dem Ranglisten-Bildschirm.
@@ -106,8 +108,19 @@ class CrewChartsView(private val root: View) {
             // deutsche Tage teilen sich ohnehin denselben Buchstaben (D fuer
             // Dienstag und Donnerstag, M fuer Montag und Mittwoch) - im
             // Englischen ist es nicht besser, aber wenigstens einheitlich.
-            view.findViewById<TextView>(R.id.tvBarLabel).text =
-                day.day.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.ENGLISH)
+            val label = view.findViewById<TextView>(R.id.tvBarLabel)
+            label.text = day.day.dayOfWeek.getDisplayName(TextStyle.NARROW, Locale.ENGLISH)
+
+            // Heute hervorheben. Sieben gleiche Buchstaben sagen sonst nicht,
+            // wo in der Woche man gerade steht - und genau darum geht es bei
+            // einer Wochenuebersicht.
+            if (day.isToday) {
+                label.setTypeface(label.typeface, Typeface.BOLD)
+                label.setTextColor(
+                    MaterialColors.getColor(label, com.google.android.material.R.attr.colorPrimary)
+                )
+                bar.alpha = 1f
+            }
 
             (view.layoutParams as LinearLayout.LayoutParams).weight = 1f
             container.addView(view)
@@ -276,3 +289,4 @@ class CrewChartsView(private val root: View) {
         const val NOTHING_YET = "–"
     }
 }
+

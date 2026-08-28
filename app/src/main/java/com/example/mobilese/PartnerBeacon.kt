@@ -62,6 +62,9 @@ class PartnerBeacon(
 
     private var running = false
 
+    /** Ob gerade gesucht wird. Kann getrennt von [running] ruhen. */
+    private var scanning = false
+
     private val advertiseCallback = object : AdvertiseCallback() {
         override fun onStartFailure(errorCode: Int) {
             // Kein Abbruch: Empfangen geht weiter, und wenn die Gegenseite
@@ -80,7 +83,16 @@ class PartnerBeacon(
             val member = CoLocation.memberFor(payload, members, ownUserId) ?: return
             // Das Geraet wandert mit: ohne seine Adresse laesst sich spaeter
             // keine Verbindung dorthin aufbauen.
-            if (seen.add(member.id)) onFound(member, result.device)
+            // Jede Sichtung wird gemeldet, nicht nur die erste.
+            //
+            // Eine BLE-Adresse aus der Werbung ist eine Zufallsadresse und
+            // wechselt regelmaessig. Wer sich die erste merkt und spaeter
+            // damit anruft, ruft eine Adresse an, die es nicht mehr gibt -
+            // der Aufbau endet dann sofort mit Status 133. Der Bildschirm
+            // legt die Zeile weiterhin nur einmal an; hier geht es allein
+            // darum, dass die Adresse aktuell bleibt.
+            seen.add(member.id)
+            onFound(member, result.device)
         }
 
         override fun onScanFailed(errorCode: Int) {
@@ -121,6 +133,7 @@ class PartnerBeacon(
         }
 
         running = true
+        scanning = true
         startScanning(adapter)
         startAdvertising(adapter, payload)
     }
@@ -184,6 +197,38 @@ class PartnerBeacon(
     }
 
     /**
+      * Haelt die Suche an, ohne die Werbung abzuschalten.
+      *
+      * Ein Scan im Modus LOW_LATENCY laeuft ununterbrochen - das Funkmodul
+      * horcht praktisch die ganze Zeit. Waehrend daneben eine Verbindung
+      * aufgebaut wird, bleibt fuer deren Funkfenster kaum etwas uebrig, und
+      * die Dienstsuche verhungert: die Verbindung steht, und dann geschieht
+      * dreissig Sekunden lang nichts, bis sie von selbst abreisst. Genau das
+      * war ueber Wochen der Fehler, der mal auftrat und mal nicht.
+      *
+      * Gesucht werden muss ab dem Antippen ohnehin nicht mehr - das Geraet
+      * ist gefunden. Geworben wird weiter: sonst koennte die Gegenseite die
+      * Verbindung gar nicht erst annehmen.
+      */
+     fun pauseScanning() {
+         if (!running || !scanning) return
+         scanning = false
+         try {
+             adapter?.bluetoothLeScanner?.stopScan(scanCallback)
+         } catch (e: SecurityException) {
+             Log.e(TAG, "Could not pause the search: ${e.message}")
+         }
+     }
+
+     /** Sucht wieder - etwa wenn der Aufbau misslungen ist. */
+     fun resumeScanning() {
+         if (!running || scanning) return
+         val adapter = this.adapter ?: return
+         scanning = true
+         startScanning(adapter)
+     }
+
+    /**
      * Hoert auf. Muss beim Verlassen des Bildschirms gerufen werden - Senden
      * und Empfangen laufen sonst weiter und ziehen Akku, auch wenn niemand
      * mehr hinsieht.
@@ -191,6 +236,7 @@ class PartnerBeacon(
     fun stop() {
         if (!running) return
         running = false
+        scanning = false
         try {
             adapter?.bluetoothLeScanner?.stopScan(scanCallback)
             adapter?.bluetoothLeAdvertiser?.stopAdvertising(advertiseCallback)

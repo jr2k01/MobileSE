@@ -195,7 +195,7 @@
     <string name="crew_challenges_title">Crew Challenges</string>
     <string name="contributions_label">Contributions</string>
     <string name="delete_challenge_desc">Delete challenge</string>
-    <string name="no_challenges_yet">No challenges yet. Add one to get the crew moving.</string>
+    <string name="no_challenges_yet">No challenge is running. A shared goal for the crew shows up here, and every workout counts towards it.</string>
     <string name="create_challenge_title">Create New Challenge</string>
     <string name="challenge_type_label">Challenge type</string>
     <string name="challenge_type_running">Running (Total km)</string>
@@ -745,11 +745,15 @@
     <string name="contribution_sessions">%d sessions</string>
 
     <!-- Workouts -->
-    <string name="no_activities_yet">No activities recorded yet.</string>
+    <string name="no_activities_yet">Nothing logged yet. Your own workouts appear here, the newest first.</string>
     <string name="see_all_activities">See all activities</string>
     <string name="scope_mine">My activities</string>
     <string name="scope_crew">Whole crew</string>
-    <string name="no_crew_activities_yet">Nobody in the crew has recorded an activity yet.</string>
+    <string name="no_crew_activities_yet">Nobody in the crew has logged a workout yet. Everything the crew trains lands here.</string>
+    <!-- Der Startbildschirm zeigt nur die drei juengsten. -->
+    <string name="no_home_activities_yet">No workouts in this crew yet. The three latest ones appear here.</string>
+    <!-- Beschriftung des Knopfes unter einem leeren Hinweis. -->
+    <string name="empty_action_log_workout">Log a workout</string>
     <string name="select_sport">Please select a sport</string>
     <string name="sport_other">Other sport…</string>
     <string name="sport_custom_title">Which sport?</string>

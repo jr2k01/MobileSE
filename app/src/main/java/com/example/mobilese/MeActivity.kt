@@ -145,8 +145,13 @@ class MeActivity : AppCompatActivity() {
 
         val container = findViewById<LinearLayout>(R.id.llMeActivities)
         container.removeAllViews()
-        findViewById<View>(R.id.tvMeActivitiesEmpty).visibility =
-            if (shown.isEmpty()) View.VISIBLE else View.GONE
+
+        if (shown.isEmpty()) {
+            EmptyState.show(container, R.string.no_activities_yet, R.string.empty_action_log_workout) {
+                startActivity(Intent(this, WorkoutTrackingActivity::class.java))
+            }
+            return
+        }
 
         val inflater = LayoutInflater.from(this)
         shown.take(MAX_ROWS).forEach { activity ->

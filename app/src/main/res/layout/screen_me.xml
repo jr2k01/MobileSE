@@ -195,16 +195,6 @@
                 android:orientation="vertical"
                 android:layout_marginTop="12dp" />
 
-            <TextView
-                android:id="@+id/tvMeActivitiesEmpty"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                android:text="@string/no_activities_yet"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant" />
-
             <!-- === Medaillen === -->
             <TextView
                 style="@style/TextAppearance.CrewFit.SectionLabel"

@@ -648,6 +648,19 @@ class MainHubActivity : AppCompatActivity() {
             .sortedByDescending { ActivityTime.sortKey(it.timestamp) }
             .take(3)
 
+        // Eine frische Crew hat hier nichts stehen, und eine leere Flaeche
+        // unter einer Ueberschrift sieht aus wie ein Ladefehler.
+        if (latest.isEmpty()) {
+            EmptyState.show(
+                llLatestActivities,
+                R.string.no_home_activities_yet,
+                R.string.empty_action_log_workout
+            ) {
+                startActivity(Intent(this, WorkoutTrackingActivity::class.java))
+            }
+            return
+        }
+
         for (activity in latest) {
             val view = inflater.inflate(R.layout.item_feed_entry, llLatestActivities, false)
             val author = nameById[activity.userId]?.takeIf { it.isNotBlank() }

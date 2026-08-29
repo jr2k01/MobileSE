@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Was an einer Stelle steht, an der noch nichts ist.
+
+    Eine leere Flaeche sagt nicht, ob etwas fehlt, kaputt ist oder schlicht noch
+    nichts passiert ist. Deshalb stehen hier immer zwei Dinge: **was** hier
+    erscheinen wird, und - wo es einen gibt - der Weg dorthin. Der Knopf ist
+    optional; wo der Bildschirm ohnehin schon einen traegt, bleibt er weg,
+    sonst stuenden zwei Wege zum selben Ziel nebeneinander.
+
+    Bewusst eine gemeinsame Ansicht und kein Textfeld je Bildschirm: vorher
+    baute jeder Bildschirm sein eigenes zusammen, mit eigener Schriftgroesse,
+    eigenem Abstand und einmal sogar einer Farbe aus der Zeit vor Material 3.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="48dp"
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:id="@+id/tvEmptyText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:lineSpacingExtra="2dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEmptyAction"
+        style="@style/Widget.CrewFit.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:visibility="gone" />
+
+</LinearLayout>

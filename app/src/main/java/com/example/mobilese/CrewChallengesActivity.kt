@@ -2,7 +2,6 @@ package com.example.mobilese
 
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -112,13 +111,9 @@ class CrewChallengesActivity : AppCompatActivity() {
         container.removeAllViews()
 
         if (snapshot.challenges.isEmpty()) {
-            container.addView(TextView(this).apply {
-                setText(R.string.no_challenges_yet)
-                textSize = 16f
-                setPadding(0, 100, 0, 0)
-                gravity = Gravity.CENTER
-                setTextColor(ContextCompat.getColor(this@CrewChallengesActivity, R.color.text_secondary))
-            })
+            // Ohne Knopf: die beiden Wege, eine Challenge zu beginnen, stehen
+            // unten am Bildschirm und sind von hier aus zu sehen.
+            EmptyState.show(container, R.string.no_challenges_yet)
             return
         }
 

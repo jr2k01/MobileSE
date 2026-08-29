@@ -1,7 +1,7 @@
 package com.example.mobilese
 
+import android.content.Intent
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageButton
@@ -114,12 +114,11 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         container.removeAllViews()
 
         if (entries.isEmpty()) {
-            container.addView(TextView(this).apply {
-                setText(emptyTextRes)
-                textSize = 16f
-                setPadding(0, 100, 0, 0)
-                gravity = Gravity.CENTER
-            })
+            // Der Knopf fuehrt in beiden Ausschnitten ins Formular: auch die
+            // leere Crew-Liste fuellt man, indem man selbst etwas eintraegt.
+            EmptyState.show(container, emptyTextRes, R.string.empty_action_log_workout) {
+                startActivity(Intent(this, WorkoutTrackingActivity::class.java))
+            }
             return
         }
 

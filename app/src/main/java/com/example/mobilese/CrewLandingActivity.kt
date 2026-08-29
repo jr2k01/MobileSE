@@ -43,6 +43,9 @@ class CrewLandingActivity : AppCompatActivity() {
 
         setContentView(R.layout.screen_crew_landing)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.LANDING)
         findViewById<Button>(R.id.btnCreateCrew).setOnClickListener {
             startActivity(Intent(this, CreateCrewActivity::class.java))
         }

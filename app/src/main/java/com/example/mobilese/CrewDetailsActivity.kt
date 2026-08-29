@@ -41,6 +41,9 @@ class CrewDetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_details)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.CREW)
         repository = AppRepository.get(this)
         // finish() verhindert, dass eine leere Activity stehen bleibt.
         crewCode = repository.getJoinedCrewCode() ?: run {

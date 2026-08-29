@@ -121,6 +121,9 @@ class TrainingPartnerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_training_partner)
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.PARTNER)
         setUpTopBar(R.string.partner_title)
 
         repository = AppRepository.get(this)

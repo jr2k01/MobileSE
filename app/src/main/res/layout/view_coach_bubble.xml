@@ -56,14 +56,18 @@
             android:gravity="end"
             android:orientation="horizontal">
 
-            <!-- Abbrechen steht links und leise: es ist der seltenere Weg,
-                 aber ohne ihn waere die Einfuehrung eine Sperre. -->
+            <!-- Der Ausstieg steht links und ohne Flaeche: er ist der
+                 seltenere Weg, aber ohne ihn waere die Einfuehrung eine
+                 Sperre. Rot wie jeder Abbruch in dieser App, damit niemand
+                 ihn fuer den Weg weiter haelt - auf einer Uebergabe ist er
+                 der einzige Knopf, der ueberhaupt dasteht. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCoachSkip"
                 style="@style/Widget.CrewFit.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/coach_skip" />
+                android:text="@string/coach_skip"
+                android:textColor="?attr/colorError" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCoachNext"

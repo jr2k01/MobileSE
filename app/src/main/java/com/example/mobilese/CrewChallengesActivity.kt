@@ -53,6 +53,9 @@ class CrewChallengesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_crew_challenges)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.CHALLENGES)
         repository = AppRepository.get(this)
         crewCode = repository.getJoinedCrewCode() ?: run { finish(); return }
 

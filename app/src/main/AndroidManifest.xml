@@ -108,6 +108,7 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".WelcomeActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".CrewLandingActivity" android:exported="false" />
         <activity android:name=".RegistrationActivity" android:exported="false" />

@@ -42,6 +42,9 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_search)
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.SEARCH)
         setUpTopBar(R.string.search_title)
 
         repository = AppRepository.get(this)

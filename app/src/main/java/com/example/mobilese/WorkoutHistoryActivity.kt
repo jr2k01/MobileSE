@@ -39,6 +39,9 @@ class WorkoutHistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_history)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.HISTORY)
         repository = AppRepository.get(this)
         container = findViewById(R.id.llActivitiesContainer)
 

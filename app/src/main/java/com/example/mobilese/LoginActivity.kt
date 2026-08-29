@@ -141,7 +141,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun openApp() {
+    private suspend fun openApp() {
         // Schuetzt davor, den naechsten Bildschirm zweimal zu starten, falls
         // zwei Pruefungen kurz hintereinander zurueckkommen.
         if (navigated) return
@@ -156,7 +156,17 @@ class LoginActivity : AppCompatActivity() {
         val target =
             if (repository.getJoinedCrewCode() != null) MainHubActivity::class.java
             else CrewLandingActivity::class.java
-        startActivity(Intent(this, target))
+
+        // Beim ersten Mal auf diesem Geraet zuerst die Frage nach der
+        // Fuehrung; danach fuehrt der Weg von selbst wieder hierher.
+        val userId = repository.currentUserId()
+        startActivity(
+            if (userId != null && WelcomeActivity.pending(this, userId)) {
+                WelcomeActivity.intent(this, userId, target)
+            } else {
+                Intent(this, target)
+            }
+        )
         finish()
     }
 

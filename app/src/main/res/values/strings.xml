@@ -3,6 +3,13 @@
 
     <!-- Login -->
     <string name="welcome_back">Welcome back</string>
+
+    <!-- Der Bildschirm nach der ersten Anmeldung. -->
+    <string name="welcome_intro_title">Welcome to CrewFit</string>
+    <string name="welcome_intro_text">Training with your crew: you log a workout with a photo as proof, everyone sees it, and the points put you in a ranking. The tour walks you through the six screens and says what each one is for.</string>
+    <string name="welcome_intro_start">Take the tour</string>
+    <string name="welcome_intro_skip">Not now</string>
+    <string name="welcome_intro_hint">About two minutes. You can start it later from the settings.</string>
     <string name="login_sub">Sign in to train with your crew.</string>
     <string name="email_hint">Email Address</string>
     <string name="password_hint">Password</string>
@@ -759,7 +766,7 @@
     <string name="coach_progress">%1$d of %2$d</string>
     <string name="coach_next">Next</string>
     <string name="coach_done">Got it</string>
-    <string name="coach_skip">Skip</string>
+    <string name="coach_skip">Leave tutorial</string>
 
     <string name="coach_crew_title">Your crew</string>
     <string name="coach_crew_text">Everything on this screen is about one crew. Tap the name to switch, to join another, or to start your own.</string>
@@ -769,6 +776,8 @@
     <string name="coach_streak_text">Every day with a workout or a reached step goal keeps it alive. From five days in a row, the points of that day are multiplied.</string>
     <string name="coach_podium_title">The top three of the crew</string>
     <string name="coach_podium_text">Points come from how long you trained and how hard. Whoever trains together with someone counts double.</string>
+    <string name="coach_all_title">All the workouts</string>
+    <string name="coach_all_text">Above are the newest few. Tap here for the whole history - the introduction carries on there.</string>
     <string name="coach_crew_tab_title">Crew</string>
     <string name="coach_crew_tab_text">Members, the QR code that invites them, challenges and battles against other crews.</string>
     <string name="coach_workout_title">Log a workout</string>
@@ -780,9 +789,187 @@
     <string name="coach_settings_title">Settings</string>
     <string name="coach_settings_text">Permissions, steps, your profile - and this introduction, whenever you want to see it again.</string>
 
+    <!-- Der gefuehrte Weg: jeder Bildschirm endet mit dem Weg zum naechsten -->
+    <string name="coach_go_crew_title">Now the crew</string>
+    <string name="coach_go_crew_text">Tap here to open the crew screen. The introduction carries on there.</string>
+    <string name="coach_go_workout_title">Next: log a workout</string>
+    <string name="coach_go_workout_text">Go back with the arrow, then tap the plus in the middle of the bar.</string>
+    <string name="coach_go_ranking_title">Next: the ranking</string>
+    <string name="coach_go_ranking_text">Go back with the arrow, then tap Ranking in the bar.</string>
+    <string name="coach_go_me_title">Next: your own screen</string>
+    <string name="coach_go_me_text">Go back with the arrow, then tap Me in the bar.</string>
+    <string name="coach_go_settings_title">Last one: the settings</string>
+    <string name="coach_go_settings_text">Go back with the arrow, then tap Settings in the bar.</string>
+    <string name="coach_go_done_title">That was all of it</string>
+    <string name="coach_go_done_text">Everything else explains itself the first time you open it. From here you can start the whole introduction again whenever you like.</string>
+
+    <!-- Die Wegweiser: sie stehen auf dem Startbildschirm und zeigen auf
+         den Reiter der naechsten Station. -->
+    <string name="coach_to_crew_title">Next: your crew</string>
+    <string name="coach_to_crew_text">Tap the crew tab on the left. The introduction carries on there.</string>
+    <string name="coach_to_workout_title">Next: logging a workout</string>
+    <string name="coach_to_workout_text">Tap the plus in the middle of the bar.</string>
+    <string name="coach_to_ranking_title">Next: the ranking</string>
+    <string name="coach_to_ranking_text">Tap Ranking in the bar.</string>
+    <string name="coach_to_me_title">Next: your own screen</string>
+    <string name="coach_to_me_text">Tap Me in the bar.</string>
+    <string name="coach_to_settings_title">Last one: the settings</string>
+    <string name="coach_to_settings_text">Tap Settings on the right. It is the last stop.</string>
+
+    <!-- Die Einfuehrung des Formulars -->
+    <string name="coach_w_sport_title">Sport</string>
+    <string name="coach_w_sport_text">Pick one of the six, or type your own. The sport decides the intensity, and the intensity decides how much a minute is worth.</string>
+    <string name="coach_w_duration_title">Duration</string>
+    <string name="coach_w_duration_text">In minutes. From ten minutes upwards a workout scores; below that it counts as done but is worth nothing.</string>
+    <string name="coach_w_distance_title">Distance</string>
+    <string name="coach_w_distance_text">Only for sports where it means something - running, cycling, swimming. It does not go into the points.</string>
+    <string name="coach_w_photo_title">The photo</string>
+    <string name="coach_w_photo_text">Required. A number that anyone can type is not proof, and the crew sees the picture under the entry.</string>
+    <string name="coach_w_place_title">Where you trained</string>
+    <string name="coach_w_place_text">The name of the place is stored, not the raw coordinates, and the history draws a small map from them.</string>
+    <string name="coach_w_voice_title">Voice note</string>
+    <string name="coach_w_voice_text">Optional, up to a minute. For what the numbers do not say.</string>
+    <string name="coach_w_save_title">Save</string>
+    <string name="coach_w_save_text">The workout goes to the crew, the points are counted, and everyone gets a notification.</string>
+
+    <!-- Die Einfuehrung des Crew-Bildschirms -->
+    <string name="coach_c_image_title">The crew picture</string>
+    <string name="coach_c_image_text">The founder changes it by tapping. Everyone else sees it in the header of the home screen.</string>
+    <string name="coach_c_level_title">Crew level</string>
+    <string name="coach_c_level_text">From the average of its members, not their sum - otherwise a crew would climb by taking someone in. A won battle is worth 250 points.</string>
+    <string name="coach_c_code_title">QR code and crew code</string>
+    <string name="coach_c_code_text">Both let someone join straight away, without asking. Whoever finds the crew through the search has to ask instead.</string>
+    <string name="coach_c_members_title">Members</string>
+    <string name="coach_c_members_text">Tap a name for their profile: level, medals, steps today, and the crews you share.</string>
+    <string name="coach_c_requests_title">Join requests</string>
+    <string name="coach_c_requests_text">Only the captain sees this: whoever asked to join, to accept or decline.</string>
+    <string name="coach_c_challenges_title">Challenges</string>
+    <string name="coach_c_challenges_text">A shared goal for the whole crew. Every workout counts towards it.</string>
+    <string name="coach_c_battles_title">Crew battles</string>
+    <string name="coach_c_battles_text">Challenge another crew. Nothing counts until they accept, and whoever reaches the goal first takes the pot.</string>
+    <string name="coach_c_leave_title">Leaving</string>
+    <string name="coach_c_leave_text">Your workouts stay, but they no longer count in this crew\'s ranking.</string>
+
+    <!-- Die Einfuehrung der Rangliste -->
+    <string name="coach_r_tabs_title">Two views</string>
+    <string name="coach_r_tabs_text">The ranking itself, and the numbers behind it: the week, the sports, and who contributed what.</string>
+    <string name="coach_r_list_title">The ranking</string>
+    <string name="coach_r_list_text">Points, the bar against whoever leads, and today\'s step ring for every member.</string>
+    <string name="coach_r_meme_title">The champion\'s board</string>
+    <string name="coach_r_meme_text">Whoever leads the crew may hang a picture here. It stays until the next leader replaces it.</string>
+
+    <!-- Die Einfuehrung des Me-Bildschirms -->
+    <string name="coach_m_level_title">Your level</string>
+    <string name="coach_m_level_text">From all points across every crew you are in. After level 100 comes prestige.</string>
+    <string name="coach_m_streak_title">Your streak</string>
+    <string name="coach_m_streak_text">A workout or a reached step goal keeps it alive; from five days in a row the day\'s points are multiplied.</string>
+    <string name="coach_m_filter_title">Crew filter</string>
+    <string name="coach_m_filter_text">Everything below can be narrowed to one crew, or left across all of them.</string>
+    <string name="coach_m_stats_title">Your totals</string>
+    <string name="coach_m_stats_text">Workouts, minutes and kilometres of whatever the filter above is showing.</string>
+    <string name="coach_m_medals_title">Medals</string>
+    <string name="coach_m_medals_text">Seven of them, earned from what you already do. The grey ones are still ahead of you.</string>
+
+    <!-- Die Einfuehrung der Einstellungen -->
+    <string name="coach_s_profile_title">Your profile</string>
+    <string name="coach_s_profile_text">Name, picture, date of birth, body data - and the short name the crew sees.</string>
+    <string name="coach_s_theme_title">Appearance</string>
+    <string name="coach_s_theme_text">Light, dark, or whatever the system is set to.</string>
+    <string name="coach_s_push_title">Notifications</string>
+    <string name="coach_s_push_text">When someone in the crew logs a workout, when the ranking moves, and when another crew challenges yours.</string>
+    <string name="coach_s_private_title">Private profile</string>
+    <string name="coach_s_private_text">A private profile stays out of the search. It is filtered in the database, so it is not even transmitted.</string>
+    <string name="coach_s_permissions_title">Permissions</string>
+    <string name="coach_s_permissions_text">Camera, microphone, location, photos and nearby devices, each with what it is for and whether it is granted.</string>
+    <string name="coach_s_health_title">Health Connect</string>
+    <string name="coach_s_health_text">Where the step count comes from. CrewFit only reads it, and only the number of steps per day.</string>
+    <string name="coach_s_delete_title">Delete profile</string>
+    <string name="coach_s_delete_text">Removes your workouts, your crew membership and your files. There is no way back.</string>
+
+    <!-- Die Einfuehrung der Challenges -->
+    <string name="coach_ch_list_title">Running challenges</string>
+    <string name="coach_ch_list_text">Goal, deadline, progress - and underneath, who contributed how much and what their share of the reward is.</string>
+    <string name="coach_ch_new_title">A new challenge</string>
+    <string name="coach_ch_new_text">Type, target and deadline. The reward is shared by contribution: whoever did nothing gets nothing.</string>
+
+    <!-- Die Einfuehrung der Battles -->
+    <string name="coach_b_start_title">Challenge a crew</string>
+    <string name="coach_b_start_text">Pick an opponent, a goal and a deadline. It is one row for both crews, so goal and deadline cannot drift apart.</string>
+    <string name="coach_b_received_title">Invitations to you</string>
+    <string name="coach_b_received_text">Nothing counts until you accept. Declining removes the invitation for both sides.</string>
+    <string name="coach_b_sent_title">What you sent</string>
+    <string name="coach_b_sent_text">Waiting for the other crew. Until they accept, no workout counts towards it.</string>
+
+    <!-- Die Einfuehrung des Verlaufs -->
+    <string name="coach_h_scope_title">Two lists</string>
+    <string name="coach_h_scope_text">Your own workouts, or everything the crew has logged.</string>
+    <string name="coach_h_rows_title">One row per workout</string>
+    <string name="coach_h_rows_text">The small icons show whether there is a photo, a place and a voice note. Tapping opens the whole entry.</string>
+    <string name="coach_back_home_title">Back to the start</string>
+    <string name="coach_back_home_text">Tap the arrow. The introduction carries on where it left off.</string>
+
+    <!-- Die Einfuehrung eines Workouts -->
+    <string name="coach_d_photo_title">The proof</string>
+    <string name="coach_d_photo_text">The picture that was taken when the workout was logged.</string>
+    <string name="coach_d_stats_title">The numbers</string>
+    <string name="coach_d_stats_text">Duration, distance, points and - if a watch was there - the pulse.</string>
+    <string name="coach_d_map_title">The place</string>
+    <string name="coach_d_map_text">Drawn from map tiles, without a map SDK. Older entries have no coordinates and therefore no map.</string>
+    <string name="coach_d_voice_title">Voice note</string>
+    <string name="coach_d_voice_text">Play what was said about this workout.</string>
+    <string name="coach_d_reactions_title">React</string>
+    <string name="coach_d_reactions_text">Five emoji. One per person and workout; tapping again takes it back.</string>
+    <string name="coach_d_comment_title">Comment</string>
+    <string name="coach_d_comment_text">Five ready-made ones for a quick word, or your own text.</string>
+
+    <!-- Die Einfuehrung des gemeinsamen Trainings -->
+    <string name="coach_p_search_title">Looking for someone</string>
+    <string name="coach_p_search_text">Your phone announces itself over Bluetooth and listens for others. Only members of your own crew are shown.</string>
+    <string name="coach_p_found_title">Whoever is nearby</string>
+    <string name="coach_p_found_text">Tap a name to pair. Important: only one of you taps - two attempts at the same time cross each other.</string>
+    <string name="coach_p_clock_title">The shared clock</string>
+    <string name="coach_p_clock_text">One picks the sport, both see the same time. If the connection drops the clock stops, and it carries on when the connection is back.</string>
+    <string name="coach_p_stop_title">Stopping</string>
+    <string name="coach_p_stop_text">Whoever stops it stops it for everyone. Sport and duration are then fixed for both; photo and place each fill in for themselves.</string>
+    <string name="coach_p_alone_title">Training alone</string>
+    <string name="coach_p_alone_text">Skips all of this. Together is worth double, but only if the phones really were in the same room.</string>
+
+    <!-- Die Einfuehrung des Crew-Einstiegs -->
+    <string name="coach_l_create_title">Found a crew</string>
+    <string name="coach_l_create_text">You become its captain: you accept requests, change the picture, and start battles.</string>
+    <string name="coach_l_scan_title">Scan a QR code</string>
+    <string name="coach_l_scan_text">Whoever shows you the code of their crew gets you in straight away.</string>
+    <string name="coach_l_code_title">Or type the code</string>
+    <string name="coach_l_code_text">Six characters, shown on the crew screen of every member.</string>
+
+    <!-- Die Einfuehrung der Suche -->
+    <string name="coach_se_field_title">Search</string>
+    <string name="coach_se_field_text">Two characters are enough. Finds people and crews at the same time.</string>
+    <string name="coach_se_results_title">The results</string>
+    <string name="coach_se_results_text">A person leads to their profile, a crew to a request to join.</string>
+
+    <!-- Die Einfuehrung des eigenen Profils -->
+    <string name="coach_pr_photo_title">Your picture</string>
+    <string name="coach_pr_photo_text">Tap it to take a new one or pick one from the gallery.</string>
+    <string name="coach_pr_name_title">Short name</string>
+    <string name="coach_pr_name_text">What the crew sees in narrow rows. Left empty, it becomes your first name and the initial of your surname.</string>
+    <string name="coach_pr_body_title">Height and weight</string>
+    <string name="coach_pr_body_text">For your own record. The points come from duration and intensity, not from your body data.</string>
+    <string name="coach_pr_following_title">Following</string>
+    <string name="coach_pr_following_text">The people you follow. Open a crew member and tap Follow to add one.</string>
+    <string name="coach_pr_medals_title">Your medals</string>
+    <string name="coach_pr_medals_text">Seven of them, and what is still missing for the next one.</string>
+
+    <!-- Die Einfuehrung eines fremden Profils -->
+    <string name="coach_mb_follow_title">Follow</string>
+    <string name="coach_mb_follow_text">Keeps this person in your list, so you find them again without searching.</string>
+    <string name="coach_mb_steps_title">Steps today</string>
+    <string name="coach_mb_steps_text">How far they are towards the daily goal of ten thousand.</string>
+    <string name="coach_mb_stats_title">Their numbers</string>
+    <string name="coach_mb_stats_text">Points, workouts and medals - and below them, the crews you have in common.</string>
+
     <string name="settings_show_intro">Show the introduction again</string>
-    <string name="settings_show_intro_hint">The nine hints on the home screen</string>
-    <string name="settings_intro_reset">The introduction starts on the home screen</string>
+    <string name="settings_show_intro_hint">Walks you through every screen again, from the start</string>
     <string name="select_sport">Please select a sport</string>
     <string name="sport_other">Other sport…</string>
     <string name="sport_custom_title">Which sport?</string>

@@ -155,6 +155,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             }
             applyJointSession()
             showPartnerBanner()
+            CoachTour.start(this, Tours.WORKOUT)
         }
 
     /**
@@ -205,7 +206,9 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             .setPositiveButton(R.string.together_with) { _, _ ->
                 pickPartner.launch(TrainingPartnerActivity.intent(this))
             }
-            .setNegativeButton(R.string.together_alone, null)
+            .setNegativeButton(R.string.together_alone) { _, _ ->
+                CoachTour.start(this, Tours.WORKOUT)
+            }
             .setCancelable(false)
             .show()
     }
@@ -249,7 +252,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         // Nur beim ersten Aufbau fragen. Nach dem Drehen des Geraets stuende
         // der Dialog sonst wieder da, obwohl die Frage laengst beantwortet
         // ist - und die Antwort waere verloren.
-        if (savedInstanceState == null && !JointSession.isFinished()) askIfTrainingTogether()
+        // Die Einfuehrung erst nach der Partnerfrage: der Dialog ist ein
+        // eigenes Fenster und liegt ueber der Ebene der Einfuehrung. Beides
+        // gleichzeitig zu zeigen hiesse, zwei Dinge gleichzeitig zu verlangen.
+        if (savedInstanceState == null && !JointSession.isFinished()) {
+            askIfTrainingTogether()
+        } else {
+            CoachTour.start(this, Tours.WORKOUT)
+        }
         partnerIds = savedInstanceState?.getStringArrayList(STATE_PARTNER_IDS).orEmpty()
         showPartnerBanner()
 

@@ -43,6 +43,9 @@ class WorkoutDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_workout_detail)
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.DETAIL)
         setUpTopBar(R.string.workout_detail_title)
         repository = AppRepository.get(this)
 

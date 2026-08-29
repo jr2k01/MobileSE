@@ -53,6 +53,9 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_settings)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.SETTINGS)
         repository = AppRepository.get(this)
         setUpTopBar(R.string.settings_title)
 
@@ -72,8 +75,12 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
         findViewById<View>(R.id.llShowIntro).setOnClickListener {
-            CoachTour.reset(this, CoachTour.HOME)
-            Toast.makeText(this, R.string.settings_intro_reset, Toast.LENGTH_SHORT).show()
+            // Der Weg beginnt auf dem Startbildschirm, und von hier ist das
+            // der Bildschirm darunter: schliessen genuegt, dann faengt die
+            // Fuehrung dort von selbst an. Eine Meldung braucht es nicht -
+            // die Erklaerung steht gleich selbst da.
+            CoachTour.begin(this)
+            finish()
         }
 
         findViewById<View>(R.id.llStepsPrivacy).setOnClickListener {

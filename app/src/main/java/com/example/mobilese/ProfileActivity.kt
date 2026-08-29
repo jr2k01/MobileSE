@@ -35,6 +35,9 @@ class ProfileActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_profile)
 
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.PROFILE)
         repository = AppRepository.get(this)
         currentUserEmail = repository.getCurrentUser() ?: run {
             finish()

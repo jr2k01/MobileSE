@@ -35,6 +35,9 @@ class MemberProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_member_profile)
+        // Nur waehrend des Tutorialmodus, und dort einmal: sonst kostet
+        // der Aufruf einen Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, Tours.MEMBER)
         setUpTopBar(R.string.member_profile_title)
 
         repository = AppRepository.get(this)

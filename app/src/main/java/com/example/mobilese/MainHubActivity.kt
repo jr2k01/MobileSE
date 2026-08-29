@@ -52,6 +52,32 @@ class MainHubActivity : AppCompatActivity() {
      */
     private class PodiumPlace(val avatar: ImageView, val avatarHolder: View)
 
+    /**
+     * Die Einfuehrung dieses Bildschirms.
+     *
+     * Erst der Startbildschirm von oben nach unten, dann die fuenf Reiter der
+     * unteren Leiste - einzeln, nicht die Leiste als Ganzes. Wer zum ersten
+     * Mal hier steht, sieht fuenf Zeichen ohne Zusammenhang; ein Kegel um alle
+     * fuenf haette gesagt "hier geht es weiter", aber nicht wohin.
+     *
+     * Die Reiter tragen die Kennungen ihrer Menueeintraege, und die
+     * Navigationsleiste vergibt sie an die Ansichten der einzelnen Punkte.
+     * Deshalb findet der Kegel sie, ohne dass die Leiste etwas davon wissen
+     * muss - und auf dem Tablet, wo dieselben Punkte in der senkrechten
+     * Schiene liegen, genauso.
+     */
+    private val HOME_TOUR = listOf(
+        CoachTour.Step(R.id.llCrewSwitch, R.string.coach_crew_title, R.string.coach_crew_text),
+        CoachTour.Step(R.id.stepsCard, R.string.coach_steps_title, R.string.coach_steps_text),
+        CoachTour.Step(R.id.streakCard, R.string.coach_streak_title, R.string.coach_streak_text),
+        CoachTour.Step(R.id.podium, R.string.coach_podium_title, R.string.coach_podium_text),
+        CoachTour.Step(R.id.navCrew, R.string.coach_crew_tab_title, R.string.coach_crew_tab_text),
+        CoachTour.Step(R.id.navAddWorkout, R.string.coach_workout_title, R.string.coach_workout_text),
+        CoachTour.Step(R.id.navLeaderboard, R.string.coach_ranking_title, R.string.coach_ranking_text),
+        CoachTour.Step(R.id.navMe, R.string.coach_me_title, R.string.coach_me_text),
+        CoachTour.Step(R.id.navSettings, R.string.coach_settings_title, R.string.coach_settings_text)
+    )
+
     private val voicePlayer = VoicePlayer { toast(R.string.playback_failed) }
 
     /** Laufender Ladevorgang, damit sich zwei Aufrufe nicht ueberholen. */
@@ -178,6 +204,9 @@ class MainHubActivity : AppCompatActivity() {
         // App offen ist, und nach dem Eintragen soll die Karte verschwunden
         // sein, sobald man zurueckkommt.
         showPendingWorkout()
+        // Beim ersten Mal die Einfuehrung; danach kostet der Aufruf einen
+        // Blick in die Einstellungen und tut nichts.
+        CoachTour.start(this, CoachTour.HOME, HOME_TOUR)
     }
 
     /**

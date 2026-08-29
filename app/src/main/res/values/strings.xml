@@ -754,6 +754,35 @@
     <string name="no_home_activities_yet">No workouts in this crew yet. The three latest ones appear here.</string>
     <!-- Beschriftung des Knopfes unter einem leeren Hinweis. -->
     <string name="empty_action_log_workout">Log a workout</string>
+
+    <!-- Die Einfuehrung beim ersten Start: fuenf Halte auf dem Startbildschirm. -->
+    <string name="coach_progress">%1$d of %2$d</string>
+    <string name="coach_next">Next</string>
+    <string name="coach_done">Got it</string>
+    <string name="coach_skip">Skip</string>
+
+    <string name="coach_crew_title">Your crew</string>
+    <string name="coach_crew_text">Everything on this screen is about one crew. Tap the name to switch, to join another, or to start your own.</string>
+    <string name="coach_steps_title">Steps today</string>
+    <string name="coach_steps_text">Read from Health Connect once you allow it. Ten thousand steps in a day are worth bonus points in the ranking.</string>
+    <string name="coach_streak_title">Your streak</string>
+    <string name="coach_streak_text">Every day with a workout or a reached step goal keeps it alive. From five days in a row, the points of that day are multiplied.</string>
+    <string name="coach_podium_title">The top three of the crew</string>
+    <string name="coach_podium_text">Points come from how long you trained and how hard. Whoever trains together with someone counts double.</string>
+    <string name="coach_crew_tab_title">Crew</string>
+    <string name="coach_crew_tab_text">Members, the QR code that invites them, challenges and battles against other crews.</string>
+    <string name="coach_workout_title">Log a workout</string>
+    <string name="coach_workout_text">The plus in the middle. A photo is required: a number that anyone can type is not proof.</string>
+    <string name="coach_ranking_title">Ranking</string>
+    <string name="coach_ranking_text">Who is ahead this week, where the points came from, and the picture the leader puts up.</string>
+    <string name="coach_me_title">Me</string>
+    <string name="coach_me_text">Your level, your streak, your workouts across all crews, and the medals you have earned.</string>
+    <string name="coach_settings_title">Settings</string>
+    <string name="coach_settings_text">Permissions, steps, your profile - and this introduction, whenever you want to see it again.</string>
+
+    <string name="settings_show_intro">Show the introduction again</string>
+    <string name="settings_show_intro_hint">The nine hints on the home screen</string>
+    <string name="settings_intro_reset">The introduction starts on the home screen</string>
     <string name="select_sport">Please select a sport</string>
     <string name="sport_other">Other sport…</string>
     <string name="sport_custom_title">Which sport?</string>

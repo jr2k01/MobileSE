@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Die Sprechblase der Einfuehrung: was der gerade freigestellte Bereich tut.
+
+    Eine echte Karte mit echten Knoepfen und keine auf die Leinwand gemalte
+    Blase. Gemalter Text bricht nicht um, waechst nicht mit der
+    Schriftgroesse des Systems und ist fuer die Sprachausgabe nicht vorhanden -
+    hier ist alles davon geschenkt.
+-->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- "2 von 5" - damit man weiss, wie lange das noch dauert. -->
+        <TextView
+            android:id="@+id/tvCoachProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textColor="?attr/colorPrimary" />
+
+        <TextView
+            android:id="@+id/tvCoachTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface" />
+
+        <TextView
+            android:id="@+id/tvCoachText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="2dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <!-- Abbrechen steht links und leise: es ist der seltenere Weg,
+                 aber ohne ihn waere die Einfuehrung eine Sperre. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCoachSkip"
+                style="@style/Widget.CrewFit.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/coach_skip" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCoachNext"
+                style="@style/Widget.CrewFit.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:minWidth="120dp"
+                android:text="@string/coach_next" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

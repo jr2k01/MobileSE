@@ -384,6 +384,36 @@
                     android:paddingTop="14dp"
                     android:paddingBottom="14dp">
 
+                    <!-- Die Einfuehrung gehoert hierher und nicht zu den
+                         Schritten: sie erklaert die App, nicht eine Messung.
+                         Ohne diesen Weg liesse sie sich nach dem ersten Mal
+                         nie wieder ansehen - weder von einem neuen Mitglied
+                         der Crew noch beim Vorfuehren. -->
+                    <LinearLayout
+                        android:id="@+id/llShowIntro"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingTop="4dp"
+                        android:paddingBottom="14dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/settings_show_intro"
+                            android:textAppearance="@style/TextAppearance.CrewFit.SettingsTitle" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/settings_show_intro_hint"
+                            android:textAppearance="@style/TextAppearance.CrewFit.SettingsSubtitle" />
+                    </LinearLayout>
+
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

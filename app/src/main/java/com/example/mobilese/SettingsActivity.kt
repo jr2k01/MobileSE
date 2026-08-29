@@ -71,6 +71,11 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<View>(R.id.llSettingsProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
+        findViewById<View>(R.id.llShowIntro).setOnClickListener {
+            CoachTour.reset(this, CoachTour.HOME)
+            Toast.makeText(this, R.string.settings_intro_reset, Toast.LENGTH_SHORT).show()
+        }
+
         findViewById<View>(R.id.llStepsPrivacy).setOnClickListener {
             startActivity(Intent(this, HealthPrivacyActivity::class.java))
         }

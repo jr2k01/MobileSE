@@ -778,20 +778,10 @@
     <string name="coach_podium_text">Points come from how long you trained and how hard. Whoever trains together with someone counts double.</string>
     <string name="coach_all_title">All the workouts</string>
     <string name="coach_all_text">Above are the newest few. Tap here for the whole history - the introduction carries on there.</string>
-    <string name="coach_crew_tab_title">Crew</string>
-    <string name="coach_crew_tab_text">Members, the QR code that invites them, challenges and battles against other crews.</string>
-    <string name="coach_workout_title">Log a workout</string>
-    <string name="coach_workout_text">The plus in the middle. A photo is required: a number that anyone can type is not proof.</string>
-    <string name="coach_ranking_title">Ranking</string>
-    <string name="coach_ranking_text">Who is ahead this week, where the points came from, and the picture the leader puts up.</string>
-    <string name="coach_me_title">Me</string>
-    <string name="coach_me_text">Your level, your streak, your workouts across all crews, and the medals you have earned.</string>
-    <string name="coach_settings_title">Settings</string>
-    <string name="coach_settings_text">Permissions, steps, your profile - and this introduction, whenever you want to see it again.</string>
 
     <!-- Der gefuehrte Weg: jeder Bildschirm endet mit dem Weg zum naechsten -->
     <string name="coach_go_crew_title">Now the crew</string>
-    <string name="coach_go_crew_text">Tap here to open the crew screen. The introduction carries on there.</string>
+    <string name="coach_go_crew_text">Members, the QR code that invites them, challenges and battles against other crews. Tap the crew tab to open it.</string>
     <string name="coach_go_workout_title">Next: log a workout</string>
     <string name="coach_go_workout_text">Go back with the arrow, then tap the plus in the middle of the bar.</string>
     <string name="coach_go_ranking_title">Next: the ranking</string>
@@ -806,15 +796,15 @@
     <!-- Die Wegweiser: sie stehen auf dem Startbildschirm und zeigen auf
          den Reiter der naechsten Station. -->
     <string name="coach_to_crew_title">Next: your crew</string>
-    <string name="coach_to_crew_text">Tap the crew tab on the left. The introduction carries on there.</string>
+    <string name="coach_to_crew_text">Members, the QR code that invites them, challenges and battles against other crews. Tap the crew tab on the left.</string>
     <string name="coach_to_workout_title">Next: logging a workout</string>
-    <string name="coach_to_workout_text">Tap the plus in the middle of the bar.</string>
+    <string name="coach_to_workout_text">Where a workout is logged. A photo is required: a number that anyone can type is not proof. Tap the plus in the middle of the bar.</string>
     <string name="coach_to_ranking_title">Next: the ranking</string>
-    <string name="coach_to_ranking_text">Tap Ranking in the bar.</string>
+    <string name="coach_to_ranking_text">Who is ahead this week, where the points came from, and the picture the leader puts up. Tap Ranking in the bar.</string>
     <string name="coach_to_me_title">Next: your own screen</string>
-    <string name="coach_to_me_text">Tap Me in the bar.</string>
+    <string name="coach_to_me_text">Your level, your streak, your workouts across all crews, and the medals you have earned. Tap Me in the bar.</string>
     <string name="coach_to_settings_title">Last one: the settings</string>
-    <string name="coach_to_settings_text">Tap Settings on the right. It is the last stop.</string>
+    <string name="coach_to_settings_text">Permissions, steps, your profile - and this introduction, whenever you want to see it again. Tap Settings on the right. It is the last stop.</string>
 
     <!-- Die Einfuehrung des Formulars -->
     <string name="coach_w_sport_title">Sport</string>

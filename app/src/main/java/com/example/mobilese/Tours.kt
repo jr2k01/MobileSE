@@ -38,9 +38,15 @@ object Tours {
     /**
      * Startbildschirm.
      *
-     * Erst der Bildschirm von oben nach unten, dann die fuenf Reiter einzeln -
-     * ein Kegel um die ganze Leiste haette gesagt "hier geht es weiter", aber
-     * nicht wohin.
+     * Der Bildschirm von oben nach unten, und am Ende der Weg zur naechsten
+     * Station.
+     *
+     * Hier standen einmal fuenf weitere Halte, einer je Reiter der unteren
+     * Leiste. Sie erklaerten alle Reiter auf einmal - und danach lief der Weg
+     * durch dieselben fuenf Bildschirme noch einmal, in derselben Reihenfolge.
+     * Man bekam also alles zweimal: erst kurz, dann ausfuehrlich. Was die
+     * Halte sagten, steht jetzt in dem Wegweiser, der zum jeweiligen Reiter
+     * schickt - eine Erklaerung an der Stelle, an der sie gebraucht wird.
      */
     val HOME = Tour("home", listOf(
         step(R.id.llCrewSwitch, R.string.coach_crew_title, R.string.coach_crew_text),
@@ -48,11 +54,6 @@ object Tours {
         step(R.id.streakCard, R.string.coach_streak_title, R.string.coach_streak_text),
         step(R.id.podium, R.string.coach_podium_title, R.string.coach_podium_text),
         handOver(R.id.btnAllActivities, R.string.coach_all_title, R.string.coach_all_text),
-        step(R.id.navCrew, R.string.coach_crew_tab_title, R.string.coach_crew_tab_text),
-        step(R.id.navAddWorkout, R.string.coach_workout_title, R.string.coach_workout_text),
-        step(R.id.navLeaderboard, R.string.coach_ranking_title, R.string.coach_ranking_text),
-        step(R.id.navMe, R.string.coach_me_title, R.string.coach_me_text),
-        step(R.id.navSettings, R.string.coach_settings_title, R.string.coach_settings_text),
         handOver(R.id.navCrew, R.string.coach_go_crew_title, R.string.coach_go_crew_text)
     ))
 
@@ -183,6 +184,10 @@ object Tours {
      * steht deshalb der Wegweiser zur naechsten da - ein einzelner Halt auf
      * ihrem Reiter, ohne Knopf. Damit ist der Weg an keiner Stelle zu Ende,
      * bevor er wirklich zu Ende ist.
+     *
+     * Jeder Wegweiser sagt zuerst, was hinter dem Reiter liegt, und dann, dass
+     * man ihn antippen soll. So wird jeder Reiter genau einmal erklaert,
+     * naemlich in dem Moment, in dem er an der Reihe ist.
      */
     val BRIDGE = mapOf(
         CREW.id to handOver(R.id.navCrew,

@@ -433,19 +433,48 @@ drop policy if exists "crew_memes_read" on crew_memes;
 create policy "crew_memes_read" on crew_memes
     for select to authenticated using (true);
 
--- Aufhaengen und abnehmen nur unter eigenem Namen.
+-- Aufhaengen nur unter eigenem Namen.
 drop policy if exists "crew_memes_insert_own" on crew_memes;
 create policy "crew_memes_insert_own" on crew_memes
     for insert to authenticated with check (auth.uid() = user_id);
 
+-- Ueberschreiben darf jedes Mitglied der Crew - aber nur, indem es die Zeile
+-- auf den eigenen Namen setzt.
 drop policy if exists "crew_memes_update_own" on crew_memes;
-create policy "crew_memes_update_own" on crew_memes
-    for update to authenticated using (auth.uid() = user_id);
+drop policy if exists "crew_memes_update_by_member" on crew_memes;
+create policy "crew_memes_update_by_member" on crew_memes
+    for update to authenticated
+    using (
+        exists (
+            select 1 from crew_members m
+            where m.crew_id = crew_memes.crew_id
+              and m.user_id = auth.uid()
+        )
+    )
+    with check (auth.uid() = user_id);
 
+-- Abnehmen ebenso.
 drop policy if exists "crew_memes_delete_own" on crew_memes;
-create policy "crew_memes_delete_own" on crew_memes
-    for delete to authenticated using (auth.uid() = user_id);
+drop policy if exists "crew_memes_delete_by_member" on crew_memes;
+create policy "crew_memes_delete_by_member" on crew_memes
+    for delete to authenticated using (
+        exists (
+            select 1 from crew_members m
+            where m.crew_id = crew_memes.crew_id
+              and m.user_id = auth.uid()
+        )
+    );
 ```
+
+**Warum das Ueberschreiben nicht am eigenen Namen haengen darf.** Die Tabelle
+hat eine Zeile je Crew. Haengt jemand ein Bild auf, wo schon eines haengt, wird
+daraus kein `insert`, sondern ein `update` der bestehenden Zeile - und deren
+`user_id` gehoert dem **bisherigen** Besitzer. Eine Regel `using (auth.uid() =
+user_id)` liest also den alten Wert und laesst nur den durch, der das aktuelle
+Bild aufgehaengt hat. Wer neu an die Spitze zieht, kommt nicht daran vorbei; war
+der Gruender der Erste, der etwas aufgehaengt hat, blieb es fuer immer bei ihm.
+Deshalb prueft `using` jetzt die Mitgliedschaft und `with check` den Namen: an
+die Zeile darf die Crew, hineinschreiben darf jeder nur sich selbst.
 
 Dazu einen **oeffentlichen Storage-Bucket namens `memes`** anlegen: Supabase →
 **Storage** → **New bucket**, Name `memes`, "Public bucket" einschalten - wie
@@ -474,6 +503,12 @@ oder Austauschen nur, was jemand selbst hochgeladen hat. Erkennbar ist das am
 Ordner: was unter `presets/` liegt, bleibt liegen.
 
 **Was die Regeln nicht koennen:** Dass nur der Fuehrende aufhaengen darf, prueft
+die App - die Regeln oben lassen jedes Crew-Mitglied an die Zeile. Die App
+rechnet den Rang bei jeder Rueckkehr auf den Bildschirm neu und zeigt die
+Schaltflaechen nur dem Ersten; zieht jemand vorbei, verliert der bisherige
+Erste sie beim naechsten Blick.
+
+Genauer: Dass nur der Fuehrende aufhaengen darf, prueft
 die App. In der Datenbank laesst sich das nicht durchsetzen, weil der Rang aus
 Aktivitaeten, Belohnungen und Schritten in der App gerechnet wird und dort gar
 nicht bekannt ist. Die Regeln oben stellen nur sicher, dass niemand unter

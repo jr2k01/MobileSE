@@ -79,7 +79,20 @@ class LeaderboardActivity : AppCompatActivity() {
         setUpTopBar(R.string.crew_ranking)
         setUpPullToRefresh { load() }
         setUpTabs(savedInstanceState)
+    }
 
+    /**
+     * Neu laden, sooft der Bildschirm nach vorn kommt.
+     *
+     * Wer aufhaengen darf, haengt am Rang, und der aendert sich waehrend die
+     * App laeuft: traegt jemand anderes ein Workout ein, zieht er womoeglich
+     * vorbei. Wurde nur beim Oeffnen geladen, behielt der bisherige Erste
+     * seine Schaltflaechen, bis jemand von Hand herunterzog - und der neue
+     * Erste bekam seine nicht. Nur hier und nicht zusaetzlich in onCreate:
+     * onResume laeuft beim Start ohnehin direkt danach.
+     */
+    override fun onResume() {
+        super.onResume()
         load()
     }
 

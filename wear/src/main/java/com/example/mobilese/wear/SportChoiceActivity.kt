@@ -1,11 +1,18 @@
 package com.example.mobilese.wear
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -23,9 +30,18 @@ import java.util.Locale
  */
 class SportChoiceActivity : AppCompatActivity() {
 
+    /**
+     * Die Antwort auf die Rechtefrage. Sie wird nicht ausgewertet: wer
+     * ablehnt, trainiert eben ohne Puls, und das steht spaeter im Bildschirm.
+     */
+    private val askForSensors =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.screen_sport_choice)
+
+        askBeforeTheClockRuns()
 
         val container = findViewById<LinearLayout>(R.id.llSports)
         val inflater = LayoutInflater.from(this)
@@ -38,6 +54,39 @@ class SportChoiceActivity : AppCompatActivity() {
             }
             container.addView(row)
         }
+    }
+
+    /**
+     * Die Rechte erfragen, **bevor** die Stoppuhr laeuft.
+     *
+     * Gefragt wurde frueher erst im Trainingsbildschirm - also nachdem der
+     * Dienst gestartet und die Uhr angelaufen war. Wer zehn Sekunden ueberlegt,
+     * ob er seine Vitalwerte hergeben will, hatte danach zehn Sekunden
+     * Training, die er nicht trainiert hat. Hier steht die Frage vor der
+     * Sportauswahl, wo noch nichts zaehlt.
+     *
+     * Gefragt wird nur nach dem, wofuer diese Uhr auch einen Sensor hat: eine
+     * Frage nach dem Schrittzaehler, wo keiner verbaut ist, waere ein Dialog,
+     * auf den nichts folgt - und der naechste wird dann schneller weggetippt
+     * als gelesen.
+     */
+    private fun askBeforeTheClockRuns() {
+        val sensors = getSystemService(SensorManager::class.java)
+        val needed = buildList {
+            if (sensors?.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null) {
+                add(Manifest.permission.BODY_SENSORS)
+            }
+            if (sensors?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null) {
+                add(Manifest.permission.ACTIVITY_RECOGNITION)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        val missing = needed.filterNot {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) askForSensors.launch(missing.toTypedArray())
     }
 
     /**

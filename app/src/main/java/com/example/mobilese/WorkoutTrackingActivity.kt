@@ -10,6 +10,8 @@ import android.location.LocationManager
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.Bundle
 import android.os.Environment
 import android.text.InputType
@@ -39,6 +41,15 @@ import java.util.Locale
 class WorkoutTrackingActivity : AppCompatActivity() {
 
     companion object {
+
+        /**
+         * Wie lange auf eine Position gewartet wird.
+         *
+         * Kommt drinnen keine, ist auch nach einer Minute keine da - besonders
+         * wenn nur GPS freigegeben ist. Wer so lange vor einem "Suche..."
+         * sitzt, haelt die App fuer kaputt.
+         */
+        private const val LOCATION_WAIT_MILLIS = 20_000L
         /**
          * Das Workout von der Uhr, das hier ergaenzt werden soll - erkannt an
          * seinem Ende in Millisekunden.
@@ -255,7 +266,13 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         // Die Einfuehrung erst nach der Partnerfrage: der Dialog ist ein
         // eigenes Fenster und liegt ueber der Ebene der Einfuehrung. Beides
         // gleichzeitig zu zeigen hiesse, zwei Dinge gleichzeitig zu verlangen.
-        if (savedInstanceState == null && !JointSession.isFinished()) {
+        // Kommt das Workout von der Uhr, ist es bereits gelaufen. Dann nach
+        // "allein oder zusammen" zu fragen hiesse, eine Entscheidung zu
+        // verlangen, die niemand mehr treffen kann - trainiert wurde schon.
+        val fromWatch = savedInstanceState?.containsKey(STATE_PENDING_AT) == true ||
+                intent.hasExtra(EXTRA_PENDING_AT)
+
+        if (savedInstanceState == null && !JointSession.isFinished() && !fromWatch) {
             askIfTrainingTogether()
         } else {
             CoachTour.start(this, Tours.WORKOUT)
@@ -411,6 +428,14 @@ class WorkoutTrackingActivity : AppCompatActivity() {
             applySport(workout.sport, etSport, tilDistance, etDistance)
             etDuration.setText(workout.minutes.toString())
         }
+
+        // Sportart und Dauer hat die Uhr gemessen; sie stehen fest. Aendern
+        // liesse sie zu etwas anderem werden, als tatsaechlich stattgefunden
+        // hat - und der Puls, der mitgeschickt wurde, gehoerte dann zu einem
+        // Training, das es so nie gab. Die Distanz bleibt offen: die misst die
+        // Uhr nicht, und ohne sie liesse sich ein Lauf gar nicht eintragen.
+        etSport.isEnabled = false
+        etDuration.isEnabled = false
 
         val notice = findViewById<TextView>(R.id.tvWatchNotice)
         notice.visibility = View.VISIBLE
@@ -832,7 +857,51 @@ class WorkoutTrackingActivity : AppCompatActivity() {
         if (active == 0) {
             locationListener = null
             tvLocation.setText(R.string.location_unavailable)
+            return
         }
+
+        // Sofort nehmen, was das Geraet schon weiss.
+        //
+        // Ein frischer Fix kann drinnen ewig dauern oder gar nicht kommen -
+        // besonders wenn nur GPS freigegeben ist und die Netzwerkortung aus.
+        // Vorher stand dann endlos "Suche...", und das Workout liess sich
+        // nicht speichern, weil der Ort Pflicht ist. Die zuletzt bekannte
+        // Position ist fuer "wo hast du trainiert" genau genug; kommt danach
+        // doch noch ein echter Fix, ersetzt er sie.
+        lastKnown(manager)?.let { onPositionFound(it.latitude, it.longitude) }
+
+        // Und wenn gar nichts kommt, soll das dastehen statt eines Wartens
+        // ohne Ende.
+        locationTimeout.removeCallbacksAndMessages(null)
+        locationTimeout.postDelayed({
+            if (pickedLatitude == null) {
+                stopLocationUpdates()
+                tvLocation.setText(R.string.location_unavailable)
+            }
+        }, LOCATION_WAIT_MILLIS)
+    }
+
+    /** Zaehlt die Frist ab, die der Ortung eingeraeumt wird. */
+    private val locationTimeout = Handler(Looper.getMainLooper())
+
+    /**
+     * Die zuletzt bekannte Position, aus welcher Quelle auch immer.
+     *
+     * Beide Anbieter werden gefragt und der neuere gewinnt: der eine ist
+     * drinnen oft aktueller, der andere draussen.
+     */
+    private fun lastKnown(manager: LocationManager): Location? = try {
+        listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+            .mapNotNull { provider ->
+                try {
+                    manager.getLastKnownLocation(provider)
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            }
+            .maxByOrNull { it.time }
+    } catch (e: SecurityException) {
+        null
     }
 
     /**
@@ -957,6 +1026,7 @@ class WorkoutTrackingActivity : AppCompatActivity() {
      * Stromverbrauch und einer gehaltenen Referenz auf die Activity.
      */
     private fun stopLocationUpdates() {
+        locationTimeout.removeCallbacksAndMessages(null)
         val listener = locationListener ?: return
         try {
             locationManager?.removeUpdates(listener)

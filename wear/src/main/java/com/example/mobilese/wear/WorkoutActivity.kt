@@ -80,7 +80,9 @@ class WorkoutActivity : AppCompatActivity() {
             }
 
             findViewById<TextView>(R.id.tvSport).text = bound.sport
-            requestSensorsIfNeeded(bound)
+            // Hier wird nicht mehr gefragt - das erledigt die Sportauswahl,
+            // bevor die Stoppuhr laeuft. Gemessen wird, was erlaubt ist.
+            workout?.attachSensors()
             draw()
         }
 
@@ -129,26 +131,6 @@ class WorkoutActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unbindService(connection)
-    }
-
-    /**
-     * Nur die Rechte erfragen, fuer die diese Uhr auch einen Sensor hat.
-     *
-     * Nach dem Schrittzaehler zu fragen, wo keiner verbaut ist, waere ein
-     * Dialog, auf den nichts folgt - und die naechste Frage wird dann schneller
-     * weggetippt als gelesen.
-     */
-    private fun requestSensorsIfNeeded(running: WorkoutService) {
-        val needed = buildList {
-            if (running.hasHeartRateSensor()) add(Manifest.permission.BODY_SENSORS)
-            if (running.hasStepSensor()) add(Manifest.permission.ACTIVITY_RECOGNITION)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                add(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-        val missing = needed.filterNot { isGranted(it) }
-
-        if (missing.isNotEmpty()) askForSensors.launch(missing.toTypedArray())
     }
 
     private fun isGranted(permission: String): Boolean =
